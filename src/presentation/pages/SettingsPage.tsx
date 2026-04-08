@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { emit } from "@tauri-apps/api/event";
 import { useAppConfig } from "@presentation/contexts/ConfigContext";
+import { OVERLAY_EVENTS, type OverlayConfigChangedPayload } from "@shared/types/overlayEvents";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -171,6 +173,10 @@ export function SettingsPage() {
   ) {
     setter(value);
     await config.set(key, value);
+    await emit(OVERLAY_EVENTS.OVERLAY_CONFIG_CHANGED, {
+      key,
+      value,
+    } satisfies OverlayConfigChangedPayload);
   }
 
   // Salva nome com debounce ao perder foco

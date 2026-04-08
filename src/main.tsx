@@ -4,6 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import "./index.css";
 import App from "./App";
 import { OverlayApp } from "@presentation/overlays/OverlayApp";
+import { WelcomeApp } from "@presentation/overlays/WelcomeApp";
 
 const label = getCurrentWindow().label;
 
@@ -13,6 +14,12 @@ if (label === "overlay") {
   root.render(
     <StrictMode>
       <OverlayApp />
+    </StrictMode>,
+  );
+} else if (label === "welcome") {
+  root.render(
+    <StrictMode>
+      <WelcomeApp />
     </StrictMode>,
   );
 } else {

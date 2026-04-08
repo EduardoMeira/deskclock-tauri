@@ -10,7 +10,12 @@ import { resumeTask as resumeTaskUC } from "@domain/usecases/tasks/ResumeTask";
 import { stopTask as stopTaskUC } from "@domain/usecases/tasks/StopTask";
 import { startTask as startTaskUC } from "@domain/usecases/tasks/StartTask";
 import { ConfigProvider, useAppConfig } from "@presentation/contexts/ConfigContext";
-import { OVERLAY_EVENTS, type RunningTaskChangedPayload } from "@shared/types/overlayEvents";
+import {
+  OVERLAY_EVENTS,
+  type RunningTaskChangedPayload,
+  type OverlaySetModePayload,
+  type OverlayConfigChangedPayload,
+} from "@shared/types/overlayEvents";
 import { snapPositionToGrid } from "@shared/utils/snapToGrid";
 import { ExecutionOverlayContent } from "./ExecutionOverlayContent";
 import { PlanningOverlayContent } from "./PlanningOverlayContent";
@@ -32,9 +37,26 @@ function OverlayAppInner() {
   const [runningTask, setRunningTask] = useState<Task | null>(null);
   const [mode, setMode] = useState<OverlayMode>("compact");
   const [isHovered, setIsHovered] = useState(false);
+  const [overlayOpacity, setOverlayOpacity] = useState(100);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Carrega task inicial e define modo
+  // switchMode definido antes dos effects que dependem dele
+  const switchMode = useCallback(
+    async (newMode: OverlayMode) => {
+      const { width, height } = OVERLAY_SIZES[newMode];
+      await appWindow.setSize(new PhysicalSize(width, height));
+
+      const key = `overlayPosition_${newMode}` as Parameters<typeof config.get>[0];
+      const saved = config.get(key) as { x: number; y: number };
+      if (saved && saved.x >= 0 && saved.y >= 0) {
+        await appWindow.setPosition(new PhysicalPosition(saved.x, saved.y));
+      }
+      setMode(newMode);
+    },
+    [config],
+  );
+
+  // Carrega task inicial, define modo e sincroniza opacidade
   useEffect(() => {
     if (!config.isLoaded) return;
     getActiveTasks(taskRepo).then((tasks) => {
@@ -42,7 +64,32 @@ function OverlayAppInner() {
       setRunningTask(running);
       setMode(running ? "execution" : "planning");
     });
+    setOverlayOpacity(config.get("overlayOpacity") as number);
   }, [config.isLoaded]);
+
+  // Atualiza opacidade em tempo real quando o setting muda
+  useEffect(() => {
+    const unlisten = listen<OverlayConfigChangedPayload>(
+      OVERLAY_EVENTS.OVERLAY_CONFIG_CHANGED,
+      ({ payload }) => {
+        if (payload.key === "overlayOpacity") {
+          setOverlayOpacity(payload.value as number);
+        }
+      },
+    );
+    return () => { unlisten.then((fn) => fn()); };
+  }, []);
+
+  // Muda modo quando solicitado pelo main window (ex: após fechar welcome)
+  useEffect(() => {
+    const unlisten = listen<OverlaySetModePayload>(
+      OVERLAY_EVENTS.OVERLAY_SET_MODE,
+      ({ payload }) => {
+        switchMode(payload.mode);
+      },
+    );
+    return () => { unlisten.then((fn) => fn()); };
+  }, [switchMode]);
 
   // Restaura posição salva ao montar
   useEffect(() => {
@@ -95,21 +142,6 @@ function OverlayAppInner() {
     };
   }, [config, mode]);
 
-  const switchMode = useCallback(
-    async (newMode: OverlayMode) => {
-      const { width, height } = OVERLAY_SIZES[newMode];
-      await appWindow.setSize(new PhysicalSize(width, height));
-
-      const key = `overlayPosition_${newMode}` as Parameters<typeof config.get>[0];
-      const saved = config.get(key) as { x: number; y: number };
-      if (saved && saved.x >= 0 && saved.y >= 0) {
-        await appWindow.setPosition(new PhysicalPosition(saved.x, saved.y));
-      }
-      setMode(newMode);
-    },
-    [config],
-  );
-
   const handlePause = useCallback(async () => {
     if (!runningTask) return;
     const updated = await pauseTaskUC(taskRepo, runningTask.id, new Date().toISOString());
@@ -159,7 +191,7 @@ function OverlayAppInner() {
     await appWindow.hide();
   }, []);
 
-  const opacity = isHovered ? 1 : (config.get("overlayOpacity") as number) / 100;
+  const opacity = isHovered ? 1 : overlayOpacity / 100;
 
   return (
     <div

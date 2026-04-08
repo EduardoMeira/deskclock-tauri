@@ -1,16 +1,20 @@
-import { useEffect, useState } from "react";
-import { listen } from "@tauri-apps/api/event";
+import { useEffect, useRef, useState } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { emit, listen } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { ConfigProvider, useAppConfig } from "@presentation/contexts/ConfigContext";
 import { RunningTaskProvider, useRunningTask } from "@presentation/contexts/RunningTaskContext";
 import { Sidebar, type Page } from "@presentation/components/Sidebar";
-import { WelcomeOverlay } from "@presentation/overlays/WelcomeOverlay";
 import { TasksPage } from "@presentation/pages/TasksPage";
 import { PlanningPage } from "@presentation/pages/PlanningPage";
 import { HistoryPage } from "@presentation/pages/HistoryPage";
 import { DataPage } from "@presentation/pages/DataPage";
 import { SettingsPage } from "@presentation/pages/SettingsPage";
-import { OVERLAY_EVENTS } from "@shared/types/overlayEvents";
+import {
+  OVERLAY_EVENTS,
+  type WelcomeClosedPayload,
+  type OverlaySetModePayload,
+} from "@shared/types/overlayEvents";
 
 function PageContent({ page }: { page: Page }) {
   switch (page) {
@@ -26,62 +30,94 @@ async function getOverlay() {
   return WebviewWindow.getByLabel("overlay");
 }
 
-// Componente interno — tem acesso a config E a useRunningTask
+async function getWelcome() {
+  return WebviewWindow.getByLabel("welcome");
+}
+
+// MainContent — inside RunningTaskProvider, has access to useRunningTask
 function MainContent({
   page,
   setPage,
-  showWelcome,
-  setShowWelcome,
+  welcomeActiveRef,
 }: {
   page: Page;
   setPage: (p: Page) => void;
-  showWelcome: boolean;
-  setShowWelcome: (v: boolean) => void;
+  welcomeActiveRef: React.MutableRefObject<boolean>;
 }) {
   const { startTask } = useRunningTask();
-  const config = useAppConfig();
 
-  async function handleWelcomeNewTask() {
-    setShowWelcome(false);
-    await startTask({ billable: true });
-  }
+  useEffect(() => {
+    const unlisten = listen<WelcomeClosedPayload>(
+      OVERLAY_EVENTS.WELCOME_CLOSED,
+      async ({ payload }) => {
+        welcomeActiveRef.current = false;
+
+        if (payload.action === "navigate-planning") {
+          setPage("planning");
+        } else if (payload.action === "start-task") {
+          await startTask({ billable: true });
+          return; // startTask handles showing the overlay
+        }
+
+        // For "navigate-planning" and "close": show compact overlay
+        const overlay = await getOverlay();
+        if (overlay) {
+          await overlay.show();
+          await emit(OVERLAY_EVENTS.OVERLAY_SET_MODE, {
+            mode: "compact",
+          } satisfies OverlaySetModePayload);
+        }
+      },
+    );
+    return () => { unlisten.then((fn) => fn()); };
+  }, [startTask, setPage, welcomeActiveRef]);
 
   return (
-    <>
-      <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden">
-        <Sidebar current={page} onChange={setPage} />
-        <main className="flex-1 ml-14 overflow-hidden">
-          <PageContent page={page} />
-        </main>
-      </div>
-
-      {showWelcome && (
-        <WelcomeOverlay
-          userName={config.get("userName")}
-          onNavigatePlanning={() => { setShowWelcome(false); setPage("planning"); }}
-          onNewTask={handleWelcomeNewTask}
-        />
-      )}
-    </>
+    <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden">
+      <Sidebar current={page} onChange={setPage} />
+      <main className="flex-1 ml-14 overflow-hidden">
+        <PageContent page={page} />
+      </main>
+    </div>
   );
 }
+
+const appWindow = getCurrentWindow();
 
 function AppInner() {
   const config = useAppConfig();
   const [page, setPage] = useState<Page>("tasks");
-  const [showWelcome, setShowWelcome] = useState(false);
+  const welcomeActiveRef = useRef(false);
 
-  // Decide se mostra WelcomeOverlay ou overlay window ao iniciar
+  // Show welcome or overlay on startup
   useEffect(() => {
     if (!config.isLoaded) return;
     if (config.get("showWelcomeMessage")) {
-      setShowWelcome(true);
+      getWelcome().then((w) => {
+        if (!w) return;
+        w.show();
+        // Delay activating the ref so the initial window-focus event (fired at
+        // app start, before this effect runs) is not mistakenly treated as a
+        // tray-triggered focus.
+        setTimeout(() => { welcomeActiveRef.current = true; }, 200);
+      });
     } else if (config.get("overlayAlwaysVisible")) {
       getOverlay().then((overlay) => overlay?.show());
     }
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Ouve evento de navegação vindo do overlay (botão "Ir para planejamento")
+  // Close welcome when main window gains focus (e.g., tray icon click)
+  useEffect(() => {
+    const unlisten = appWindow.listen("tauri://focus", async () => {
+      if (!welcomeActiveRef.current) return;
+      welcomeActiveRef.current = false;
+      const w = await getWelcome();
+      await w?.hide();
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Navigate to planning when triggered from overlay
   useEffect(() => {
     const unlisten = listen(OVERLAY_EVENTS.OVERLAY_NAVIGATE_PLANNING, () => {
       setPage("planning");
@@ -91,12 +127,7 @@ function AppInner() {
 
   return (
     <RunningTaskProvider config={config}>
-      <MainContent
-        page={page}
-        setPage={setPage}
-        showWelcome={showWelcome}
-        setShowWelcome={setShowWelcome}
-      />
+      <MainContent page={page} setPage={setPage} welcomeActiveRef={welcomeActiveRef} />
     </RunningTaskProvider>
   );
 }
