@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { createPlannedTask } from "@domain/usecases/plannedTasks/CreatePlannedTask";
 import type { IPlannedTaskRepository } from "@domain/repositories/IPlannedTaskRepository";
-import type { PlannedTask } from "@domain/entities/PlannedTask";
 
 function makeRepo(overrides: Partial<IPlannedTaskRepository> = {}): IPlannedTaskRepository {
   return {
