@@ -1,7 +1,22 @@
 import { useState, useMemo } from "react";
-import { X, Download, Copy, Check, Star, Pencil, Trash2, Plus, ArrowUp, ArrowDown } from "lucide-react";
+import { X, Download, Copy, Check, Star, Pencil, Trash2, Plus, GripVertical } from "lucide-react";
 import { save as tauriSaveDialog } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import * as XLSX from "xlsx";
 import { useExportProfiles } from "@presentation/hooks/useExportProfiles";
 import { DatePickerInput } from "@presentation/components/DatePickerInput";
@@ -27,6 +42,34 @@ interface ExportModalProps {
   onClose: () => void;
 }
 
+// ─── Sortable column row ─────────────────────────────────────────────────────
+
+interface SortableColumnProps {
+  col: ExportColumn;
+  idx: number;
+  onToggle: (idx: number) => void;
+  onRename: (idx: number, label: string) => void;
+}
+
+function SortableColumn({ col, idx, onToggle, onRename }: SortableColumnProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: col.field });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2 px-2 py-1.5 bg-gray-800 rounded">
+      <button {...attributes} {...listeners} className="text-gray-600 hover:text-gray-400 cursor-grab active:cursor-grabbing shrink-0">
+        <GripVertical size={14} />
+      </button>
+      <input type="checkbox" checked={col.visible} onChange={() => onToggle(idx)} className="accent-blue-500 shrink-0" />
+      <input value={col.label} onChange={(e) => onRename(idx, e.target.value)}
+        className="flex-1 bg-transparent text-sm text-gray-200 focus:outline-none" />
+    </div>
+  );
+}
+
 // ─── Aba Configurar Perfil ────────────────────────────────────────────────────
 
 interface ProfileFormProps {
@@ -44,12 +87,15 @@ function ProfileForm({ initial, onSave, onCancel }: ProfileFormProps) {
   const [isDefault, setIsDefault] = useState(initial.isDefault ?? false);
   const [columns, setColumns] = useState<ExportColumn[]>(initial.columns ?? [...DEFAULT_COLUMNS]);
 
-  function moveCol(idx: number, dir: -1 | 1) {
-    const next = [...columns];
-    const swap = idx + dir;
-    if (swap < 0 || swap >= next.length) return;
-    [next[idx], next[swap]] = [next[swap], next[idx]];
-    setColumns(next.map((c, i) => ({ ...c, order: i })));
+  const sensors = useSensors(useSensor(PointerSensor));
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIdx = columns.findIndex((c) => c.field === active.id);
+      const newIdx = columns.findIndex((c) => c.field === over.id);
+      setColumns(arrayMove(columns, oldIdx, newIdx).map((c, i) => ({ ...c, order: i })));
+    }
   }
 
   function toggleVisible(idx: number) {
@@ -119,18 +165,16 @@ function ProfileForm({ initial, onSave, onCancel }: ProfileFormProps) {
 
       {/* Colunas */}
       <div>
-        <p className="text-xs text-gray-400 mb-2">Colunas</p>
-        <div className="flex flex-col gap-1">
-          {columns.map((col, idx) => (
-            <div key={col.field} className="flex items-center gap-2 px-2 py-1.5 bg-gray-800 rounded">
-              <input type="checkbox" checked={col.visible} onChange={() => toggleVisible(idx)} className="accent-blue-500 shrink-0" />
-              <input value={col.label} onChange={(e) => renameCol(idx, e.target.value)}
-                className="flex-1 bg-transparent text-sm text-gray-200 focus:outline-none" />
-              <button onClick={() => moveCol(idx, -1)} className="p-0.5 text-gray-500 hover:text-gray-300"><ArrowUp size={12} /></button>
-              <button onClick={() => moveCol(idx, 1)} className="p-0.5 text-gray-500 hover:text-gray-300"><ArrowDown size={12} /></button>
+        <p className="text-xs text-gray-400 mb-2">Colunas <span className="text-gray-600">(arraste para reordenar)</span></p>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={columns.map((c) => c.field)} strategy={verticalListSortingStrategy}>
+            <div className="flex flex-col gap-1">
+              {columns.map((col, idx) => (
+                <SortableColumn key={col.field} col={col} idx={idx} onToggle={toggleVisible} onRename={renameCol} />
+              ))}
             </div>
-          ))}
-        </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       <div className="flex justify-end gap-2 pt-2 border-t border-gray-700">
@@ -162,6 +206,7 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
   const [loaded, setLoaded] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [savedPath, setSavedPath] = useState<string | null>(null);
 
   const activeProfile = useMemo(
     () => profiles.find((p) => p.id === selectedProfileId) ?? profiles.find((p) => p.isDefault) ?? profiles[0],
@@ -195,6 +240,8 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
     });
     if (path) {
       await invoke("save_file", { path, content: Array.from(bytes) });
+      setSavedPath(path);
+      setTimeout(() => setSavedPath(null), 4000);
     }
   }
 
@@ -388,6 +435,14 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
           )}
         </div>
       </div>
+
+      {/* Toast: arquivo salvo */}
+      {savedPath && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-2 px-4 py-2.5 bg-gray-800 border border-gray-600 rounded-lg shadow-xl text-xs text-gray-200 max-w-sm">
+          <Check size={13} className="text-green-400 shrink-0" />
+          <span className="truncate">Salvo em: {savedPath}</span>
+        </div>
+      )}
     </div>
   );
 }
