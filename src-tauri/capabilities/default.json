@@ -3,10 +3,19 @@
   "identifier": "default",
   "description": "enables the default permissions",
   "windows": [
-    "main"
+    "main",
+    "overlay"
   ],
   "permissions": [
     "core:default",
+    "core:window:allow-set-size",
+    "core:window:allow-set-position",
+    "core:window:allow-show",
+    "core:window:allow-hide",
+    "core:window:allow-set-always-on-top",
+    "core:window:allow-start-dragging",
+    "core:event:allow-emit",
+    "core:event:allow-listen",
     "dialog:allow-save",
     "sql:allow-execute",
     "sql:allow-select",

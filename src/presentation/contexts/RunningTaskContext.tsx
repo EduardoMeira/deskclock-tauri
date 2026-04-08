@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { emit, listen } from "@tauri-apps/api/event";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type { Task } from "@domain/entities/Task";
 import { TaskRepository } from "@infra/database/TaskRepository";
 import { getActiveTasks } from "@domain/usecases/tasks/GetActiveTasks";
@@ -8,6 +10,8 @@ import { resumeTask as resumeTaskUC } from "@domain/usecases/tasks/ResumeTask";
 import { stopTask as stopTaskUC } from "@domain/usecases/tasks/StopTask";
 import { cancelTask as cancelTaskUC } from "@domain/usecases/tasks/CancelTask";
 import { updateTask as updateTaskUC } from "@domain/usecases/tasks/UpdateTask";
+import { OVERLAY_EVENTS, type RunningTaskChangedPayload } from "@shared/types/overlayEvents";
+import type { AppConfig } from "@presentation/contexts/ConfigContext";
 
 interface StartInput {
   name?: string | null;
@@ -27,7 +31,6 @@ interface UpdateInput {
 
 interface RunningTaskContextValue {
   runningTask: Task | null;
-  isOverlayVisible: boolean;
   reloadSignal: number;
   startTask: (input: StartInput) => Promise<void>;
   pauseTask: () => Promise<void>;
@@ -35,16 +38,43 @@ interface RunningTaskContextValue {
   stopTask: () => Promise<void>;
   cancelTask: () => Promise<void>;
   updateActiveTask: (input: UpdateInput) => Promise<void>;
-  setOverlayVisible: (v: boolean) => void;
 }
 
 const RunningTaskContext = createContext<RunningTaskContextValue | null>(null);
 
 const repo = new TaskRepository();
 
-export function RunningTaskProvider({ children }: { children: React.ReactNode }) {
+async function getOverlayWindow() {
+  return WebviewWindow.getByLabel("overlay");
+}
+
+async function showOverlay() {
+  const overlay = await getOverlayWindow();
+  await overlay?.show();
+}
+
+async function hideOverlay() {
+  const overlay = await getOverlayWindow();
+  await overlay?.hide();
+}
+
+async function notifyOverlay(task: Task | null) {
+  await emit(OVERLAY_EVENTS.RUNNING_TASK_CHANGED, {
+    task,
+    source: "main",
+  } satisfies RunningTaskChangedPayload);
+}
+
+interface RunningTaskProviderProps {
+  children: React.ReactNode;
+  config: {
+    get<K extends keyof AppConfig>(key: K): AppConfig[K];
+    isLoaded: boolean;
+  };
+}
+
+export function RunningTaskProvider({ children, config }: RunningTaskProviderProps) {
   const [runningTask, setRunningTask] = useState<Task | null>(null);
-  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
   const [reloadSignal, setReloadSignal] = useState(0);
   const mounted = useRef(true);
 
@@ -55,60 +85,97 @@ export function RunningTaskProvider({ children }: { children: React.ReactNode })
       const running = tasks.find((t) => t.status === "running");
       const active = running ?? tasks[0] ?? null;
       setRunningTask(active);
-      if (active) setIsOverlayVisible(true);
     });
     return () => { mounted.current = false; };
   }, []);
 
+  // Ouve ações vindas do overlay (pause, resume, stop iniciados lá)
+  useEffect(() => {
+    const unlisten = listen<RunningTaskChangedPayload>(
+      OVERLAY_EVENTS.RUNNING_TASK_CHANGED,
+      ({ payload }) => {
+        if (payload.source !== "overlay") return;
+        setRunningTask(payload.task);
+        triggerReload();
+      },
+    );
+    return () => { unlisten.then((fn) => fn()); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const triggerReload = useCallback(() => setReloadSignal((s) => s + 1), []);
 
-  const startTask = useCallback(async (input: StartInput) => {
-    const task = await startTaskUC(repo, input, new Date().toISOString());
-    setRunningTask(task);
-    setIsOverlayVisible(true);
-    triggerReload();
-  }, [triggerReload]);
+  const startTask = useCallback(
+    async (input: StartInput) => {
+      const task = await startTaskUC(repo, input, new Date().toISOString());
+      setRunningTask(task);
+      triggerReload();
+      await notifyOverlay(task);
+      if (config.isLoaded && config.get("overlayShowOnStart")) {
+        await showOverlay();
+      }
+    },
+    [triggerReload, config],
+  );
 
   const pauseTask = useCallback(async () => {
     if (!runningTask) return;
     const updated = await pauseTaskUC(repo, runningTask.id, new Date().toISOString());
     setRunningTask(updated);
+    await notifyOverlay(updated);
   }, [runningTask]);
 
   const resumeTask = useCallback(async () => {
     if (!runningTask) return;
     const updated = await resumeTaskUC(repo, runningTask.id, new Date().toISOString());
     setRunningTask(updated);
+    await notifyOverlay(updated);
   }, [runningTask]);
 
   const stopTask = useCallback(async () => {
     if (!runningTask) return;
     await stopTaskUC(repo, runningTask.id, new Date().toISOString());
     setRunningTask(null);
-    setIsOverlayVisible(false);
     triggerReload();
-  }, [runningTask, triggerReload]);
+    await notifyOverlay(null);
+    if (config.isLoaded && !config.get("overlayAlwaysVisible")) {
+      await hideOverlay();
+    }
+  }, [runningTask, triggerReload, config]);
 
   const cancelTask = useCallback(async () => {
     if (!runningTask) return;
     await cancelTaskUC(repo, runningTask.id);
     setRunningTask(null);
-    setIsOverlayVisible(false);
     triggerReload();
-  }, [runningTask, triggerReload]);
+    await notifyOverlay(null);
+    if (config.isLoaded && !config.get("overlayAlwaysVisible")) {
+      await hideOverlay();
+    }
+  }, [runningTask, triggerReload, config]);
 
-  const updateActiveTask = useCallback(async (input: UpdateInput) => {
-    if (!runningTask) return;
-    const updated = await updateTaskUC(repo, runningTask.id, input, new Date().toISOString());
-    setRunningTask(updated);
-  }, [runningTask]);
+  const updateActiveTask = useCallback(
+    async (input: UpdateInput) => {
+      if (!runningTask) return;
+      const updated = await updateTaskUC(repo, runningTask.id, input, new Date().toISOString());
+      setRunningTask(updated);
+      await notifyOverlay(updated);
+    },
+    [runningTask],
+  );
 
   return (
-    <RunningTaskContext.Provider value={{
-      runningTask, isOverlayVisible, reloadSignal,
-      startTask, pauseTask, resumeTask, stopTask, cancelTask, updateActiveTask,
-      setOverlayVisible: setIsOverlayVisible,
-    }}>
+    <RunningTaskContext.Provider
+      value={{
+        runningTask,
+        reloadSignal,
+        startTask,
+        pauseTask,
+        resumeTask,
+        stopTask,
+        cancelTask,
+        updateActiveTask,
+      }}
+    >
       {children}
     </RunningTaskContext.Provider>
   );
