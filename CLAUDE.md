@@ -488,6 +488,13 @@ src/
 | Data | Decisão | Contexto |
 |---|---|---|
 | — | Documento criado | Especificação inicial do projeto |
+| 08/04/2026 | Use cases como funções puras (não classes) | Testabilidade máxima; repositório injetado como argumento, sem IoC container |
+| 08/04/2026 | UUID gerado no frontend via `uuid` lib | Schema SQL simples (sem AUTOINCREMENT), compatível com arquitetura offline-first |
+| 08/04/2026 | Tailwind CSS v4 com `@import "tailwindcss"` | Sem `tailwind.config.js`; configuração via CSS custom properties e `@theme` se necessário |
+| 08/04/2026 | ESLint 9 flat config (`.mjs`) | Evita conflito com `"type": "module"` no package.json |
+| 08/04/2026 | Build script: `tsc --noEmit && vite build` | Evita complexidade de project references (`tsc -b`); Vite transpila TS internamente |
+| 08/04/2026 | Mock de `@tauri-apps/plugin-sql` em `tests/setup.ts` | Plugin não funciona fora do runtime Tauri; testes de repositório mockam `getDb()` via `vi.mock("@infra/database/db")` |
+| 08/04/2026 | `default_billable` armazenado como INTEGER 0/1 no SQLite | SQLite não tem tipo BOOLEAN nativo; conversão feita na camada infra |
 
 ---
 
