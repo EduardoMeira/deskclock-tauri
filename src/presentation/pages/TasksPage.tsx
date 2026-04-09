@@ -56,6 +56,7 @@ export function TasksPage() {
         tasks={plannedTasks}
         projects={projects}
         dateISO={today}
+        playDisabled={!!runningTask}
         onPlay={handlePlayPlanned}
       />
 

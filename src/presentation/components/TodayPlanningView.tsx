@@ -27,7 +27,7 @@ export function TodayPlanningView() {
   const { categories } = useCategories();
   const { tasks, reload, create, update, remove, complete, uncomplete, duplicate } =
     usePlannedTasksForDate(today);
-  const { startTask } = useRunningTask();
+  const { startTask, runningTask } = useRunningTask();
 
   async function handlePlay(task: PlannedTask) {
     await startTask({
@@ -70,6 +70,7 @@ export function TodayPlanningView() {
           dateISO={today}
           projects={projects}
           categories={categories}
+          playDisabled={!!runningTask}
           onPlay={handlePlay}
           onUpdate={update}
           onComplete={complete}
@@ -91,7 +92,8 @@ export function TodayPlanningView() {
               dateISO={today}
               projects={projects}
               categories={categories}
-              onPlay={handlePlay}
+              playDisabled={!!runningTask}
+          onPlay={handlePlay}
               onUpdate={update}
               onComplete={complete}
               onUncomplete={uncomplete}

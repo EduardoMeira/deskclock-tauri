@@ -25,7 +25,7 @@ interface TodayEntriesSectionProps {
 export function TodayEntriesSection({
   groups, projects, categories, reload, totalSeconds,
 }: TodayEntriesSectionProps) {
-  const { startTask } = useRunningTask();
+  const { startTask, runningTask } = useRunningTask();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   async function handlePlay(task: Task) {
@@ -69,6 +69,7 @@ export function TodayEntriesSection({
               group={g}
               projects={projects}
               categories={categories}
+              playDisabled={!!runningTask}
               onPlay={handlePlay}
               onEdit={setEditingTask}
               onDelete={handleDelete}
