@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Play, Pause, Square, Pencil, X } from "lucide-react";
+import { Play, Pause, Square, Pencil, X, CheckCircle2, Clock } from "lucide-react";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";
 import { useRunningTask } from "@presentation/contexts/RunningTaskContext";
@@ -17,6 +17,7 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
     useRunningTask();
   const seconds = useTaskTimer(runningTask);
   const [editing, setEditing] = useState(false);
+  const [confirmingStop, setConfirmingStop] = useState(false);
 
   if (!runningTask) return null;
 
@@ -28,6 +29,12 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
   async function handlePlayPause() {
     if (isRunning) await pauseTask();
     else await resumeTask();
+  }
+
+  async function handleStopConfirm(completed: boolean) {
+    setConfirmingStop(false);
+    setEditing(false);
+    await stopTask(completed);
   }
 
   async function handleSaveEdit(data: {
@@ -61,34 +68,64 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
 
         <div className="flex items-center gap-1 flex-shrink-0">
           <span className="text-lg font-mono text-gray-100 mr-2">{formatHHMMSS(seconds)}</span>
-          <button
-            onClick={handlePlayPause}
-            title={isRunning ? "Pausar" : "Retomar"}
-            className="p-1.5 text-gray-400 hover:text-gray-100 rounded hover:bg-gray-800"
-          >
-            {isRunning ? <Pause size={16} /> : <Play size={16} />}
-          </button>
-          <button
-            onClick={() => stopTask()}
-            title="Parar"
-            className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800"
-          >
-            <Square size={16} />
-          </button>
-          <button
-            onClick={() => setEditing((v) => !v)}
-            title="Editar"
-            className={`p-1.5 rounded hover:bg-gray-800 ${editing ? "text-blue-400" : "text-gray-400 hover:text-gray-100"}`}
-          >
-            <Pencil size={16} />
-          </button>
-          <button
-            onClick={() => cancelTask()}
-            title="Cancelar tarefa"
-            className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800"
-          >
-            <X size={16} />
-          </button>
+          {confirmingStop ? (
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-gray-500 mr-1">Concluída?</span>
+              <button
+                onClick={() => handleStopConfirm(true)}
+                title="Concluída"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded transition-colors"
+              >
+                <CheckCircle2 size={12} />
+                Sim
+              </button>
+              <button
+                onClick={() => handleStopConfirm(false)}
+                title="Pendente"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors"
+              >
+                <Clock size={12} />
+                Não
+              </button>
+              <button
+                onClick={() => setConfirmingStop(false)}
+                className="p-1 text-gray-600 hover:text-gray-400 rounded"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={handlePlayPause}
+                title={isRunning ? "Pausar" : "Retomar"}
+                className="p-1.5 text-gray-400 hover:text-gray-100 rounded hover:bg-gray-800"
+              >
+                {isRunning ? <Pause size={16} /> : <Play size={16} />}
+              </button>
+              <button
+                onClick={() => setConfirmingStop(true)}
+                title="Parar"
+                className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800"
+              >
+                <Square size={16} />
+              </button>
+              <button
+                onClick={() => setEditing((v) => !v)}
+                title="Editar"
+                className={`p-1.5 rounded hover:bg-gray-800 ${editing ? "text-blue-400" : "text-gray-400 hover:text-gray-100"}`}
+              >
+                <Pencil size={16} />
+              </button>
+              <button
+                onClick={() => cancelTask()}
+                title="Cancelar tarefa"
+                className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800"
+              >
+                <X size={16} />
+              </button>
+            </>
+          )}
         </div>
       </div>
 

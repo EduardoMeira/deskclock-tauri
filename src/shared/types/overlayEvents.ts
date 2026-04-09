@@ -6,6 +6,8 @@ export const OVERLAY_EVENTS = {
   WELCOME_CLOSED: "welcome-closed",
   OVERLAY_SET_MODE: "overlay-set-mode",
   OVERLAY_CONFIG_CHANGED: "overlay-config-changed",
+  TASK_STOPPED: "task-stopped",
+  TOAST_MESSAGE: "toast-message",
 } as const;
 
 export interface RunningTaskChangedPayload {
@@ -24,4 +26,17 @@ export interface OverlaySetModePayload {
 export interface OverlayConfigChangedPayload {
   key: string;
   value: unknown;
+}
+
+export interface TaskStoppedPayload {
+  task: Task;
+  completed: boolean;
+}
+
+export type ToastVariant = "success" | "error" | "info";
+
+export interface ToastMessagePayload {
+  variant: ToastVariant;
+  message: string;
+  duration?: number;
 }

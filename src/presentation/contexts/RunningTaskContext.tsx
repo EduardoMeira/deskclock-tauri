@@ -3,6 +3,9 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type { Task } from "@domain/entities/Task";
 import { TaskRepository } from "@infra/database/TaskRepository";
+import { ProjectRepository } from "@infra/database/ProjectRepository";
+import { CategoryRepository } from "@infra/database/CategoryRepository";
+import { GoogleSheetsTaskSender } from "@infra/integrations/GoogleSheetsTaskSender";
 import { getActiveTasks } from "@domain/usecases/tasks/GetActiveTasks";
 import { startTask as startTaskUC } from "@domain/usecases/tasks/StartTask";
 import { pauseTask as pauseTaskUC } from "@domain/usecases/tasks/PauseTask";
@@ -10,8 +13,13 @@ import { resumeTask as resumeTaskUC } from "@domain/usecases/tasks/ResumeTask";
 import { stopTask as stopTaskUC } from "@domain/usecases/tasks/StopTask";
 import { cancelTask as cancelTaskUC } from "@domain/usecases/tasks/CancelTask";
 import { updateTask as updateTaskUC } from "@domain/usecases/tasks/UpdateTask";
-import { OVERLAY_EVENTS, type RunningTaskChangedPayload } from "@shared/types/overlayEvents";
-import type { AppConfig } from "@presentation/contexts/ConfigContext";
+import {
+  OVERLAY_EVENTS,
+  type RunningTaskChangedPayload,
+  type TaskStoppedPayload,
+} from "@shared/types/overlayEvents";
+import type { ConfigContextValue } from "@presentation/contexts/ConfigContext";
+import { showToast } from "@shared/utils/toast";
 
 interface StartInput {
   name?: string | null;
@@ -35,7 +43,7 @@ interface RunningTaskContextValue {
   startTask: (input: StartInput) => Promise<void>;
   pauseTask: () => Promise<void>;
   resumeTask: () => Promise<void>;
-  stopTask: () => Promise<void>;
+  stopTask: (completed: boolean) => Promise<void>;
   cancelTask: () => Promise<void>;
   updateActiveTask: (input: UpdateInput) => Promise<void>;
 }
@@ -67,10 +75,7 @@ async function notifyOverlay(task: Task | null) {
 
 interface RunningTaskProviderProps {
   children: React.ReactNode;
-  config: {
-    get<K extends keyof AppConfig>(key: K): AppConfig[K];
-    isLoaded: boolean;
-  };
+  config: ConfigContextValue;
 }
 
 export function RunningTaskProvider({ children, config }: RunningTaskProviderProps) {
@@ -131,16 +136,64 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
     await notifyOverlay(updated);
   }, [runningTask]);
 
-  const stopTask = useCallback(async () => {
-    if (!runningTask) return;
-    await stopTaskUC(repo, runningTask.id, new Date().toISOString());
-    setRunningTask(null);
-    triggerReload();
-    await notifyOverlay(null);
-    if (config.isLoaded && !config.get("overlayAlwaysVisible")) {
-      await hideOverlay();
-    }
-  }, [runningTask, triggerReload, config]);
+  const autoSyncTask = useCallback(
+    async (stoppedTask: Task) => {
+      if (!config.isLoaded) return;
+      if (!config.get("integrationGoogleSheetsAutoSync")) return;
+      const spreadsheetId = config.get("integrationGoogleSheetsSpreadsheetId");
+      const refreshToken = config.get("googleRefreshToken");
+      if (!spreadsheetId || !refreshToken) return;
+
+      try {
+        const [projects, categories] = await Promise.all([
+          new ProjectRepository().findAll(),
+          new CategoryRepository().findAll(),
+        ]);
+        const sender = new GoogleSheetsTaskSender(config, spreadsheetId, projects, categories);
+        await sender.send([stoppedTask]);
+        await repo.markSentToSheets([stoppedTask.id]);
+        triggerReload();
+        await showToast("success", "Tarefa enviada para o Google Sheets");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Erro ao enviar para o Sheets.";
+        await showToast("error", msg);
+      }
+    },
+    [config, triggerReload],
+  );
+
+  // Ouve confirmação de stop vinda do overlay para auto-sync
+  useEffect(() => {
+    const unlisten = listen<TaskStoppedPayload>(
+      OVERLAY_EVENTS.TASK_STOPPED,
+      async ({ payload }) => {
+        if (payload.completed) {
+          await autoSyncTask(payload.task);
+        }
+        if (config.isLoaded && !config.get("overlayAlwaysVisible")) {
+          await hideOverlay();
+        }
+      },
+    );
+    return () => { unlisten.then((fn) => fn()); };
+  }, [autoSyncTask, config]);
+
+  const stopTask = useCallback(
+    async (completed: boolean) => {
+      if (!runningTask) return;
+      const stoppedTask = await stopTaskUC(repo, runningTask.id, new Date().toISOString());
+      setRunningTask(null);
+      triggerReload();
+      await notifyOverlay(null);
+      if (config.isLoaded && !config.get("overlayAlwaysVisible")) {
+        await hideOverlay();
+      }
+      if (completed) {
+        await autoSyncTask(stoppedTask);
+      }
+    },
+    [runningTask, triggerReload, config, autoSyncTask],
+  );
 
   const cancelTask = useCallback(async () => {
     if (!runningTask) return;

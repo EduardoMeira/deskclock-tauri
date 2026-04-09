@@ -15,6 +15,7 @@ import {
   type RunningTaskChangedPayload,
   type OverlaySetModePayload,
   type OverlayConfigChangedPayload,
+  type TaskStoppedPayload,
 } from "@shared/types/overlayEvents";
 import { snapPositionToGrid } from "@shared/utils/snapToGrid";
 import { applyFontSize } from "@shared/utils/fontSize";
@@ -176,14 +177,18 @@ function OverlayAppInner() {
     } satisfies RunningTaskChangedPayload);
   }, [runningTask]);
 
-  const handleStop = useCallback(async () => {
+  const handleStop = useCallback(async (completed: boolean) => {
     if (!runningTask) return;
-    await stopTaskUC(taskRepo, runningTask.id, new Date().toISOString());
+    const stoppedTask = await stopTaskUC(taskRepo, runningTask.id, new Date().toISOString());
     setRunningTask(null);
     await emit(OVERLAY_EVENTS.RUNNING_TASK_CHANGED, {
       task: null,
       source: "overlay",
     } satisfies RunningTaskChangedPayload);
+    await emit(OVERLAY_EVENTS.TASK_STOPPED, {
+      task: stoppedTask,
+      completed,
+    } satisfies TaskStoppedPayload);
     await switchMode("planning");
   }, [runningTask, switchMode]);
 

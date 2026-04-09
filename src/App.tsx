@@ -89,10 +89,10 @@ function MainContent({
     return () => { unlisten.then((fn) => fn()); };
   }, [runningTask, startTask, pauseTask, resumeTask]);
 
-  // Atalhos globais: stop-task
+  // Atalhos globais: stop-task (para como pendente — sem UI para confirmar)
   useEffect(() => {
     const unlisten = listen("shortcut:stop-task", async () => {
-      if (runningTask) await stopTask();
+      if (runningTask) await stopTask(false);
     });
     return () => { unlisten.then((fn) => fn()); };
   }, [runningTask, stopTask]);

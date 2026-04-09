@@ -1,4 +1,5 @@
-import { Play, Pause, Square } from "lucide-react";
+import { useState } from "react";
+import { Play, Pause, Square, CheckCircle2, Clock, X } from "lucide-react";
 import type { Task } from "@domain/entities/Task";
 import { useTaskTimer } from "@presentation/hooks/useTaskTimer";
 import { formatHHMMSS } from "@shared/utils/time";
@@ -7,7 +8,7 @@ interface ExecutionOverlayContentProps {
   task: Task;
   onPause: () => void;
   onResume: () => void;
-  onStop: () => void;
+  onStop: (completed: boolean) => void;
 }
 
 export function ExecutionOverlayContent({
@@ -19,38 +20,68 @@ export function ExecutionOverlayContent({
   const seconds = useTaskTimer(task);
   const isRunning = task.status === "running";
   const displayName = task.name ?? "(sem nome)";
+  const [confirmingStop, setConfirmingStop] = useState(false);
 
   return (
     <div
-      className={`w-full h-full flex items-center gap-3 bg-gray-900 border-l-4 rounded-lg shadow-xl px-4 ${
+      className={`w-full h-full flex items-center gap-2 bg-gray-900 border-l-4 rounded-lg shadow-xl px-3 ${
         task.billable ? "border-l-blue-500" : "border-l-gray-600"
       }`}
     >
-      {/* Drag handle — área de nome + timer */}
-      <div data-tauri-drag-region className="flex-1 min-w-0 cursor-move select-none">
-        <p className="text-sm font-medium text-gray-100 truncate pointer-events-none">
-          {displayName}
-        </p>
-        <p className="text-lg font-mono text-gray-200 pointer-events-none">
-          {formatHHMMSS(seconds)}
-        </p>
-      </div>
+      {confirmingStop ? (
+        /* Confirmação inline compacta */
+        <div className="flex-1 flex items-center gap-2 min-w-0">
+          <span className="text-xs text-gray-400 shrink-0">Concluída?</span>
+          <button
+            onClick={() => { setConfirmingStop(false); onStop(true); }}
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded transition-colors shrink-0"
+          >
+            <CheckCircle2 size={11} />
+            Sim
+          </button>
+          <button
+            onClick={() => { setConfirmingStop(false); onStop(false); }}
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors shrink-0"
+          >
+            <Clock size={11} />
+            Não
+          </button>
+          <button
+            onClick={() => setConfirmingStop(false)}
+            className="ml-auto p-1 text-gray-600 hover:text-gray-400 rounded shrink-0"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Drag handle — área de nome + timer */}
+          <div data-tauri-drag-region className="flex-1 min-w-0 cursor-move select-none">
+            <p className="text-sm font-medium text-gray-100 truncate pointer-events-none">
+              {displayName}
+            </p>
+            <p className="text-lg font-mono text-gray-200 pointer-events-none">
+              {formatHHMMSS(seconds)}
+            </p>
+          </div>
 
-      {/* Botões interativos */}
-      <div className="flex gap-1 shrink-0">
-        <button
-          onClick={isRunning ? onPause : onResume}
-          className="p-1.5 text-gray-400 hover:text-gray-100 rounded hover:bg-gray-800"
-        >
-          {isRunning ? <Pause size={16} /> : <Play size={16} />}
-        </button>
-        <button
-          onClick={onStop}
-          className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800"
-        >
-          <Square size={16} />
-        </button>
-      </div>
+          {/* Botões interativos */}
+          <div className="flex gap-1 shrink-0">
+            <button
+              onClick={isRunning ? onPause : onResume}
+              className="p-1.5 text-gray-400 hover:text-gray-100 rounded hover:bg-gray-800"
+            >
+              {isRunning ? <Pause size={16} /> : <Play size={16} />}
+            </button>
+            <button
+              onClick={() => setConfirmingStop(true)}
+              className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800"
+            >
+              <Square size={16} />
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

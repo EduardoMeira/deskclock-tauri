@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App";
 import { OverlayApp } from "@presentation/overlays/OverlayApp";
 import { WelcomeApp } from "@presentation/overlays/WelcomeApp";
+import { ToastApp } from "@presentation/overlays/ToastApp";
 
 const label = getCurrentWindow().label;
 
@@ -20,6 +21,12 @@ if (label === "overlay") {
   root.render(
     <StrictMode>
       <WelcomeApp />
+    </StrictMode>,
+  );
+} else if (label === "toast") {
+  root.render(
+    <StrictMode>
+      <ToastApp />
     </StrictMode>,
   );
 } else {
