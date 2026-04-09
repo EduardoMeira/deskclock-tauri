@@ -5,7 +5,7 @@ import { usePlannedTasksForDate } from "@presentation/hooks/usePlannedTasks";
 import { useProjects } from "@presentation/hooks/useProjects";
 import { todayISO } from "@shared/utils/time";
 import { executeActions } from "@shared/utils/actions";
-import { openUrl, openPath } from "@tauri-apps/plugin-opener";
+import { openInBrowser, openInFileManager } from "@shared/utils/shell";
 
 interface PlanningOverlayContentProps {
   onMinimize: () => void;
@@ -39,7 +39,7 @@ export function PlanningOverlayContent({
       categoryId: task.categoryId,
       billable: task.billable,
     });
-    await executeActions(task.actions, { openUrl, openPath });
+    await executeActions(task.actions, { openUrl: openInBrowser, openPath: openInFileManager });
     await reload();
   }
 

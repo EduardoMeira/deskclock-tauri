@@ -10,7 +10,7 @@ import { TodayEntriesSection } from "@presentation/components/TodayEntriesSectio
 import { PlannedTasksSection } from "@presentation/components/PlannedTasksSection";
 import { todayISO } from "@shared/utils/time";
 import { executeActions } from "@shared/utils/actions";
-import { openUrl, openPath } from "@tauri-apps/plugin-opener";
+import { openInBrowser, openInFileManager } from "@shared/utils/shell";
 import type { PlannedTask } from "@domain/entities/PlannedTask";
 
 export function TasksPage() {
@@ -32,7 +32,7 @@ export function TasksPage() {
       categoryId: task.categoryId,
       billable: task.billable,
     });
-    await executeActions(task.actions, { openUrl, openPath });
+    await executeActions(task.actions, { openUrl: openInBrowser, openPath: openInFileManager });
     await reloadPlanned();
   }
 

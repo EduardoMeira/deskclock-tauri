@@ -7,6 +7,81 @@ use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_sql::{Migration, MigrationKind};
 
+/// Retorna o identificador de plataforma compatível com a convenção Node.js/Electron.
+/// Valores: "win32" | "darwin" | "linux"
+#[tauri::command]
+fn get_platform() -> &'static str {
+    if cfg!(target_os = "windows") {
+        "win32"
+    } else if cfg!(target_os = "macos") {
+        "darwin"
+    } else {
+        "linux"
+    }
+}
+
+/// Abre uma URL no navegador padrão do sistema operacional.
+/// Substitui `tauri-plugin-opener` para evitar problemas de escopo de permissão.
+#[tauri::command]
+fn open_in_browser(url: String) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        // PowerShell trata URLs com '&' corretamente, diferente de cmd /c start
+        std::process::Command::new("powershell")
+            .args([
+                "-NoProfile",
+                "-WindowStyle",
+                "Hidden",
+                "-Command",
+                &format!("Start-Process \"{}\"", url.replace('"', "\\\"")),
+            ])
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&url)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Abre um arquivo ou pasta no explorador de arquivos padrão do sistema.
+#[tauri::command]
+fn open_in_file_manager(path: String) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
 /// Inicia um servidor HTTP temporário em uma porta aleatória para capturar o
 /// redirect do OAuth. Ao receber o callback, emite o evento
 /// "oauth_callback_received" com o authorization code para o frontend.
@@ -236,6 +311,9 @@ pub fn run() {
             update_tray_tooltip,
             update_shortcuts,
             start_oauth_server,
+            get_platform,
+            open_in_browser,
+            open_in_file_manager,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

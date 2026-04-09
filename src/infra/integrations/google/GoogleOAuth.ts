@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { openInBrowser } from "@shared/utils/shell";
 
 const CLIENT_ID = import.meta.env.GCP_CLIENT_ID as string;
 const CLIENT_SECRET = import.meta.env.GCP_CLIENT_SECRET as string;
@@ -56,7 +56,7 @@ export async function startGoogleOAuth(scopes: string[]): Promise<GoogleTokens> 
       unlisten = fn;
     });
 
-    openUrl(authUrl).catch((err) => {
+    openInBrowser(authUrl).catch((err) => {
       clearTimeout(timer);
       unlisten?.();
       reject(new Error(`Não foi possível abrir o browser: ${err}`));
