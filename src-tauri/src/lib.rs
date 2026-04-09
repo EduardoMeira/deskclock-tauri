@@ -1,9 +1,10 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager,
+    Emitter, Manager,
 };
 use tauri_plugin_autostart::MacosLauncher;
+use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 #[tauri::command]
@@ -15,6 +16,66 @@ fn save_file(path: String, content: Vec<u8>) -> Result<(), String> {
 fn update_tray_tooltip(app: tauri::AppHandle, text: Option<String>) -> Result<(), String> {
     if let Some(tray) = app.tray_by_id("main") {
         tray.set_tooltip(text.as_deref()).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+#[derive(serde::Deserialize)]
+struct ShortcutEntry {
+    action: String,
+    accelerator: String,
+}
+
+#[tauri::command]
+fn update_shortcuts(app: tauri::AppHandle, shortcuts: Vec<ShortcutEntry>) -> Result<(), String> {
+    app.global_shortcut()
+        .unregister_all()
+        .map_err(|e| e.to_string())?;
+
+    for entry in shortcuts {
+        if entry.accelerator.is_empty() {
+            continue;
+        }
+        let action = entry.action.clone();
+        let app_handle = app.clone();
+        if let Err(e) = app.global_shortcut().on_shortcut(
+            entry.accelerator.as_str(),
+            move |_, _, event| {
+                if event.state() != ShortcutState::Pressed {
+                    return;
+                }
+                match action.as_str() {
+                    "toggle-task" => {
+                        let _ = app_handle.emit("shortcut:toggle-task", ());
+                    }
+                    "stop-task" => {
+                        let _ = app_handle.emit("shortcut:stop-task", ());
+                    }
+                    "toggle-overlay" => {
+                        if let Some(w) = app_handle.get_webview_window("overlay") {
+                            if w.is_visible().unwrap_or(false) {
+                                let _ = w.hide();
+                            } else {
+                                let _ = w.show();
+                            }
+                        }
+                    }
+                    "toggle-window" => {
+                        if let Some(w) = app_handle.get_webview_window("main") {
+                            if w.is_visible().unwrap_or(false) {
+                                let _ = w.hide();
+                            } else {
+                                let _ = w.show();
+                                let _ = w.set_focus();
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            },
+        ) {
+            eprintln!("Failed to register shortcut '{}': {}", entry.accelerator, e);
+        }
     }
     Ok(())
 }
@@ -107,13 +168,18 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec![])))
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:deskclock.db", migrations)
                 .build(),
         )
-        .invoke_handler(tauri::generate_handler![save_file, update_tray_tooltip])
+        .invoke_handler(tauri::generate_handler![
+            save_file,
+            update_tray_tooltip,
+            update_shortcuts,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { emit } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { useAppConfig } from "@presentation/contexts/ConfigContext";
 import { OVERLAY_EVENTS, type OverlayConfigChangedPayload } from "@shared/types/overlayEvents";
@@ -147,6 +148,10 @@ export function SettingsPage() {
   const [overlayOpacity, setOverlayOpacity] = useState(100);
   const [overlaySnapToGrid, setOverlaySnapToGrid] = useState(false);
   const [overlayShowGridIndicator, setOverlayShowGridIndicator] = useState(false);
+  const [shortcutToggleTask, setShortcutToggleTask] = useState("");
+  const [shortcutStopTask, setShortcutStopTask] = useState("");
+  const [shortcutToggleOverlay, setShortcutToggleOverlay] = useState("");
+  const [shortcutToggleWindow, setShortcutToggleWindow] = useState("");
 
   // Carrega valores do config quando pronto
   useEffect(() => {
@@ -159,9 +164,34 @@ export function SettingsPage() {
     setOverlaySnapToGrid(config.get("overlaySnapToGrid"));
     setOverlayShowGridIndicator(config.get("overlayShowGridIndicator"));
     setLiveTrayTimer(config.get("liveTrayTimer"));
+    setShortcutToggleTask(config.get("shortcutToggleTask"));
+    setShortcutStopTask(config.get("shortcutStopTask"));
+    setShortcutToggleOverlay(config.get("shortcutToggleOverlay"));
+    setShortcutToggleWindow(config.get("shortcutToggleWindow"));
     // Lê estado real do autostart do SO
     isEnabled().then(setStartOnBoot).catch(() => {});
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function applyShortcuts(overrides?: Partial<{
+    toggleTask: string; stopTask: string; toggleOverlay: string; toggleWindow: string;
+  }>) {
+    const t = overrides?.toggleTask ?? shortcutToggleTask;
+    const s = overrides?.stopTask ?? shortcutStopTask;
+    const o = overrides?.toggleOverlay ?? shortcutToggleOverlay;
+    const w = overrides?.toggleWindow ?? shortcutToggleWindow;
+    await config.set("shortcutToggleTask", t);
+    await config.set("shortcutStopTask", s);
+    await config.set("shortcutToggleOverlay", o);
+    await config.set("shortcutToggleWindow", w);
+    await invoke("update_shortcuts", {
+      shortcuts: [
+        { action: "toggle-task", accelerator: t },
+        { action: "stop-task", accelerator: s },
+        { action: "toggle-overlay", accelerator: o },
+        { action: "toggle-window", accelerator: w },
+      ],
+    });
+  }
 
   async function handleToggle(
     key: "showWelcomeMessage" | "overlayAlwaysVisible" | "overlayShowOnStart" | "overlaySnapToGrid" | "overlayShowGridIndicator" | "liveTrayTimer",
@@ -281,7 +311,45 @@ export function SettingsPage() {
         </Section>
 
         <ComingSoonSection title="Acessibilidade" />
-        <ComingSoonSection title="Atalhos globais" />
+
+        <Section title="Atalhos globais">
+          <p className="text-xs text-gray-500 -mt-2 mb-2">
+            Use o formato do Tauri: <span className="font-mono text-gray-400">CmdOrCtrl+Shift+T</span>, <span className="font-mono text-gray-400">Alt+F1</span>, etc. Deixe em branco para desativar.
+          </p>
+          <TextRow
+            label="Iniciar / Pausar / Retomar"
+            description="Alterna execução da tarefa atual"
+            value={shortcutToggleTask}
+            placeholder="Ex: CmdOrCtrl+Shift+Space"
+            onChange={setShortcutToggleTask}
+            onBlur={() => applyShortcuts({ toggleTask: shortcutToggleTask })}
+          />
+          <TextRow
+            label="Parar"
+            description="Para a tarefa em execução"
+            value={shortcutStopTask}
+            placeholder="Ex: CmdOrCtrl+Shift+S"
+            onChange={setShortcutStopTask}
+            onBlur={() => applyShortcuts({ stopTask: shortcutStopTask })}
+          />
+          <TextRow
+            label="Mostrar / Ocultar overlay"
+            description="Alterna visibilidade do overlay"
+            value={shortcutToggleOverlay}
+            placeholder="Ex: CmdOrCtrl+Shift+O"
+            onChange={setShortcutToggleOverlay}
+            onBlur={() => applyShortcuts({ toggleOverlay: shortcutToggleOverlay })}
+          />
+          <TextRow
+            label="Mostrar / Ocultar janela"
+            description="Alterna visibilidade da janela principal"
+            value={shortcutToggleWindow}
+            placeholder="Ex: CmdOrCtrl+Shift+W"
+            onChange={setShortcutToggleWindow}
+            onBlur={() => applyShortcuts({ toggleWindow: shortcutToggleWindow })}
+          />
+        </Section>
+
         <ComingSoonSection title="Integrações" />
       </div>
     </div>

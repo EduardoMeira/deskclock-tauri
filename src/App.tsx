@@ -47,7 +47,7 @@ function MainContent({
   setPage: (p: Page) => void;
   welcomeActiveRef: React.MutableRefObject<boolean>;
 }) {
-  const { startTask, runningTask } = useRunningTask();
+  const { startTask, pauseTask, resumeTask, stopTask, runningTask } = useRunningTask();
   const config = useAppConfig();
 
   // Live tray timer — atualiza tooltip do ícone da bandeja a cada segundo
@@ -67,6 +67,28 @@ function MainContent({
     }, 1000);
     return () => clearInterval(interval);
   }, [runningTask, config]);
+
+  // Atalhos globais: toggle-task
+  useEffect(() => {
+    const unlisten = listen("shortcut:toggle-task", async () => {
+      if (!runningTask) {
+        await startTask({ billable: true });
+      } else if (runningTask.status === "running") {
+        await pauseTask();
+      } else if (runningTask.status === "paused") {
+        await resumeTask();
+      }
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, [runningTask, startTask, pauseTask, resumeTask]);
+
+  // Atalhos globais: stop-task
+  useEffect(() => {
+    const unlisten = listen("shortcut:stop-task", async () => {
+      if (runningTask) await stopTask();
+    });
+    return () => { unlisten.then((fn) => fn()); };
+  }, [runningTask, stopTask]);
 
   useEffect(() => {
     const unlisten = listen<WelcomeClosedPayload>(
@@ -110,6 +132,19 @@ function AppInner() {
   const config = useAppConfig();
   const [page, setPage] = useState<Page>("tasks");
   const welcomeActiveRef = useRef(false);
+
+  // Registra atalhos globais salvos ao iniciar
+  useEffect(() => {
+    if (!config.isLoaded) return;
+    invoke("update_shortcuts", {
+      shortcuts: [
+        { action: "toggle-task", accelerator: config.get("shortcutToggleTask") },
+        { action: "stop-task", accelerator: config.get("shortcutStopTask") },
+        { action: "toggle-overlay", accelerator: config.get("shortcutToggleOverlay") },
+        { action: "toggle-window", accelerator: config.get("shortcutToggleWindow") },
+      ],
+    }).catch(() => {});
+  }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Show welcome or overlay on startup
   useEffect(() => {

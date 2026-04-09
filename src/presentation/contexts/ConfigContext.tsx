@@ -12,6 +12,11 @@ export interface AppConfig {
   showWelcomeMessage: boolean;
   startOnBoot: boolean;
   liveTrayTimer: boolean;
+  // Atalhos globais
+  shortcutToggleTask: string;
+  shortcutStopTask: string;
+  shortcutToggleOverlay: string;
+  shortcutToggleWindow: string;
   // Overlay
   overlayAlwaysVisible: boolean;
   overlayShowOnStart: boolean;
@@ -28,6 +33,10 @@ const DEFAULTS: AppConfig = {
   showWelcomeMessage: true,
   startOnBoot: false,
   liveTrayTimer: false,
+  shortcutToggleTask: "",
+  shortcutStopTask: "",
+  shortcutToggleOverlay: "",
+  shortcutToggleWindow: "",
   overlayAlwaysVisible: true,
   overlayShowOnStart: true,
   overlayOpacity: 100,
