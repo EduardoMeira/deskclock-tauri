@@ -35,6 +35,7 @@ export interface AppConfig {
   integrationGoogleSheetsSheetName: string;
   integrationGoogleSheetsColumnMapping: SheetColumnMapping;
   integrationGoogleSheetsAutoSync: boolean;
+  integrationGoogleSheetsDurationFormat: "HH:MM" | "HH:MM:SS";
   // Tokens Google OAuth (armazenados localmente no SQLite)
   googleAccessToken: string;
   googleRefreshToken: string;
@@ -65,6 +66,7 @@ const DEFAULTS: AppConfig = {
   integrationGoogleSheetsSheetName: "DeskClock",
   integrationGoogleSheetsColumnMapping: DEFAULT_COLUMN_MAPPING,
   integrationGoogleSheetsAutoSync: false,
+  integrationGoogleSheetsDurationFormat: "HH:MM",
   googleAccessToken: "",
   googleRefreshToken: "",
   googleTokenExpiry: 0,

@@ -174,6 +174,7 @@ function GoogleSheetsIntegration() {
   const [sheetName, setSheetName] = useState("DeskClock");
   const [columnMapping, setColumnMapping] = useState<SheetColumnMapping>(DEFAULT_COLUMN_MAPPING);
   const [autoSync, setAutoSync] = useState(false);
+  const [durationFormat, setDurationFormat] = useState<"HH:MM" | "HH:MM:SS">("HH:MM");
   const [connected, setConnected] = useState(false);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -186,6 +187,7 @@ function GoogleSheetsIntegration() {
     setSheetName(config.get("integrationGoogleSheetsSheetName") || "DeskClock");
     setColumnMapping(config.get("integrationGoogleSheetsColumnMapping") ?? DEFAULT_COLUMN_MAPPING);
     setAutoSync(config.get("integrationGoogleSheetsAutoSync"));
+    setDurationFormat(config.get("integrationGoogleSheetsDurationFormat") ?? "HH:MM");
     setConnected(!!config.get("googleRefreshToken"));
     setEmail(config.get("googleUserEmail"));
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -208,6 +210,11 @@ function GoogleSheetsIntegration() {
   async function handleAutoSync(value: boolean) {
     setAutoSync(value);
     await config.set("integrationGoogleSheetsAutoSync", value);
+  }
+
+  async function handleDurationFormat(value: "HH:MM" | "HH:MM:SS") {
+    setDurationFormat(value);
+    await config.set("integrationGoogleSheetsDurationFormat", value);
   }
 
   async function handleConnect() {
@@ -284,6 +291,23 @@ function GoogleSheetsIntegration() {
         )}
       </div>
 
+      <Row label="Formato da duração">
+        <div className="flex items-center gap-1 bg-gray-800 rounded p-0.5">
+          {(["HH:MM", "HH:MM:SS"] as const).map((fmt) => (
+            <button
+              key={fmt}
+              onClick={() => handleDurationFormat(fmt)}
+              className={`px-2.5 py-1 text-xs rounded transition-colors ${
+                durationFormat === fmt
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-400 hover:text-gray-200"
+              }`}
+            >
+              {fmt}
+            </button>
+          ))}
+        </div>
+      </Row>
       <Row label="Sincronizar automaticamente ao concluir tarefa">
         <Toggle checked={autoSync} onChange={handleAutoSync} />
       </Row>
