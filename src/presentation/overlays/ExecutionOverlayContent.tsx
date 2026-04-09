@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Play, Pause, Square, CheckCircle2, Clock, X } from "lucide-react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { LogicalSize } from "@tauri-apps/api/dpi";
 import type { Task } from "@domain/entities/Task";
 import { useTaskTimer } from "@presentation/hooks/useTaskTimer";
 import { formatHHMMSS } from "@shared/utils/time";
@@ -21,6 +23,16 @@ export function ExecutionOverlayContent({
   const isRunning = task.status === "running";
   const displayName = task.name ?? "(sem nome)";
   const [confirmingStop, setConfirmingStop] = useState(false);
+
+  // Redimensiona a janela ao entrar/sair do modo de confirmação
+  useEffect(() => {
+    const win = getCurrentWindow();
+    if (confirmingStop) {
+      win.setSize(new LogicalSize(280, 96)).catch(() => {});
+    } else {
+      win.setSize(new LogicalSize(280, 80)).catch(() => {});
+    }
+  }, [confirmingStop]);
 
   return (
     <div

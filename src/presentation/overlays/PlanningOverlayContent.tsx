@@ -1,4 +1,7 @@
+import { useEffect } from "react";
 import { Play, Minimize2, X, LayoutList } from "lucide-react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { LogicalSize } from "@tauri-apps/api/dpi";
 import type { Task } from "@domain/entities/Task";
 import type { PlannedTask } from "@domain/entities/PlannedTask";
 import { usePlannedTasksForDate } from "@presentation/hooks/usePlannedTasks";
@@ -6,6 +9,13 @@ import { useProjects } from "@presentation/hooks/useProjects";
 import { todayISO } from "@shared/utils/time";
 import { executeActions } from "@shared/utils/actions";
 import { openInBrowser, openInFileManager } from "@shared/utils/shell";
+
+const OVERLAY_WIDTH = 288;
+const HEADER_H = 37;
+const FOOTER_H = 45;
+const ROW_H = 42;
+const EMPTY_H = 60;
+const MAX_VISIBLE_ROWS = 6;
 
 interface PlanningOverlayContentProps {
   onMinimize: () => void;
@@ -31,6 +41,15 @@ export function PlanningOverlayContent({
   const { projects } = useProjects();
 
   const pending = tasks.filter((t) => !t.completedDates.includes(today));
+
+  // Redimensiona a janela para caber exatamente o número de tarefas
+  useEffect(() => {
+    const contentH = pending.length === 0
+      ? EMPTY_H
+      : Math.min(pending.length, MAX_VISIBLE_ROWS) * ROW_H;
+    const totalH = HEADER_H + contentH + FOOTER_H;
+    getCurrentWindow().setSize(new LogicalSize(OVERLAY_WIDTH, totalH)).catch(() => {});
+  }, [pending.length]);
 
   async function handlePlay(task: PlannedTask) {
     await onStartTask({

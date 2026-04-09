@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { getCurrentWindow, primaryMonitor } from "@tauri-apps/api/window";
-import { PhysicalPosition } from "@tauri-apps/api/dpi";
+import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { listen } from "@tauri-apps/api/event";
 import { CheckCircle2, XCircle, Info, X } from "lucide-react";
 import { OVERLAY_EVENTS, type ToastMessagePayload, type ToastVariant } from "@shared/types/overlayEvents";
 
 const TOAST_WIDTH = 320;
-const TOAST_HEIGHT = 72;
+const TOAST_HEIGHT = 88;
 
 const appWindow = getCurrentWindow();
 
@@ -47,9 +47,14 @@ export function ToastApp() {
   useEffect(() => {
     primaryMonitor().then((monitor) => {
       if (!monitor) return;
-      const x = monitor.position.x + monitor.size.width - TOAST_WIDTH - 20;
-      const y = monitor.position.y + monitor.size.height - TOAST_HEIGHT - 52;
-      appWindow.setPosition(new PhysicalPosition(x, y)).catch(() => {});
+      const scale = monitor.scaleFactor;
+      const logicalW = monitor.size.width / scale;
+      const logicalH = monitor.size.height / scale;
+      const logicalX = monitor.position.x / scale;
+      const logicalY = monitor.position.y / scale;
+      const x = logicalX + logicalW - TOAST_WIDTH - 20;
+      const y = logicalY + logicalH - TOAST_HEIGHT - 52;
+      appWindow.setPosition(new LogicalPosition(x, y)).catch(() => {});
     });
   }, []);
 
@@ -95,7 +100,7 @@ export function ToastApp() {
   return (
     <div
       className={`
-        w-full h-full flex items-center gap-3 px-4
+        w-screen h-screen flex items-center gap-3 px-4
         bg-gray-900 border border-gray-700 border-l-4 rounded-xl shadow-2xl
         transition-all duration-300 ease-out
         ${styles.border}

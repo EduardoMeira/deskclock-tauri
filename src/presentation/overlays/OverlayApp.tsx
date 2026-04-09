@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { emit, listen } from "@tauri-apps/api/event";
-import { PhysicalSize, PhysicalPosition } from "@tauri-apps/api/dpi";
+import { LogicalSize, PhysicalPosition } from "@tauri-apps/api/dpi";
 import type { Task } from "@domain/entities/Task";
 import { TaskRepository } from "@infra/database/TaskRepository";
 import { getActiveTasks } from "@domain/usecases/tasks/GetActiveTasks";
@@ -29,7 +29,7 @@ export type OverlayMode = "execution" | "planning" | "compact";
 
 const OVERLAY_SIZES: Record<OverlayMode, { width: number; height: number }> = {
   execution: { width: 280, height: 80 },
-  planning: { width: 288, height: 420 },
+  planning: { width: 288, height: 142 }, // altura real calculada em PlanningOverlayContent
   compact: { width: 52, height: 52 },
 };
 
@@ -48,7 +48,7 @@ function OverlayAppInner() {
   const switchMode = useCallback(
     async (newMode: OverlayMode) => {
       const { width, height } = OVERLAY_SIZES[newMode];
-      await appWindow.setSize(new PhysicalSize(width, height));
+      await appWindow.setSize(new LogicalSize(width, height));
 
       const key = `overlayPosition_${newMode}` as Parameters<typeof config.get>[0];
       const saved = config.get(key) as { x: number; y: number };
@@ -214,7 +214,7 @@ function OverlayAppInner() {
 
   return (
     <div
-      className="w-full h-full"
+      className="w-screen h-screen overflow-hidden"
       style={{ opacity, transition: "opacity 0.2s ease" }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
