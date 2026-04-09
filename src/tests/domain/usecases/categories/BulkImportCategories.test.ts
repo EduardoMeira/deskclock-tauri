@@ -50,7 +50,9 @@ describe("bulkImportCategories", () => {
 
   it("reporta duplicatas em skipped", async () => {
     const existing: Category = { id: "x", name: "Existente", defaultBillable: true };
-    const repo = makeRepo({ findByName: vi.fn(async (n) => (n === "Existente" ? existing : null)) });
+    const repo = makeRepo({
+      findByName: vi.fn(async (n) => (n === "Existente" ? existing : null)),
+    });
     const result = await bulkImportCategories(repo, "Novo\nExistente");
     expect(result.created).toBe(1);
     expect(result.skipped).toContain("Existente");

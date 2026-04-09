@@ -44,11 +44,12 @@ export function PlanningOverlayContent({
 
   // Redimensiona a janela para caber exatamente o número de tarefas
   useEffect(() => {
-    const contentH = pending.length === 0
-      ? EMPTY_H
-      : Math.min(pending.length, MAX_VISIBLE_ROWS) * ROW_H;
+    const contentH =
+      pending.length === 0 ? EMPTY_H : Math.min(pending.length, MAX_VISIBLE_ROWS) * ROW_H;
     const totalH = HEADER_H + contentH + FOOTER_H;
-    getCurrentWindow().setSize(new LogicalSize(OVERLAY_WIDTH, totalH)).catch(() => {});
+    getCurrentWindow()
+      .setSize(new LogicalSize(OVERLAY_WIDTH, totalH))
+      .catch(() => {});
   }, [pending.length]);
 
   async function handlePlay(task: PlannedTask) {
@@ -111,9 +112,7 @@ export function PlanningOverlayContent({
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-200 truncate">{task.name}</p>
-                  {project && (
-                    <p className="text-xs text-gray-500 truncate">{project.name}</p>
-                  )}
+                  {project && <p className="text-xs text-gray-500 truncate">{project.name}</p>}
                 </div>
                 <button
                   onClick={() => handlePlay(task)}

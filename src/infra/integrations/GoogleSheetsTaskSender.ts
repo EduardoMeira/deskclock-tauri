@@ -16,7 +16,7 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     private config: ConfigContextValue,
     private spreadsheetId: string,
     private projects: Project[],
-    private categories: Category[],
+    private categories: Category[]
   ) {
     this.tokenManager = new GoogleTokenManager(config);
   }
@@ -27,9 +27,18 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     const mapping = this.config.get("integrationGoogleSheetsColumnMapping");
     const enabledCols = mapping.filter((c) => c.enabled);
 
-    const sheetId = await this.ensureSheetExists(token, sheetName, enabledCols.map((c) => c.label));
+    const sheetId = await this.ensureSheetExists(
+      token,
+      sheetName,
+      enabledCols.map((c) => c.label)
+    );
 
-    const rows = tasks.map((t) => this.taskToRow(t, enabledCols.map((c) => c.field)));
+    const rows = tasks.map((t) =>
+      this.taskToRow(
+        t,
+        enabledCols.map((c) => c.field)
+      )
+    );
 
     // Descobre a primeira linha vazia contando linhas ocupadas na coluna A
     const colAUrl = `${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}/values/${encodeURIComponent(`${sheetName}!A:A`)}`;
@@ -41,7 +50,7 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     // Escreve as linhas com range explícito (values.update)
     const lastCol = colLetter(enabledCols.length);
     const writeRange = encodeURIComponent(
-      `${sheetName}!A${nextRow}:${lastCol}${nextRow + rows.length - 1}`,
+      `${sheetName}!A${nextRow}:${lastCol}${nextRow + rows.length - 1}`
     );
     const url = `${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}/values/${writeRange}?valueInputOption=USER_ENTERED`;
 
@@ -58,7 +67,7 @@ export class GoogleSheetsTaskSender implements ITaskSender {
 
     if (!res.ok) {
       throw new Error(
-        body?.error?.message ?? `Erro HTTP ${res.status} ao enviar para o Google Sheets.`,
+        body?.error?.message ?? `Erro HTTP ${res.status} ao enviar para o Google Sheets.`
       );
     }
 
@@ -66,7 +75,7 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     if (updatedRows === 0) {
       throw new Error(
         `A planilha aceitou a requisição mas nenhuma linha foi escrita. ` +
-        `Verifique o nome da aba "${sheetName}" e as permissões da planilha.`,
+          `Verifique o nome da aba "${sheetName}" e as permissões da planilha.`
       );
     }
 
@@ -80,7 +89,7 @@ export class GoogleSheetsTaskSender implements ITaskSender {
   private async ensureSheetExists(
     token: string,
     sheetName: string,
-    headers: string[],
+    headers: string[]
   ): Promise<number> {
     const metaUrl = `${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}?fields=sheets.properties`;
     const metaRes = await fetch(metaUrl, { headers: { Authorization: `Bearer ${token}` } });
@@ -101,12 +110,11 @@ export class GoogleSheetsTaskSender implements ITaskSender {
         body: JSON.stringify({
           requests: [{ addSheet: { properties: { title: sheetName } } }],
         }),
-      },
+      }
     );
 
     const createBody = await createRes.json().catch(() => ({}));
-    const newSheetId: number =
-      createBody?.replies?.[0]?.addSheet?.properties?.sheetId ?? -1;
+    const newSheetId: number = createBody?.replies?.[0]?.addSheet?.properties?.sheetId ?? -1;
 
     // Escreve cabeçalhos
     const headerRange = encodeURIComponent(`${sheetName}!A1`);
@@ -116,7 +124,7 @@ export class GoogleSheetsTaskSender implements ITaskSender {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ values: [headers] }),
-      },
+      }
     );
 
     return newSheetId;
@@ -125,38 +133,35 @@ export class GoogleSheetsTaskSender implements ITaskSender {
   private async applyDurationColumnFormat(
     token: string,
     sheetId: number,
-    colIndex: number,
+    colIndex: number
   ): Promise<void> {
     const fmt = this.config.get("integrationGoogleSheetsDurationFormat") ?? "HH:MM";
     const pattern = fmt === "HH:MM:SS" ? "[hh]:mm:ss" : "[hh]:mm";
 
-    await fetch(
-      `${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}:batchUpdate`,
-      {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requests: [
-            {
-              repeatCell: {
-                range: {
-                  sheetId,
-                  startRowIndex: 1, // pula o cabeçalho
-                  startColumnIndex: colIndex,
-                  endColumnIndex: colIndex + 1,
-                },
-                cell: {
-                  userEnteredFormat: {
-                    numberFormat: { type: "TIME", pattern },
-                  },
-                },
-                fields: "userEnteredFormat.numberFormat",
+    await fetch(`${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}:batchUpdate`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requests: [
+          {
+            repeatCell: {
+              range: {
+                sheetId,
+                startRowIndex: 1, // pula o cabeçalho
+                startColumnIndex: colIndex,
+                endColumnIndex: colIndex + 1,
               },
+              cell: {
+                userEnteredFormat: {
+                  numberFormat: { type: "TIME", pattern },
+                },
+              },
+              fields: "userEnteredFormat.numberFormat",
             },
-          ],
-        }),
-      },
-    );
+          },
+        ],
+      }),
+    });
   }
 
   private taskToRow(task: Task, fields: TaskField[]): (string | number)[] {
@@ -165,20 +170,29 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     const category = this.categories.find((c) => c.id === task.categoryId);
 
     const fmt2 = (n: number) => String(n).padStart(2, "0");
-    const fmtDate = (d: Date) => `${fmt2(d.getDate())}/${fmt2(d.getMonth() + 1)}/${d.getFullYear()}`;
+    const fmtDate = (d: Date) =>
+      `${fmt2(d.getDate())}/${fmt2(d.getMonth() + 1)}/${d.getFullYear()}`;
     const fmtTime = (d: Date) => `${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`;
 
     const valueFor = (field: TaskField): string | number => {
       switch (field) {
-        case "date":      return fmtDate(start);
-        case "name":      return task.name ?? "(sem nome)";
-        case "project":   return project?.name ?? "";
-        case "category":  return category?.name ?? "";
-        case "billable":  return task.billable ? "Sim" : "Não";
-        case "startTime": return fmtTime(start);
-        case "endTime":   return task.endTime ? fmtTime(new Date(task.endTime)) : "";
+        case "date":
+          return fmtDate(start);
+        case "name":
+          return task.name ?? "(sem nome)";
+        case "project":
+          return project?.name ?? "";
+        case "category":
+          return category?.name ?? "";
+        case "billable":
+          return task.billable ? "Sim" : "Não";
+        case "startTime":
+          return fmtTime(start);
+        case "endTime":
+          return task.endTime ? fmtTime(new Date(task.endTime)) : "";
         // Envia como fração de dia para que o Sheets reconheça como duração nativa
-        case "duration":  return task.durationSeconds != null ? task.durationSeconds / 86400 : "";
+        case "duration":
+          return task.durationSeconds != null ? task.durationSeconds / 86400 : "";
       }
     };
 

@@ -23,18 +23,14 @@ describe("CategoryRepository", () => {
 
   describe("findAll", () => {
     it("converte default_billable=1 para defaultBillable=true", async () => {
-      mockDb.select.mockResolvedValue([
-        { id: "1", name: "Dev", default_billable: 1 },
-      ]);
+      mockDb.select.mockResolvedValue([{ id: "1", name: "Dev", default_billable: 1 }]);
       const repo = new CategoryRepository();
       const result = await repo.findAll();
       expect(result[0].defaultBillable).toBe(true);
     });
 
     it("converte default_billable=0 para defaultBillable=false", async () => {
-      mockDb.select.mockResolvedValue([
-        { id: "2", name: "Reuniões", default_billable: 0 },
-      ]);
+      mockDb.select.mockResolvedValue([{ id: "2", name: "Reuniões", default_billable: 0 }]);
       const repo = new CategoryRepository();
       const result = await repo.findAll();
       expect(result[0].defaultBillable).toBe(false);
@@ -74,20 +70,22 @@ describe("CategoryRepository", () => {
       const repo = new CategoryRepository();
       const category: Category = { id: "uuid-1", name: "Dev", defaultBillable: true };
       await repo.save(category);
-      expect(mockDb.execute).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT"),
-        ["uuid-1", "Dev", 1]
-      );
+      expect(mockDb.execute).toHaveBeenCalledWith(expect.stringContaining("INSERT"), [
+        "uuid-1",
+        "Dev",
+        1,
+      ]);
     });
 
     it("converte defaultBillable=false para 0 no SQL", async () => {
       const repo = new CategoryRepository();
       const category: Category = { id: "uuid-2", name: "Reuniões", defaultBillable: false };
       await repo.save(category);
-      expect(mockDb.execute).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT"),
-        ["uuid-2", "Reuniões", 0]
-      );
+      expect(mockDb.execute).toHaveBeenCalledWith(expect.stringContaining("INSERT"), [
+        "uuid-2",
+        "Reuniões",
+        0,
+      ]);
     });
   });
 
@@ -95,10 +93,7 @@ describe("CategoryRepository", () => {
     it("executa DELETE com o id correto", async () => {
       const repo = new CategoryRepository();
       await repo.delete("uuid-1");
-      expect(mockDb.execute).toHaveBeenCalledWith(
-        expect.stringContaining("DELETE"),
-        ["uuid-1"]
-      );
+      expect(mockDb.execute).toHaveBeenCalledWith(expect.stringContaining("DELETE"), ["uuid-1"]);
     });
   });
 });

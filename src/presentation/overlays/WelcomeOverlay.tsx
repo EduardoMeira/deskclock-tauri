@@ -22,7 +22,8 @@ export function WelcomeOverlay({ userName, onNavigatePlanning, onNewTask }: Welc
       <div className="bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl px-10 py-8 flex flex-col items-center gap-6 min-w-[320px]">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-gray-100">
-            {greeting}{displayName ? `, ${displayName}` : ""}!
+            {greeting}
+            {displayName ? `, ${displayName}` : ""}!
           </h1>
           <p className="text-sm text-gray-400 mt-1">No que iremos trabalhar hoje?</p>
         </div>

@@ -38,7 +38,10 @@ describe("searchTasks", () => {
   it("busca pelo período e retorna todas quando sem outros filtros", async () => {
     const tasks = [makeTask(), makeTask({ id: "t2" })];
     const repo = makeRepo(tasks);
-    const result = await searchTasks(repo, { startISO: "2026-04-08T00:00:00.000Z", endISO: "2026-04-08T23:59:59.999Z" });
+    const result = await searchTasks(repo, {
+      startISO: "2026-04-08T00:00:00.000Z",
+      endISO: "2026-04-08T23:59:59.999Z",
+    });
     expect(repo.findByDateRange).toHaveBeenCalledWith(
       "2026-04-08T00:00:00.000Z",
       "2026-04-08T23:59:59.999Z"
@@ -47,12 +50,12 @@ describe("searchTasks", () => {
   });
 
   it("filtra apenas tarefas completed", async () => {
-    const tasks = [
-      makeTask({ status: "completed" }),
-      makeTask({ id: "t2", status: "running" }),
-    ];
+    const tasks = [makeTask({ status: "completed" }), makeTask({ id: "t2", status: "running" })];
     const repo = makeRepo(tasks);
-    const result = await searchTasks(repo, { startISO: "2026-04-08T00:00:00.000Z", endISO: "2026-04-08T23:59:59.999Z" });
+    const result = await searchTasks(repo, {
+      startISO: "2026-04-08T00:00:00.000Z",
+      endISO: "2026-04-08T23:59:59.999Z",
+    });
     expect(result).toHaveLength(1);
     expect(result[0].status).toBe("completed");
   });

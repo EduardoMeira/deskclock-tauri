@@ -63,10 +63,10 @@ describe("ProjectRepository", () => {
       const repo = new ProjectRepository();
       const project: Project = { id: "uuid-1", name: "Novo" };
       await repo.save(project);
-      expect(mockDb.execute).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT"),
-        ["uuid-1", "Novo"]
-      );
+      expect(mockDb.execute).toHaveBeenCalledWith(expect.stringContaining("INSERT"), [
+        "uuid-1",
+        "Novo",
+      ]);
     });
   });
 
@@ -74,10 +74,7 @@ describe("ProjectRepository", () => {
     it("executa DELETE com o id correto", async () => {
       const repo = new ProjectRepository();
       await repo.delete("uuid-1");
-      expect(mockDb.execute).toHaveBeenCalledWith(
-        expect.stringContaining("DELETE"),
-        ["uuid-1"]
-      );
+      expect(mockDb.execute).toHaveBeenCalledWith(expect.stringContaining("DELETE"), ["uuid-1"]);
     });
   });
 });

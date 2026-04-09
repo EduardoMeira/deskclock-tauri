@@ -1,14 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  X, Loader2, Calendar, AlertCircle, CheckSquare, Square,
-  ChevronDown, ChevronRight, Repeat2,
+  X,
+  Loader2,
+  Calendar,
+  AlertCircle,
+  CheckSquare,
+  Square,
+  ChevronDown,
+  ChevronRight,
+  Repeat2,
 } from "lucide-react";
 import type { CalendarEvent } from "@domain/integrations/ICalendarImporter";
 import type { ICalendarImporter } from "@domain/integrations/ICalendarImporter";
 import type { IPlannedTaskRepository } from "@domain/repositories/IPlannedTaskRepository";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";
-import { importCalendarEvents, type ImportEventInput } from "@domain/usecases/plannedTasks/ImportCalendarEvents";
+import {
+  importCalendarEvents,
+  type ImportEventInput,
+} from "@domain/usecases/plannedTasks/ImportCalendarEvents";
 import { Autocomplete } from "@presentation/components/Autocomplete";
 
 const DAY_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -101,7 +111,7 @@ function EventEditor({ event, state, projects, categories, onChange }: EventEdit
             onClick={() => {
               const days = state.recurringDays.length
                 ? state.recurringDays
-                : event.suggestedRecurringDays ?? [];
+                : (event.suggestedRecurringDays ?? []);
               onChange({ ...state, scheduleType: "recurring", recurringDays: days });
             }}
             className={`px-2 py-0.5 text-xs rounded transition-colors ${
@@ -151,7 +161,13 @@ interface EventRowProps {
 }
 
 function EventRow({
-  event, selected, editState, projects, categories, onToggleSelect, onEditChange,
+  event,
+  selected,
+  editState,
+  projects,
+  categories,
+  onToggleSelect,
+  onEditChange,
 }: EventRowProps) {
   const hasEdits =
     editState.projectId !== null ||
@@ -184,8 +200,8 @@ function EventRow({
             {event.allDay
               ? "Dia todo"
               : event.startTime
-              ? `${event.startTime}${event.endTime ? ` – ${event.endTime}` : ""}`
-              : ""}
+                ? `${event.startTime}${event.endTime ? ` – ${event.endTime}` : ""}`
+                : ""}
             {hasEdits && (
               <span className="ml-2 text-blue-400">
                 {editState.projectName || ""}
@@ -229,8 +245,15 @@ interface ImportCalendarModalProps {
 }
 
 export function ImportCalendarModal({
-  importer, repo, fromISO, toISO, weekLabel,
-  projects, categories, onImported, onClose,
+  importer,
+  repo,
+  fromISO,
+  toISO,
+  weekLabel,
+  projects,
+  categories,
+  onImported,
+  onClose,
 }: ImportCalendarModalProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -377,12 +400,15 @@ export function ImportCalendarModal({
                 const dayEvents = grouped.get(date)!;
                 const isCollapsed = collapsedDays.has(date);
                 const allDaySelected = dayEvents.every((e) => selected.has(e.id));
-                const someDaySelected = !allDaySelected && dayEvents.some((e) => selected.has(e.id));
+                const someDaySelected =
+                  !allDaySelected && dayEvents.some((e) => selected.has(e.id));
 
                 const [year, month, day] = date.split("-").map(Number);
                 const d = new Date(year, month - 1, day);
                 const dayLabel = d.toLocaleDateString("pt-BR", {
-                  weekday: "long", day: "2-digit", month: "2-digit",
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "2-digit",
                 });
 
                 return (
@@ -394,14 +420,19 @@ export function ImportCalendarModal({
                     >
                       <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); toggleDayEvents(date); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleDayEvents(date);
+                        }}
                         className="shrink-0 text-gray-400 hover:text-gray-200"
                       >
-                        {allDaySelected
-                          ? <CheckSquare size={13} />
-                          : someDaySelected
-                          ? <Square size={13} className="opacity-50" />
-                          : <Square size={13} />}
+                        {allDaySelected ? (
+                          <CheckSquare size={13} />
+                        ) : someDaySelected ? (
+                          <Square size={13} className="opacity-50" />
+                        ) : (
+                          <Square size={13} />
+                        )}
                       </button>
                       <span className="text-xs font-medium text-gray-300 capitalize flex-1">
                         {dayLabel}
@@ -409,22 +440,27 @@ export function ImportCalendarModal({
                       <span className="text-xs text-gray-600 mr-1">
                         {dayEvents.filter((e) => selected.has(e.id)).length}/{dayEvents.length}
                       </span>
-                      {isCollapsed ? <ChevronRight size={13} className="text-gray-500" /> : <ChevronDown size={13} className="text-gray-500" />}
+                      {isCollapsed ? (
+                        <ChevronRight size={13} className="text-gray-500" />
+                      ) : (
+                        <ChevronDown size={13} className="text-gray-500" />
+                      )}
                     </div>
 
                     {/* Eventos do dia */}
-                    {!isCollapsed && dayEvents.map((event) => (
-                      <EventRow
-                        key={event.id}
-                        event={event}
-                        selected={selected.has(event.id)}
-                        editState={editMap.get(event.id) ?? defaultEditState(event)}
-                        projects={projects}
-                        categories={categories}
-                        onToggleSelect={() => toggleEvent(event.id)}
-                        onEditChange={(s) => updateEdit(event.id, s)}
-                      />
-                    ))}
+                    {!isCollapsed &&
+                      dayEvents.map((event) => (
+                        <EventRow
+                          key={event.id}
+                          event={event}
+                          selected={selected.has(event.id)}
+                          editState={editMap.get(event.id) ?? defaultEditState(event)}
+                          projects={projects}
+                          categories={categories}
+                          onToggleSelect={() => toggleEvent(event.id)}
+                          onEditChange={(s) => updateEdit(event.id, s)}
+                        />
+                      ))}
                   </div>
                 );
               })}
@@ -446,9 +482,14 @@ export function ImportCalendarModal({
               disabled={importing || selected.size === 0}
               className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded transition-colors"
             >
-              {importing
-                ? <><Loader2 size={12} className="animate-spin" />Importando…</>
-                : <>Importar selecionados ({selected.size})</>}
+              {importing ? (
+                <>
+                  <Loader2 size={12} className="animate-spin" />
+                  Importando…
+                </>
+              ) : (
+                <>Importar selecionados ({selected.size})</>
+              )}
             </button>
           </div>
         )}

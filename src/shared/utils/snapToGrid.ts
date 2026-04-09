@@ -7,7 +7,7 @@ export function snapToGrid(value: number, gridSize = GRID_SIZE): number {
 export function snapPositionToGrid(
   x: number,
   y: number,
-  gridSize = GRID_SIZE,
+  gridSize = GRID_SIZE
 ): { x: number; y: number } {
   return {
     x: snapToGrid(x, gridSize),

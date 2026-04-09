@@ -38,8 +38,12 @@ function buildISO(dateISO: string, hhmm: string): string {
 
 export function EditTaskModal({ task, projects, categories, onSave, onClose }: EditTaskModalProps) {
   const [name, setName] = useState(task.name ?? "");
-  const [projectName, setProjectName] = useState(projects.find((p) => p.id === task.projectId)?.name ?? "");
-  const [categoryName, setCategoryName] = useState(categories.find((c) => c.id === task.categoryId)?.name ?? "");
+  const [projectName, setProjectName] = useState(
+    projects.find((p) => p.id === task.projectId)?.name ?? ""
+  );
+  const [categoryName, setCategoryName] = useState(
+    categories.find((c) => c.id === task.categoryId)?.name ?? ""
+  );
   const [billable, setBillable] = useState(task.billable);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(task.projectId);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(task.categoryId);
@@ -78,15 +82,23 @@ export function EditTaskModal({ task, projects, categories, onSave, onClose }: E
     }
     const durationSeconds = Math.max(
       0,
-      Math.round((new Date(endISO).getTime() - new Date(startISO).getTime()) / 1000),
+      Math.round((new Date(endISO).getTime() - new Date(startISO).getTime()) / 1000)
     );
 
     setSaving(true);
     await updateTask(
       repo,
       task.id,
-      { name: name.trim() || null, projectId: pId, categoryId: cId, billable, startTime: startISO, endTime: endISO, durationSeconds },
-      new Date().toISOString(),
+      {
+        name: name.trim() || null,
+        projectId: pId,
+        categoryId: cId,
+        billable,
+        startTime: startISO,
+        endTime: endISO,
+        durationSeconds,
+      },
+      new Date().toISOString()
     );
     setSaving(false);
     onSave();

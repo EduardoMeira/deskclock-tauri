@@ -20,10 +20,7 @@ export class NoTasksSelectedError extends Error {
  * @param sender - implementação concreta de ITaskSender (ou null se não configurada)
  * @param tasks  - lista de tarefas a enviar
  */
-export async function sendTasks(
-  sender: ITaskSender | null,
-  tasks: Task[]
-): Promise<void> {
+export async function sendTasks(sender: ITaskSender | null, tasks: Task[]): Promise<void> {
   if (!sender) throw new NoIntegrationError();
   if (tasks.length === 0) throw new NoTasksSelectedError();
   await sender.send(tasks);

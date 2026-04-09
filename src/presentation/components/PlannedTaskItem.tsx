@@ -1,5 +1,17 @@
 import { useState, useRef, useEffect } from "react";
-import { Play, Check, Copy, Trash2, RotateCcw, Pencil, X, Zap, Plus, ExternalLink, FolderOpen } from "lucide-react";
+import {
+  Play,
+  Check,
+  Copy,
+  Trash2,
+  RotateCcw,
+  Pencil,
+  X,
+  Zap,
+  Plus,
+  ExternalLink,
+  FolderOpen,
+} from "lucide-react";
 import { Autocomplete } from "@presentation/components/Autocomplete";
 import { DatePickerInput } from "@presentation/components/DatePickerInput";
 import type { PlannedTask, PlannedTaskAction } from "@domain/entities/PlannedTask";
@@ -88,7 +100,10 @@ export function PlannedTaskItem({
   }
 
   async function save() {
-    if (!dirty.current) { setEditing(false); return; }
+    if (!dirty.current) {
+      setEditing(false);
+      return;
+    }
     await onUpdate(task.id, {
       name: name.trim() || task.name,
       projectId,
@@ -124,7 +139,7 @@ export function PlannedTaskItem({
     }
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing, name, projectId, categoryId, billable, scheduleDate]);
 
   // Gerenciamento de ações
@@ -152,14 +167,23 @@ export function PlannedTaskItem({
               autoFocus
               type="text"
               value={name}
-              onChange={(e) => { setName(e.target.value); dirty.current = true; }}
-              onKeyDown={(e) => { if (e.key === "Enter") void save(); if (e.key === "Escape") cancel(); }}
+              onChange={(e) => {
+                setName(e.target.value);
+                dirty.current = true;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void save();
+                if (e.key === "Escape") cancel();
+              }}
               className="flex-1 px-2.5 py-1.5 text-sm bg-gray-900 border border-gray-600 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
             />
             {canEditDate && (
               <DatePickerInput
                 value={scheduleDate}
-                onChange={(v) => { setScheduleDate(v); dirty.current = true; }}
+                onChange={(v) => {
+                  setScheduleDate(v);
+                  dirty.current = true;
+                }}
                 className="w-36 shrink-0"
               />
             )}
@@ -167,20 +191,32 @@ export function PlannedTaskItem({
           <div className="flex gap-2">
             <Autocomplete
               value={projectName}
-              onChange={(v) => { setProjectName(v); dirty.current = true; }}
-              onSelect={(o) => { setProjectId(o.id); setProjectName(o.name); dirty.current = true; }}
+              onChange={(v) => {
+                setProjectName(v);
+                dirty.current = true;
+              }}
+              onSelect={(o) => {
+                setProjectId(o.id);
+                setProjectName(o.name);
+                dirty.current = true;
+              }}
               options={projects}
               placeholder="Projeto"
               className="flex-1"
             />
             <Autocomplete
               value={categoryName}
-              onChange={(v) => { setCategoryName(v); dirty.current = true; }}
+              onChange={(v) => {
+                setCategoryName(v);
+                dirty.current = true;
+              }}
               onSelect={(o) => {
                 setCategoryId(o.id);
                 setCategoryName(o.name);
                 const cat = categories.find((c) => c.id === o.id);
-                if (cat) { setBillable(cat.defaultBillable); }
+                if (cat) {
+                  setBillable(cat.defaultBillable);
+                }
                 dirty.current = true;
               }}
               options={categories}
@@ -190,7 +226,10 @@ export function PlannedTaskItem({
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => { setBillable((b) => !b); dirty.current = true; }}
+              onClick={() => {
+                setBillable((b) => !b);
+                dirty.current = true;
+              }}
               className={`px-2.5 py-1.5 text-xs rounded border transition-colors shrink-0 ${
                 billable
                   ? "bg-green-900/40 border-green-700 text-green-400"
@@ -269,7 +308,10 @@ export function PlannedTaskItem({
           </button>
 
           <button
-            onClick={() => { setEditing(false); setShowActions((v) => !v); }}
+            onClick={() => {
+              setEditing(false);
+              setShowActions((v) => !v);
+            }}
             title="Ações"
             className={`relative p-1.5 rounded transition-colors ${
               showActions
@@ -309,8 +351,14 @@ export function PlannedTaskItem({
             <ul className="mb-2 space-y-1">
               {task.actions.map((action, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <span className={`shrink-0 p-1 rounded ${action.type === "open_url" ? "text-blue-400" : "text-purple-400"}`}>
-                    {action.type === "open_url" ? <ExternalLink size={12} /> : <FolderOpen size={12} />}
+                  <span
+                    className={`shrink-0 p-1 rounded ${action.type === "open_url" ? "text-blue-400" : "text-purple-400"}`}
+                  >
+                    {action.type === "open_url" ? (
+                      <ExternalLink size={12} />
+                    ) : (
+                      <FolderOpen size={12} />
+                    )}
                   </span>
                   <span className="flex-1 text-xs text-gray-300 truncate" title={action.value}>
                     {action.value}
@@ -339,7 +387,9 @@ export function PlannedTaskItem({
               type="text"
               value={newActionValue}
               onChange={(e) => setNewActionValue(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") void handleAddAction(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleAddAction();
+              }}
               placeholder={newActionType === "open_url" ? "https://..." : "/caminho/arquivo"}
               className="flex-1 px-2 py-1 text-xs bg-gray-900 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
             />

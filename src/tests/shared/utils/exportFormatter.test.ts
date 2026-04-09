@@ -105,9 +105,7 @@ describe("buildExportRows", () => {
 
   it("omite colunas invisíveis", () => {
     const profile = makeProfile({
-      columns: DEFAULT_COLUMNS.map((c) =>
-        c.field === "project" ? { ...c, visible: false } : c
-      ),
+      columns: DEFAULT_COLUMNS.map((c) => (c.field === "project" ? { ...c, visible: false } : c)),
     });
     const rows = buildExportRows([makeTask()], profile, projects, categories);
     expect(rows[0]["Projeto"]).toBeUndefined();
@@ -115,9 +113,7 @@ describe("buildExportRows", () => {
 
   it("usa label customizado da coluna", () => {
     const profile = makeProfile({
-      columns: DEFAULT_COLUMNS.map((c) =>
-        c.field === "name" ? { ...c, label: "Atividade" } : c
-      ),
+      columns: DEFAULT_COLUMNS.map((c) => (c.field === "name" ? { ...c, label: "Atividade" } : c)),
     });
     const rows = buildExportRows([makeTask()], profile, projects, categories);
     expect(rows[0]["Atividade"]).toBe("Dev");

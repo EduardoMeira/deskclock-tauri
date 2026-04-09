@@ -4,7 +4,9 @@ import type { ITaskRepository } from "@domain/repositories/ITaskRepository";
 
 function makeRepo(): ITaskRepository {
   return {
-    save: vi.fn(), update: vi.fn(), findById: vi.fn(async () => null),
+    save: vi.fn(),
+    update: vi.fn(),
+    findById: vi.fn(async () => null),
     findByStatus: vi.fn(async () => []),
     findByDateRange: vi.fn(async () => []),
     delete: vi.fn(async () => undefined),

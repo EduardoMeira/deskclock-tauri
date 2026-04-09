@@ -6,32 +6,47 @@ import type { ITaskRepository } from "@domain/repositories/ITaskRepository";
 describe("getTasksForDate", () => {
   it("chama findByDateRange com range do horário local para a data", async () => {
     const repo: ITaskRepository = {
-      save: vi.fn(), update: vi.fn(), findById: vi.fn(async () => null),
+      save: vi.fn(),
+      update: vi.fn(),
+      findById: vi.fn(async () => null),
       findByStatus: vi.fn(async () => []),
       findByDateRange: vi.fn(async () => []),
-      delete: vi.fn(), deleteMany: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
       markSentToSheets: vi.fn(),
     };
     await getTasksForDate(repo, "2026-04-08");
     expect(repo.findByDateRange).toHaveBeenCalledWith(
       startOfDayISO("2026-04-08"),
-      endOfDayISO("2026-04-08"),
+      endOfDayISO("2026-04-08")
     );
   });
 
   it("retorna as tasks do repositório", async () => {
     const tasks = [
-      { id: "t1", name: null, projectId: null, categoryId: null, billable: true,
-        startTime: "2026-04-08T09:00:00.000Z", endTime: "2026-04-08T10:00:00.000Z",
-        durationSeconds: 3600, status: "completed" as const,
+      {
+        id: "t1",
+        name: null,
+        projectId: null,
+        categoryId: null,
+        billable: true,
+        startTime: "2026-04-08T09:00:00.000Z",
+        endTime: "2026-04-08T10:00:00.000Z",
+        durationSeconds: 3600,
+        status: "completed" as const,
         sentToSheets: false,
-        createdAt: "2026-04-08T09:00:00.000Z", updatedAt: "2026-04-08T10:00:00.000Z" },
+        createdAt: "2026-04-08T09:00:00.000Z",
+        updatedAt: "2026-04-08T10:00:00.000Z",
+      },
     ];
     const repo: ITaskRepository = {
-      save: vi.fn(), update: vi.fn(), findById: vi.fn(async () => null),
+      save: vi.fn(),
+      update: vi.fn(),
+      findById: vi.fn(async () => null),
       findByStatus: vi.fn(async () => []),
       findByDateRange: vi.fn(async () => tasks),
-      delete: vi.fn(), deleteMany: vi.fn(),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
       markSentToSheets: vi.fn(),
     };
     const result = await getTasksForDate(repo, "2026-04-08");

@@ -84,7 +84,7 @@ export function WeekPlanningView() {
 
   const calendarImporter = useMemo(
     () => (config.isLoaded ? new GoogleCalendarImporter(config) : null),
-    [config.isLoaded], // eslint-disable-line react-hooks/exhaustive-deps
+    [config.isLoaded] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // Intervalos ISO para o Calendar API (meia-noite local → UTC)
@@ -113,7 +113,10 @@ export function WeekPlanningView() {
       {/* Header de navegação */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
         <button
-          onClick={() => { setWeekOffset((o) => o - 1); setDayFilter("all"); }}
+          onClick={() => {
+            setWeekOffset((o) => o - 1);
+            setDayFilter("all");
+          }}
           className="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
         >
           <ChevronLeft size={16} />
@@ -131,7 +134,10 @@ export function WeekPlanningView() {
             </button>
           )}
           <button
-            onClick={() => { setWeekOffset((o) => o + 1); setDayFilter("all"); }}
+            onClick={() => {
+              setWeekOffset((o) => o + 1);
+              setDayFilter("all");
+            }}
             className="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
           >
             <ChevronRight size={16} />

@@ -15,9 +15,7 @@ export function CategoriesPanel() {
   const [bulkText, setBulkText] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  const filtered = categories.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()));
 
   const handleAdd = async () => {
     if (!newName.trim()) return;
@@ -82,9 +80,7 @@ export function CategoriesPanel() {
             {search ? "Nenhuma categoria encontrada." : "Nenhuma categoria cadastrada."}
           </p>
         ) : (
-          filtered.map((c) => (
-            <CategoryCard key={c.id} category={c} onDelete={deleteCategory} />
-          ))
+          filtered.map((c) => <CategoryCard key={c.id} category={c} onDelete={deleteCategory} />)
         )}
       </div>
     </div>

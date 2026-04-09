@@ -1,6 +1,12 @@
 /** Mapeamento de código RRULE BYDAY → índice de dia da semana (0=Dom…6=Sáb). */
 export const BYDAY_MAP: Record<string, number> = {
-  SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6,
+  SU: 0,
+  MO: 1,
+  TU: 2,
+  WE: 3,
+  TH: 4,
+  FR: 5,
+  SA: 6,
 };
 
 /**

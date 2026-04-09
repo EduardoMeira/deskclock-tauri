@@ -6,10 +6,7 @@ interface TodayTotals {
   nonBillableSeconds: number;
 }
 
-export async function getTodayTotals(
-  repo: ITaskRepository,
-  dateISO: string
-): Promise<TodayTotals> {
+export async function getTodayTotals(repo: ITaskRepository, dateISO: string): Promise<TodayTotals> {
   const tasks = await getTasksForDate(repo, dateISO);
   let billableSeconds = 0;
   let nonBillableSeconds = 0;

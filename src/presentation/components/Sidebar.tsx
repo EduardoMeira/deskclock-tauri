@@ -1,7 +1,23 @@
-import { Timer, Database, CalendarDays, History, Settings, MessageSquare, FileClock, Plug } from "lucide-react";
+import {
+  Timer,
+  Database,
+  CalendarDays,
+  History,
+  Settings,
+  MessageSquare,
+  FileClock,
+  Plug,
+} from "lucide-react";
 import { openInBrowser, getPlatform } from "@shared/utils/shell";
 
-export type Page = "tasks" | "data" | "planning" | "history" | "retroactive" | "integrations" | "settings";
+export type Page =
+  | "tasks"
+  | "data"
+  | "planning"
+  | "history"
+  | "retroactive"
+  | "integrations"
+  | "settings";
 
 interface SidebarProps {
   current: Page;
@@ -9,13 +25,13 @@ interface SidebarProps {
 }
 
 const ITEMS: { page: Page; icon: React.ReactNode; label: string }[] = [
-  { page: "tasks",       icon: <Timer size={20} />,        label: "Tarefas" },
-  { page: "data",        icon: <Database size={20} />,     label: "Dados" },
-  { page: "planning",    icon: <CalendarDays size={20} />, label: "Planejamento" },
-  { page: "history",     icon: <History size={20} />,      label: "Histórico" },
-  { page: "retroactive",   icon: <FileClock size={20} />, label: "Lançamento retroativo" },
-  { page: "integrations", icon: <Plug size={20} />,       label: "Integrações" },
-  { page: "settings",     icon: <Settings size={20} />,   label: "Configurações" },
+  { page: "tasks", icon: <Timer size={20} />, label: "Tarefas" },
+  { page: "data", icon: <Database size={20} />, label: "Dados" },
+  { page: "planning", icon: <CalendarDays size={20} />, label: "Planejamento" },
+  { page: "history", icon: <History size={20} />, label: "Histórico" },
+  { page: "retroactive", icon: <FileClock size={20} />, label: "Lançamento retroativo" },
+  { page: "integrations", icon: <Plug size={20} />, label: "Integrações" },
+  { page: "settings", icon: <Settings size={20} />, label: "Configurações" },
 ];
 
 const FEEDBACK_BASE_URL = "https://forms.monday.com/forms/5bb4399c79149a4a3714b97b852d6d21?r=use1";

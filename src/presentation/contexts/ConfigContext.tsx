@@ -96,7 +96,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
         keys.map(async (key) => {
           const val = await repo.get(key, DEFAULTS[key]);
           (cache.current as unknown as Record<string, unknown>)[key] = val;
-        }),
+        })
       );
       setIsLoaded(true);
     }
@@ -112,11 +112,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     await repo.set(key, value);
   }
 
-  return (
-    <ConfigContext.Provider value={{ isLoaded, get, set }}>
-      {children}
-    </ConfigContext.Provider>
-  );
+  return <ConfigContext.Provider value={{ isLoaded, get, set }}>{children}</ConfigContext.Provider>;
 }
 
 export function useAppConfig(): ConfigContextValue {

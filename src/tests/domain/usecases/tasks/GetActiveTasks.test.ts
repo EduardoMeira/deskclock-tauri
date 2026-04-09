@@ -5,11 +5,18 @@ import type { Task } from "@domain/entities/Task";
 
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
-    id: "t1", name: null, projectId: null, categoryId: null,
-    billable: true, startTime: "2026-04-08T09:00:00.000Z",
-    endTime: null, durationSeconds: 0, status: "running",
+    id: "t1",
+    name: null,
+    projectId: null,
+    categoryId: null,
+    billable: true,
+    startTime: "2026-04-08T09:00:00.000Z",
+    endTime: null,
+    durationSeconds: 0,
+    status: "running",
     sentToSheets: false,
-    createdAt: "2026-04-08T09:00:00.000Z", updatedAt: "2026-04-08T09:00:00.000Z",
+    createdAt: "2026-04-08T09:00:00.000Z",
+    updatedAt: "2026-04-08T09:00:00.000Z",
     ...overrides,
   };
 }
@@ -17,11 +24,15 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 describe("getActiveTasks", () => {
   it("retorna tasks running e paused concatenadas", async () => {
     const running = makeTask({ id: "r1", status: "running" });
-    const paused  = makeTask({ id: "p1", status: "paused" });
+    const paused = makeTask({ id: "p1", status: "paused" });
     const repo: ITaskRepository = {
-      save: vi.fn(), update: vi.fn(), findById: vi.fn(async () => null),
-      findByStatus: vi.fn(async (s) => s === "running" ? [running] : [paused]),
-      findByDateRange: vi.fn(async () => []), delete: vi.fn(), deleteMany: vi.fn(),
+      save: vi.fn(),
+      update: vi.fn(),
+      findById: vi.fn(async () => null),
+      findByStatus: vi.fn(async (s) => (s === "running" ? [running] : [paused])),
+      findByDateRange: vi.fn(async () => []),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
       markSentToSheets: vi.fn(),
     };
     const result = await getActiveTasks(repo);
@@ -32,9 +43,13 @@ describe("getActiveTasks", () => {
 
   it("retorna array vazio quando sem tasks ativas", async () => {
     const repo: ITaskRepository = {
-      save: vi.fn(), update: vi.fn(), findById: vi.fn(async () => null),
+      save: vi.fn(),
+      update: vi.fn(),
+      findById: vi.fn(async () => null),
       findByStatus: vi.fn(async () => []),
-      findByDateRange: vi.fn(async () => []), delete: vi.fn(), deleteMany: vi.fn(),
+      findByDateRange: vi.fn(async () => []),
+      delete: vi.fn(),
+      deleteMany: vi.fn(),
       markSentToSheets: vi.fn(),
     };
     const result = await getActiveTasks(repo);

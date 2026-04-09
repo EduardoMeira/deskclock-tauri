@@ -42,15 +42,19 @@ describe("importCalendarEvents", () => {
 
   it("cria tarefa specific_date preservando a data do evento", async () => {
     const repo = makeRepo();
-    const count = await importCalendarEvents(repo, [
-      {
-        event: makeEvent({ date: "2026-04-09" }),
-        projectId: null,
-        categoryId: null,
-        scheduleType: "specific_date",
-        recurringDays: [],
-      },
-    ], NOW);
+    const count = await importCalendarEvents(
+      repo,
+      [
+        {
+          event: makeEvent({ date: "2026-04-09" }),
+          projectId: null,
+          categoryId: null,
+          scheduleType: "specific_date",
+          recurringDays: [],
+        },
+      ],
+      NOW
+    );
 
     expect(count).toBe(1);
     expect(repo.save).toHaveBeenCalledTimes(1);
@@ -64,15 +68,19 @@ describe("importCalendarEvents", () => {
 
   it("cria tarefa recurring com os dias fornecidos", async () => {
     const repo = makeRepo();
-    await importCalendarEvents(repo, [
-      {
-        event: makeEvent(),
-        projectId: null,
-        categoryId: null,
-        scheduleType: "recurring",
-        recurringDays: [1, 3, 5],
-      },
-    ], NOW);
+    await importCalendarEvents(
+      repo,
+      [
+        {
+          event: makeEvent(),
+          projectId: null,
+          categoryId: null,
+          scheduleType: "recurring",
+          recurringDays: [1, 3, 5],
+        },
+      ],
+      NOW
+    );
 
     const saved = vi.mocked(repo.save).mock.calls[0][0];
     expect(saved.scheduleType).toBe("recurring");
@@ -82,15 +90,19 @@ describe("importCalendarEvents", () => {
 
   it("trata recurring sem dias como specific_date", async () => {
     const repo = makeRepo();
-    await importCalendarEvents(repo, [
-      {
-        event: makeEvent({ date: "2026-04-10" }),
-        projectId: null,
-        categoryId: null,
-        scheduleType: "recurring",
-        recurringDays: [], // sem dias → cai em specific_date
-      },
-    ], NOW);
+    await importCalendarEvents(
+      repo,
+      [
+        {
+          event: makeEvent({ date: "2026-04-10" }),
+          projectId: null,
+          categoryId: null,
+          scheduleType: "recurring",
+          recurringDays: [], // sem dias → cai em specific_date
+        },
+      ],
+      NOW
+    );
 
     const saved = vi.mocked(repo.save).mock.calls[0][0];
     expect(saved.scheduleType).toBe("specific_date");
@@ -99,15 +111,19 @@ describe("importCalendarEvents", () => {
 
   it("propaga projectId e categoryId para a tarefa criada", async () => {
     const repo = makeRepo();
-    await importCalendarEvents(repo, [
-      {
-        event: makeEvent(),
-        projectId: "proj-abc",
-        categoryId: "cat-xyz",
-        scheduleType: "specific_date",
-        recurringDays: [],
-      },
-    ], NOW);
+    await importCalendarEvents(
+      repo,
+      [
+        {
+          event: makeEvent(),
+          projectId: "proj-abc",
+          categoryId: "cat-xyz",
+          scheduleType: "specific_date",
+          recurringDays: [],
+        },
+      ],
+      NOW
+    );
 
     const saved = vi.mocked(repo.save).mock.calls[0][0];
     expect(saved.projectId).toBe("proj-abc");
@@ -131,7 +147,7 @@ describe("importCalendarEvents", () => {
         scheduleType: "specific_date",
         recurringDays: [],
       })),
-      NOW,
+      NOW
     );
 
     expect(count).toBe(3);
@@ -140,15 +156,19 @@ describe("importCalendarEvents", () => {
 
   it("usa o título do evento como nome da tarefa", async () => {
     const repo = makeRepo();
-    await importCalendarEvents(repo, [
-      {
-        event: makeEvent({ title: "1:1 com gestor" }),
-        projectId: null,
-        categoryId: null,
-        scheduleType: "specific_date",
-        recurringDays: [],
-      },
-    ], NOW);
+    await importCalendarEvents(
+      repo,
+      [
+        {
+          event: makeEvent({ title: "1:1 com gestor" }),
+          projectId: null,
+          categoryId: null,
+          scheduleType: "specific_date",
+          recurringDays: [],
+        },
+      ],
+      NOW
+    );
 
     const saved = vi.mocked(repo.save).mock.calls[0][0];
     expect(saved.name).toBe("1:1 com gestor");
@@ -156,15 +176,19 @@ describe("importCalendarEvents", () => {
 
   it("cria tarefas com billable=false por padrão", async () => {
     const repo = makeRepo();
-    await importCalendarEvents(repo, [
-      {
-        event: makeEvent(),
-        projectId: null,
-        categoryId: null,
-        scheduleType: "specific_date",
-        recurringDays: [],
-      },
-    ], NOW);
+    await importCalendarEvents(
+      repo,
+      [
+        {
+          event: makeEvent(),
+          projectId: null,
+          categoryId: null,
+          scheduleType: "specific_date",
+          recurringDays: [],
+        },
+      ],
+      NOW
+    );
 
     const saved = vi.mocked(repo.save).mock.calls[0][0];
     expect(saved.billable).toBe(false);

@@ -24,7 +24,8 @@ describe("formatDurationCompact", () => {
 });
 
 describe("formatWeekTotal", () => {
-  it("formata total de semana com dias", () => expect(formatWeekTotal(54000, 2)).toBe("15:00:00 2d"));
+  it("formata total de semana com dias", () =>
+    expect(formatWeekTotal(54000, 2)).toBe("15:00:00 2d"));
   it("formata 0 segundos", () => expect(formatWeekTotal(0, 0)).toBe("00:00:00 0d"));
 });
 

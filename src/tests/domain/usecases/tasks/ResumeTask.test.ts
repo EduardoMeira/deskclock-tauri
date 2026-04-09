@@ -87,7 +87,9 @@ describe("resumeTask", () => {
       markSentToSheets: vi.fn(),
     };
     await resumeTask(repo, "t1", NOW);
-    expect(repo.update).toHaveBeenCalledWith(expect.objectContaining({ id: "other", status: "completed" }));
+    expect(repo.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "other", status: "completed" })
+    );
   });
 
   it("lança DomainError se task não encontrada", async () => {

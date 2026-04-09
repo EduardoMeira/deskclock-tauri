@@ -26,13 +26,20 @@ import {
 
 function PageContent({ page }: { page: Page }) {
   switch (page) {
-    case "tasks":       return <TasksPage />;
-    case "planning":    return <PlanningPage />;
-    case "data":        return <DataPage />;
-    case "history":     return <HistoryPage />;
-    case "retroactive":   return <RetroactivePage />;
-    case "integrations":  return <IntegrationsPage />;
-    case "settings":      return <SettingsPage />;
+    case "tasks":
+      return <TasksPage />;
+    case "planning":
+      return <PlanningPage />;
+    case "data":
+      return <DataPage />;
+    case "history":
+      return <HistoryPage />;
+    case "retroactive":
+      return <RetroactivePage />;
+    case "integrations":
+      return <IntegrationsPage />;
+    case "settings":
+      return <SettingsPage />;
   }
 }
 
@@ -86,7 +93,9 @@ function MainContent({
         await resumeTask();
       }
     });
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [runningTask, startTask, pauseTask, resumeTask]);
 
   // Atalhos globais: stop-task (para como pendente — sem UI para confirmar)
@@ -94,7 +103,9 @@ function MainContent({
     const unlisten = listen("shortcut:stop-task", async () => {
       if (runningTask) await stopTask(false);
     });
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [runningTask, stopTask]);
 
   useEffect(() => {
@@ -118,9 +129,11 @@ function MainContent({
             mode: "compact",
           } satisfies OverlaySetModePayload);
         }
-      },
+      }
     );
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [startTask, setPage, welcomeActiveRef]);
 
   return (
@@ -170,7 +183,9 @@ function AppInner() {
         // Delay activating the ref so the initial window-focus event (fired at
         // app start, before this effect runs) is not mistakenly treated as a
         // tray-triggered focus.
-        setTimeout(() => { welcomeActiveRef.current = true; }, 200);
+        setTimeout(() => {
+          welcomeActiveRef.current = true;
+        }, 200);
       });
     } else if (config.get("overlayAlwaysVisible")) {
       getOverlay().then((overlay) => overlay?.show());
@@ -185,7 +200,9 @@ function AppInner() {
       const w = await getWelcome();
       await w?.hide();
     });
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Navigate to planning when triggered from overlay
@@ -193,7 +210,9 @@ function AppInner() {
     const unlisten = listen(OVERLAY_EVENTS.OVERLAY_NAVIGATE_PLANNING, () => {
       setPage("planning");
     });
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []);
 
   return (

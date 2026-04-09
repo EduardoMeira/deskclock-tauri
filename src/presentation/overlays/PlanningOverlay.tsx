@@ -84,9 +84,7 @@ export function PlanningOverlay({ onMinimize, onClose, onNavigatePlanning }: Pla
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-xs text-gray-200 truncate">{task.name}</p>
-                  {project && (
-                    <p className="text-xs text-gray-500 truncate">{project.name}</p>
-                  )}
+                  {project && <p className="text-xs text-gray-500 truncate">{project.name}</p>}
                 </div>
                 <button
                   onClick={() => handlePlay(task)}

@@ -3,7 +3,10 @@ import type { Task } from "@domain/entities/Task";
 import { DomainError } from "@shared/errors";
 
 type UpdateTaskInput = Partial<
-  Pick<Task, "name" | "projectId" | "categoryId" | "billable" | "startTime" | "endTime" | "durationSeconds">
+  Pick<
+    Task,
+    "name" | "projectId" | "categoryId" | "billable" | "startTime" | "endTime" | "durationSeconds"
+  >
 >;
 
 export async function updateTask(

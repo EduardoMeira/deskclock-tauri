@@ -77,7 +77,9 @@ describe("startTask", () => {
     };
     const repo = makeRepo({ findByStatus: vi.fn(async () => [running]) });
     await startTask(repo, { billable: true }, NOW);
-    expect(repo.update).toHaveBeenCalledWith(expect.objectContaining({ id: "old", status: "completed" }));
+    expect(repo.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "old", status: "completed" })
+    );
   });
 
   it("para task paused existente antes de iniciar nova", async () => {
@@ -97,6 +99,8 @@ describe("startTask", () => {
     };
     const repo = makeRepo({ findByStatus: vi.fn(async () => [paused]) });
     await startTask(repo, { billable: true }, NOW);
-    expect(repo.update).toHaveBeenCalledWith(expect.objectContaining({ id: "old2", status: "completed" }));
+    expect(repo.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "old2", status: "completed" })
+    );
   });
 });

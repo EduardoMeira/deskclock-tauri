@@ -1,9 +1,7 @@
 import type { Task } from "@domain/entities/Task";
 
 export function differenceInSeconds(laterISO: string, earlierISO: string): number {
-  return Math.floor(
-    (new Date(laterISO).getTime() - new Date(earlierISO).getTime()) / 1000
-  );
+  return Math.floor((new Date(laterISO).getTime() - new Date(earlierISO).getTime()) / 1000);
 }
 
 export function effectiveDuration(task: Task, nowISO: string): number {

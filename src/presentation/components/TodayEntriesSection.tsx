@@ -11,7 +11,11 @@ import { TaskRepository } from "@infra/database/TaskRepository";
 import { deleteTask } from "@domain/usecases/tasks/DeleteTask";
 import { updateTask } from "@domain/usecases/tasks/UpdateTask";
 import { mergeTaskGroup } from "@domain/usecases/tasks/MergeTaskGroup";
-import { sendTasks, NoIntegrationError, NoTasksSelectedError } from "@domain/usecases/tasks/SendTasks";
+import {
+  sendTasks,
+  NoIntegrationError,
+  NoTasksSelectedError,
+} from "@domain/usecases/tasks/SendTasks";
 import { useRunningTask } from "@presentation/contexts/RunningTaskContext";
 import { useAppConfig } from "@presentation/contexts/ConfigContext";
 import { GoogleSheetsTaskSender } from "@infra/integrations/GoogleSheetsTaskSender";
@@ -32,8 +36,14 @@ function validateTasks(tasks: Task[], enabledFields: TaskField[]): string | null
   if (requiredNullable.length === 0) return null;
 
   const fieldLabel: Record<TaskField, string> = {
-    date: "data", name: "nome", project: "projeto", category: "categoria",
-    billable: "billable", startTime: "início", endTime: "fim", duration: "duração",
+    date: "data",
+    name: "nome",
+    project: "projeto",
+    category: "categoria",
+    billable: "billable",
+    startTime: "início",
+    endTime: "fim",
+    duration: "duração",
   };
 
   const incomplete: string[] = [];
@@ -41,7 +51,8 @@ function validateTasks(tasks: Task[], enabledFields: TaskField[]): string | null
     const missing: string[] = [];
     if (requiredNullable.includes("name") && !task.name?.trim()) missing.push(fieldLabel.name);
     if (requiredNullable.includes("project") && !task.projectId) missing.push(fieldLabel.project);
-    if (requiredNullable.includes("category") && !task.categoryId) missing.push(fieldLabel.category);
+    if (requiredNullable.includes("category") && !task.categoryId)
+      missing.push(fieldLabel.category);
     if (missing.length > 0) {
       incomplete.push(`"${task.name ?? "(sem nome)"}" — faltam: ${missing.join(", ")}`);
     }
@@ -52,7 +63,11 @@ function validateTasks(tasks: Task[], enabledFields: TaskField[]): string | null
 }
 
 export function TodayEntriesSection({
-  groups, projects, categories, reload, totalSeconds,
+  groups,
+  projects,
+  categories,
+  reload,
+  totalSeconds,
 }: TodayEntriesSectionProps) {
   const { startTask, runningTask } = useRunningTask();
   const config = useAppConfig();
@@ -64,7 +79,7 @@ export function TodayEntriesSection({
     const refreshToken = config.get("googleRefreshToken");
     if (!spreadsheetId || !refreshToken) return null;
     return new GoogleSheetsTaskSender(config, spreadsheetId, projects, categories);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.isLoaded, projects, categories]);
 
   // send mode
@@ -104,9 +119,7 @@ export function TodayEntriesSection({
 
   async function handleSend() {
     setSendMessage(null);
-    const tasksToSend = groups
-      .filter((g) => selectedKeys.has(g.key))
-      .flatMap((g) => g.tasks);
+    const tasksToSend = groups.filter((g) => selectedKeys.has(g.key)).flatMap((g) => g.tasks);
 
     // Valida dados obrigatórios antes de enviar
     const mapping = config.get("integrationGoogleSheetsColumnMapping");
@@ -122,7 +135,10 @@ export function TodayEntriesSection({
       await sendTasks(googleSheetsSender, tasksToSend);
       await repo.markSentToSheets(tasksToSend.map((t) => t.id));
       reload();
-      setSendMessage({ text: `${tasksToSend.length} tarefa(s) enviada(s) com sucesso.`, error: false });
+      setSendMessage({
+        text: `${tasksToSend.length} tarefa(s) enviada(s) com sucesso.`,
+        error: false,
+      });
       setSelectedKeys(new Set());
     } catch (err) {
       if (err instanceof NoIntegrationError) {
@@ -204,10 +220,17 @@ export function TodayEntriesSection({
               disabled={sending || selectedKeys.size === 0}
               className="flex items-center gap-1 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-2 py-1 rounded"
             >
-              {sending
-                ? <><Loader2 size={12} className="animate-spin" />Enviando…</>
-                : <><Send size={12} />Enviar selecionadas ({selectedKeys.size})</>
-              }
+              {sending ? (
+                <>
+                  <Loader2 size={12} className="animate-spin" />
+                  Enviando…
+                </>
+              ) : (
+                <>
+                  <Send size={12} />
+                  Enviar selecionadas ({selectedKeys.size})
+                </>
+              )}
             </button>
             <button
               onClick={exitSendMode}
@@ -218,7 +241,9 @@ export function TodayEntriesSection({
             </button>
           </div>
           {sendMessage && (
-            <p className={`text-xs whitespace-pre-line ${sendMessage.error ? "text-red-400" : "text-green-400"}`}>
+            <p
+              className={`text-xs whitespace-pre-line ${sendMessage.error ? "text-red-400" : "text-green-400"}`}
+            >
               {sendMessage.text}
             </p>
           )}

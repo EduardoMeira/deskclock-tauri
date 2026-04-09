@@ -15,24 +15,24 @@ if (label === "overlay") {
   root.render(
     <StrictMode>
       <OverlayApp />
-    </StrictMode>,
+    </StrictMode>
   );
 } else if (label === "welcome") {
   root.render(
     <StrictMode>
       <WelcomeApp />
-    </StrictMode>,
+    </StrictMode>
   );
 } else if (label === "toast") {
   root.render(
     <StrictMode>
       <ToastApp />
-    </StrictMode>,
+    </StrictMode>
   );
 } else {
   root.render(
     <StrictMode>
       <App />
-    </StrictMode>,
+    </StrictMode>
   );
 }

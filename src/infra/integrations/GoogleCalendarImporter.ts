@@ -53,7 +53,7 @@ export class GoogleCalendarImporter implements ICalendarImporter {
 
     if (!res.ok) {
       throw new Error(
-        body?.error?.message ?? `Erro HTTP ${res.status} ao buscar eventos do Google Calendar.`,
+        body?.error?.message ?? `Erro HTTP ${res.status} ao buscar eventos do Google Calendar.`
       );
     }
 
@@ -62,7 +62,7 @@ export class GoogleCalendarImporter implements ICalendarImporter {
       (e) =>
         e.status !== "cancelled" &&
         (e.summary ?? "").trim() !== "" &&
-        !IGNORED_TYPES.has(e.eventType ?? ""),
+        !IGNORED_TYPES.has(e.eventType ?? "")
     );
 
     const mapped = rawEvents.map((e) => this.mapEvent(e));
@@ -84,7 +84,7 @@ export class GoogleCalendarImporter implements ICalendarImporter {
   private async fetchRRules(
     token: string,
     events: CalendarEvent[],
-    rawEvents: GoogleEvent[],
+    rawEvents: GoogleEvent[]
   ): Promise<Map<string, number[]>> {
     // Mapeia recurringEventId → dia da semana do evento instância (fallback)
     const fallbackDayMap = new Map<string, number>();
@@ -124,7 +124,7 @@ export class GoogleCalendarImporter implements ICalendarImporter {
         } catch {
           // falha ao buscar RRULE de um evento não impede os demais
         }
-      }),
+      })
     );
 
     return results;

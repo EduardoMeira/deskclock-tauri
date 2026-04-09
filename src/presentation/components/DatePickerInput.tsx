@@ -47,8 +47,10 @@ export function DatePickerInput({
     function handleClick(e: MouseEvent) {
       const target = e.target as Node;
       if (
-        inputRef.current && !inputRef.current.contains(target) &&
-        calendarRef.current && !calendarRef.current.contains(target)
+        inputRef.current &&
+        !inputRef.current.contains(target) &&
+        calendarRef.current &&
+        !calendarRef.current.contains(target)
       ) {
         setOpen(false);
       }
@@ -59,7 +61,9 @@ export function DatePickerInput({
 
   useEffect(() => {
     if (!open) return;
-    function close() { setOpen(false); }
+    function close() {
+      setOpen(false);
+    }
     window.addEventListener("scroll", close, true);
     window.addEventListener("resize", close);
     return () => {
@@ -102,40 +106,43 @@ export function DatePickerInput({
         onClick={handleOpen}
         className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 cursor-pointer"
       />
-      {open && createPortal(
-        <div
-          ref={calendarRef}
-          data-datepicker-portal
-          style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
-          className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-2"
-        >
-          <DayPicker
-            mode="single"
-            selected={isoToDate(value)}
-            onSelect={handleSelect}
-            locale={ptBR}
-            defaultMonth={isoToDate(value) ?? new Date()}
-            classNames={{
-              root: "text-sm",
-              month_caption: "text-gray-200 font-medium text-sm mb-1",
-              nav: "flex items-center gap-1",
-              button_previous: "p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded",
-              button_next: "p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded",
-              weeks: "mt-1",
-              weekdays: "flex",
-              weekday: "w-8 h-7 flex items-center justify-center text-xs text-gray-500 font-normal",
-              week: "flex",
-              day: "w-8 h-8 flex items-center justify-center",
-              day_button: "w-8 h-8 flex items-center justify-center text-xs text-gray-300 hover:bg-gray-700 rounded transition-colors",
-              selected: "bg-blue-600 rounded text-white",
-              today: "text-blue-400 font-semibold",
-              outside: "opacity-30",
-              disabled: "opacity-20 cursor-not-allowed",
-            }}
-          />
-        </div>,
-        document.body
-      )}
+      {open &&
+        createPortal(
+          <div
+            ref={calendarRef}
+            data-datepicker-portal
+            style={{ position: "fixed", top: pos.top, left: pos.left, zIndex: 9999 }}
+            className="bg-gray-900 border border-gray-700 rounded-lg shadow-xl p-2"
+          >
+            <DayPicker
+              mode="single"
+              selected={isoToDate(value)}
+              onSelect={handleSelect}
+              locale={ptBR}
+              defaultMonth={isoToDate(value) ?? new Date()}
+              classNames={{
+                root: "text-sm",
+                month_caption: "text-gray-200 font-medium text-sm mb-1",
+                nav: "flex items-center gap-1",
+                button_previous: "p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded",
+                button_next: "p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded",
+                weeks: "mt-1",
+                weekdays: "flex",
+                weekday:
+                  "w-8 h-7 flex items-center justify-center text-xs text-gray-500 font-normal",
+                week: "flex",
+                day: "w-8 h-8 flex items-center justify-center",
+                day_button:
+                  "w-8 h-8 flex items-center justify-center text-xs text-gray-300 hover:bg-gray-700 rounded transition-colors",
+                selected: "bg-blue-600 rounded text-white",
+                today: "text-blue-400 font-semibold",
+                outside: "opacity-30",
+                disabled: "opacity-20 cursor-not-allowed",
+              }}
+            />
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

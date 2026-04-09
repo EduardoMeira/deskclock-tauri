@@ -43,10 +43,18 @@ export class TaskRepository implements ITaskRepository {
          duration_seconds, status, sent_to_sheets, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
-        task.id, task.name, task.projectId, task.categoryId,
-        task.billable ? 1 : 0, task.startTime, task.endTime,
-        task.durationSeconds, task.status, task.sentToSheets ? 1 : 0,
-        task.createdAt, task.updatedAt,
+        task.id,
+        task.name,
+        task.projectId,
+        task.categoryId,
+        task.billable ? 1 : 0,
+        task.startTime,
+        task.endTime,
+        task.durationSeconds,
+        task.status,
+        task.sentToSheets ? 1 : 0,
+        task.createdAt,
+        task.updatedAt,
       ]
     );
   }
@@ -60,19 +68,23 @@ export class TaskRepository implements ITaskRepository {
         status = $8, updated_at = $9
        WHERE id = $10`,
       [
-        task.name, task.projectId, task.categoryId,
-        task.billable ? 1 : 0, task.startTime, task.endTime,
-        task.durationSeconds, task.status, task.updatedAt, task.id,
+        task.name,
+        task.projectId,
+        task.categoryId,
+        task.billable ? 1 : 0,
+        task.startTime,
+        task.endTime,
+        task.durationSeconds,
+        task.status,
+        task.updatedAt,
+        task.id,
       ]
     );
   }
 
   async findById(id: string): Promise<Task | null> {
     const db = await getDb();
-    const rows = await db.select<TaskRow[]>(
-      "SELECT * FROM tasks WHERE id = $1",
-      [id]
-    );
+    const rows = await db.select<TaskRow[]>("SELECT * FROM tasks WHERE id = $1", [id]);
     return rows[0] ? rowToTask(rows[0]) : null;
   }
 
@@ -103,19 +115,13 @@ export class TaskRepository implements ITaskRepository {
     if (ids.length === 0) return;
     const db = await getDb();
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(", ");
-    await db.execute(
-      `DELETE FROM tasks WHERE id IN (${placeholders})`,
-      ids
-    );
+    await db.execute(`DELETE FROM tasks WHERE id IN (${placeholders})`, ids);
   }
 
   async markSentToSheets(ids: string[]): Promise<void> {
     if (ids.length === 0) return;
     const db = await getDb();
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(", ");
-    await db.execute(
-      `UPDATE tasks SET sent_to_sheets = 1 WHERE id IN (${placeholders})`,
-      ids
-    );
+    await db.execute(`UPDATE tasks SET sent_to_sheets = 1 WHERE id IN (${placeholders})`, ids);
   }
 }

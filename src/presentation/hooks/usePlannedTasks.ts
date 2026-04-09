@@ -48,37 +48,57 @@ export function usePlannedTasksForDate(dateISO: string) {
     setTasks(result);
   }, [dateISO]);
 
-  useEffect(() => { load(); }, [load]);
-
-  const create = useCallback(async (input: CreateInput) => {
-    await createPlannedTask(repo, input, new Date().toISOString());
-    await load();
+  useEffect(() => {
+    load();
   }, [load]);
 
-  const update = useCallback(async (id: UUID, input: UpdateInput) => {
-    await updatePlannedTask(repo, id, input);
-    await load();
-  }, [load]);
+  const create = useCallback(
+    async (input: CreateInput) => {
+      await createPlannedTask(repo, input, new Date().toISOString());
+      await load();
+    },
+    [load]
+  );
 
-  const remove = useCallback(async (id: UUID) => {
-    await deletePlannedTask(repo, id);
-    await load();
-  }, [load]);
+  const update = useCallback(
+    async (id: UUID, input: UpdateInput) => {
+      await updatePlannedTask(repo, id, input);
+      await load();
+    },
+    [load]
+  );
 
-  const complete = useCallback(async (id: UUID, date: string) => {
-    await completePlannedTask(repo, id, date);
-    await load();
-  }, [load]);
+  const remove = useCallback(
+    async (id: UUID) => {
+      await deletePlannedTask(repo, id);
+      await load();
+    },
+    [load]
+  );
 
-  const uncomplete = useCallback(async (id: UUID, date: string) => {
-    await uncompletePlannedTask(repo, id, date);
-    await load();
-  }, [load]);
+  const complete = useCallback(
+    async (id: UUID, date: string) => {
+      await completePlannedTask(repo, id, date);
+      await load();
+    },
+    [load]
+  );
 
-  const duplicate = useCallback(async (id: UUID) => {
-    await duplicatePlannedTask(repo, id, new Date().toISOString());
-    await load();
-  }, [load]);
+  const uncomplete = useCallback(
+    async (id: UUID, date: string) => {
+      await uncompletePlannedTask(repo, id, date);
+      await load();
+    },
+    [load]
+  );
+
+  const duplicate = useCallback(
+    async (id: UUID) => {
+      await duplicatePlannedTask(repo, id, new Date().toISOString());
+      await load();
+    },
+    [load]
+  );
 
   return { tasks, reload: load, create, update, remove, complete, uncomplete, duplicate };
 }
@@ -91,37 +111,57 @@ export function usePlannedTasksForWeek(startISO: string, endISO: string) {
     setTasks(result);
   }, [startISO, endISO]);
 
-  useEffect(() => { load(); }, [load]);
-
-  const create = useCallback(async (input: CreateInput) => {
-    await createPlannedTask(repo, input, new Date().toISOString());
-    await load();
+  useEffect(() => {
+    load();
   }, [load]);
 
-  const update = useCallback(async (id: UUID, input: UpdateInput) => {
-    await updatePlannedTask(repo, id, input);
-    await load();
-  }, [load]);
+  const create = useCallback(
+    async (input: CreateInput) => {
+      await createPlannedTask(repo, input, new Date().toISOString());
+      await load();
+    },
+    [load]
+  );
 
-  const remove = useCallback(async (id: UUID) => {
-    await deletePlannedTask(repo, id);
-    await load();
-  }, [load]);
+  const update = useCallback(
+    async (id: UUID, input: UpdateInput) => {
+      await updatePlannedTask(repo, id, input);
+      await load();
+    },
+    [load]
+  );
 
-  const complete = useCallback(async (id: UUID, date: string) => {
-    await completePlannedTask(repo, id, date);
-    await load();
-  }, [load]);
+  const remove = useCallback(
+    async (id: UUID) => {
+      await deletePlannedTask(repo, id);
+      await load();
+    },
+    [load]
+  );
 
-  const uncomplete = useCallback(async (id: UUID, date: string) => {
-    await uncompletePlannedTask(repo, id, date);
-    await load();
-  }, [load]);
+  const complete = useCallback(
+    async (id: UUID, date: string) => {
+      await completePlannedTask(repo, id, date);
+      await load();
+    },
+    [load]
+  );
 
-  const duplicate = useCallback(async (id: UUID) => {
-    await duplicatePlannedTask(repo, id, new Date().toISOString());
-    await load();
-  }, [load]);
+  const uncomplete = useCallback(
+    async (id: UUID, date: string) => {
+      await uncompletePlannedTask(repo, id, date);
+      await load();
+    },
+    [load]
+  );
+
+  const duplicate = useCallback(
+    async (id: UUID) => {
+      await duplicatePlannedTask(repo, id, new Date().toISOString());
+      await load();
+    },
+    [load]
+  );
 
   return { tasks, reload: load, create, update, remove, complete, uncomplete, duplicate };
 }

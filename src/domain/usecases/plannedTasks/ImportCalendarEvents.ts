@@ -19,7 +19,7 @@ export interface ImportEventInput {
 export async function importCalendarEvents(
   repo: IPlannedTaskRepository,
   inputs: ImportEventInput[],
-  nowISO: string,
+  nowISO: string
 ): Promise<number> {
   if (inputs.length === 0) return 0;
 
@@ -37,7 +37,7 @@ export async function importCalendarEvents(
         scheduleDate: isRecurring ? null : event.date,
         recurringDays: isRecurring ? recurringDays : null,
       },
-      nowISO,
+      nowISO
     );
   }
 

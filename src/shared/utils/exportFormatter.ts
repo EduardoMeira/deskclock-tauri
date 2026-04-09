@@ -1,4 +1,9 @@
-import type { ExportProfile, DurationFormat, DateFormat, CsvSeparator } from "@domain/entities/ExportProfile";
+import type {
+  ExportProfile,
+  DurationFormat,
+  DateFormat,
+  CsvSeparator,
+} from "@domain/entities/ExportProfile";
 import type { Task } from "@domain/entities/Task";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";

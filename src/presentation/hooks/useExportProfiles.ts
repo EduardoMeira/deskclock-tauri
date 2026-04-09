@@ -20,27 +20,41 @@ export function useExportProfiles() {
     setProfiles(await getExportProfiles(repo));
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
-
-  const create = useCallback(async (input: CreateInput) => {
-    await createExportProfile(repo, input);
-    await load();
+  useEffect(() => {
+    void load();
   }, [load]);
 
-  const update = useCallback(async (id: UUID, input: UpdateInput) => {
-    await updateExportProfile(repo, id, input);
-    await load();
-  }, [load]);
+  const create = useCallback(
+    async (input: CreateInput) => {
+      await createExportProfile(repo, input);
+      await load();
+    },
+    [load]
+  );
 
-  const remove = useCallback(async (id: UUID) => {
-    await deleteExportProfile(repo, id);
-    await load();
-  }, [load]);
+  const update = useCallback(
+    async (id: UUID, input: UpdateInput) => {
+      await updateExportProfile(repo, id, input);
+      await load();
+    },
+    [load]
+  );
 
-  const setDefault = useCallback(async (id: UUID) => {
-    await setDefaultExportProfile(repo, id);
-    await load();
-  }, [load]);
+  const remove = useCallback(
+    async (id: UUID) => {
+      await deleteExportProfile(repo, id);
+      await load();
+    },
+    [load]
+  );
+
+  const setDefault = useCallback(
+    async (id: UUID) => {
+      await setDefaultExportProfile(repo, id);
+      await load();
+    },
+    [load]
+  );
 
   return { profiles, reload: load, create, update, remove, setDefault };
 }

@@ -4,11 +4,19 @@ import type { Task } from "@domain/entities/Task";
 
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
-    id: "t1", name: "Task A", projectId: "p1", categoryId: "c1",
-    billable: true, startTime: "2026-04-08T09:00:00.000Z",
-    endTime: "2026-04-08T10:00:00.000Z", durationSeconds: 3600,
-    status: "completed", sentToSheets: false, createdAt: "2026-04-08T09:00:00.000Z",
-    updatedAt: "2026-04-08T10:00:00.000Z", ...overrides,
+    id: "t1",
+    name: "Task A",
+    projectId: "p1",
+    categoryId: "c1",
+    billable: true,
+    startTime: "2026-04-08T09:00:00.000Z",
+    endTime: "2026-04-08T10:00:00.000Z",
+    durationSeconds: 3600,
+    status: "completed",
+    sentToSheets: false,
+    createdAt: "2026-04-08T09:00:00.000Z",
+    updatedAt: "2026-04-08T10:00:00.000Z",
+    ...overrides,
   };
 }
 
@@ -25,10 +33,7 @@ describe("groupTasks", () => {
   });
 
   it("separa tarefas com nomes diferentes", () => {
-    const tasks = [
-      makeTask({ id: "t1", name: "Task A" }),
-      makeTask({ id: "t2", name: "Task B" }),
-    ];
+    const tasks = [makeTask({ id: "t1", name: "Task A" }), makeTask({ id: "t2", name: "Task B" })];
     const groups = groupTasks(tasks);
     expect(groups).toHaveLength(2);
   });

@@ -91,7 +91,9 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
       const active = running ?? tasks[0] ?? null;
       setRunningTask(active);
     });
-    return () => { mounted.current = false; };
+    return () => {
+      mounted.current = false;
+    };
   }, []);
 
   // Ouve ações vindas do overlay (pause, resume, stop iniciados lá)
@@ -102,9 +104,11 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
         if (payload.source !== "overlay") return;
         setRunningTask(payload.task);
         triggerReload();
-      },
+      }
     );
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const triggerReload = useCallback(() => setReloadSignal((s) => s + 1), []);
@@ -119,7 +123,7 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
         await showOverlay();
       }
     },
-    [triggerReload, config],
+    [triggerReload, config]
   );
 
   const pauseTask = useCallback(async () => {
@@ -159,7 +163,7 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
         await showToast("error", msg);
       }
     },
-    [config, triggerReload],
+    [config, triggerReload]
   );
 
   // Ouve confirmação de stop vinda do overlay para auto-sync
@@ -173,9 +177,11 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
         if (config.isLoaded && !config.get("overlayAlwaysVisible")) {
           await hideOverlay();
         }
-      },
+      }
     );
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [autoSyncTask, config]);
 
   const stopTask = useCallback(
@@ -192,7 +198,7 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
         await autoSyncTask(stoppedTask);
       }
     },
-    [runningTask, triggerReload, config, autoSyncTask],
+    [runningTask, triggerReload, config, autoSyncTask]
   );
 
   const cancelTask = useCallback(async () => {
@@ -213,7 +219,7 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
       setRunningTask(updated);
       await notifyOverlay(updated);
     },
-    [runningTask],
+    [runningTask]
   );
 
   return (

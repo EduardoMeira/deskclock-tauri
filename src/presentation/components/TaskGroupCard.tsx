@@ -23,9 +23,18 @@ interface TaskGroupCardProps {
 }
 
 export function TaskGroupCard({
-  group, projects, categories, playDisabled = false,
-  selectable = false, selected = false, onToggleSelect,
-  onPlay, onEdit, onDelete, onMerge, onToggleBillable,
+  group,
+  projects,
+  categories,
+  playDisabled = false,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
+  onPlay,
+  onEdit,
+  onDelete,
+  onMerge,
+  onToggleBillable,
 }: TaskGroupCardProps) {
   const [expanded, setExpanded] = useState(false);
   const { tasks } = group;
@@ -47,14 +56,19 @@ export function TaskGroupCard({
           <input
             type="checkbox"
             checked={selected}
-            onChange={(e) => { e.stopPropagation(); onToggleSelect?.(group); }}
+            onChange={(e) => {
+              e.stopPropagation();
+              onToggleSelect?.(group);
+            }}
             onClick={(e) => e.stopPropagation()}
             className="flex-shrink-0 accent-blue-500 cursor-pointer"
           />
-        ) : isGroup && (
-          <span className="text-gray-500 flex-shrink-0">
-            {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          </span>
+        ) : (
+          isGroup && (
+            <span className="text-gray-500 flex-shrink-0">
+              {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </span>
+          )
         )}
         <span
           className={`flex-shrink-0 w-2 h-2 rounded-full ${
@@ -82,7 +96,10 @@ export function TaskGroupCard({
         )}
         {isGroup && (
           <button
-            onClick={(e) => { e.stopPropagation(); onMerge(group); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMerge(group);
+            }}
             title="Unificar"
             className="p-1 text-gray-500 hover:text-blue-400 flex-shrink-0"
           >

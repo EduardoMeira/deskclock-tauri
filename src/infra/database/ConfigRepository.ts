@@ -9,10 +9,7 @@ interface ConfigRow {
 export class ConfigRepository implements IConfigRepository {
   async get<T>(key: string, defaultValue: T): Promise<T> {
     const db = await getDb();
-    const rows = await db.select<ConfigRow[]>(
-      "SELECT value FROM config WHERE key = $1",
-      [key],
-    );
+    const rows = await db.select<ConfigRow[]>("SELECT value FROM config WHERE key = $1", [key]);
     if (!rows[0]) return defaultValue;
     try {
       return JSON.parse(rows[0].value) as T;
@@ -25,7 +22,7 @@ export class ConfigRepository implements IConfigRepository {
     const db = await getDb();
     await db.execute(
       "INSERT INTO config (key, value) VALUES ($1, $2) ON CONFLICT(key) DO UPDATE SET value = $2",
-      [key, JSON.stringify(value)],
+      [key, JSON.stringify(value)]
     );
   }
 

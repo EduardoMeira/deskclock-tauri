@@ -151,11 +151,16 @@ describe("updateTask", () => {
       deleteMany: vi.fn(),
       markSentToSheets: vi.fn(),
     };
-    const result = await updateTask(repo, "t1", {
-      startTime: "2026-04-08T07:00:00.000Z",
-      endTime: "2026-04-08T09:00:00.000Z",
-      durationSeconds: 7200,
-    }, NOW);
+    const result = await updateTask(
+      repo,
+      "t1",
+      {
+        startTime: "2026-04-08T07:00:00.000Z",
+        endTime: "2026-04-08T09:00:00.000Z",
+        durationSeconds: 7200,
+      },
+      NOW
+    );
     expect(result.name).toBe("Manter");
     expect(result.billable).toBe(false);
     expect(result.durationSeconds).toBe(7200);

@@ -36,7 +36,7 @@ function makeRepo(task: Task | null = null): ITaskRepository {
 }
 
 const START = "2026-04-08T09:00:00.000Z";
-const NOW   = "2026-04-08T09:01:00.000Z"; // 60s depois
+const NOW = "2026-04-08T09:01:00.000Z"; // 60s depois
 
 describe("pauseTask", () => {
   it("muda status para paused", async () => {

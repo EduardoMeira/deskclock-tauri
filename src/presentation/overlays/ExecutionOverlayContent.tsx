@@ -45,14 +45,20 @@ export function ExecutionOverlayContent({
         <div className="flex-1 flex items-center gap-2 min-w-0">
           <span className="text-xs text-gray-400 shrink-0">Concluída?</span>
           <button
-            onClick={() => { setConfirmingStop(false); onStop(true); }}
+            onClick={() => {
+              setConfirmingStop(false);
+              onStop(true);
+            }}
             className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded transition-colors shrink-0"
           >
             <CheckCircle2 size={11} />
             Sim
           </button>
           <button
-            onClick={() => { setConfirmingStop(false); onStop(false); }}
+            onClick={() => {
+              setConfirmingStop(false);
+              onStop(false);
+            }}
             className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors shrink-0"
           >
             <Clock size={11} />

@@ -13,13 +13,13 @@ export interface ExportColumn {
 }
 
 export const DEFAULT_COLUMNS: ExportColumn[] = [
-  { field: "name",             label: "Nome",         visible: true,  order: 0 },
-  { field: "project",          label: "Projeto",      visible: true,  order: 1 },
-  { field: "category",         label: "Categoria",    visible: true,  order: 2 },
-  { field: "billable",         label: "Billable",     visible: true,  order: 3 },
-  { field: "startTime",        label: "Início",       visible: true,  order: 4 },
-  { field: "endTime",          label: "Fim",          visible: true,  order: 5 },
-  { field: "durationSeconds",  label: "Duração",      visible: true,  order: 6 },
+  { field: "name", label: "Nome", visible: true, order: 0 },
+  { field: "project", label: "Projeto", visible: true, order: 1 },
+  { field: "category", label: "Categoria", visible: true, order: 2 },
+  { field: "billable", label: "Billable", visible: true, order: 3 },
+  { field: "startTime", label: "Início", visible: true, order: 4 },
+  { field: "endTime", label: "Fim", visible: true, order: 5 },
+  { field: "durationSeconds", label: "Duração", visible: true, order: 6 },
 ];
 
 export interface ExportProfile {

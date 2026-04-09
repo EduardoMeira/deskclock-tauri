@@ -34,7 +34,7 @@ export function todayISO(): string {
 export function weekBoundsISO(): { start: string; end: string } {
   const today = new Date();
   const dow = today.getDay(); // 0=Sun
-  const diffToMon = (dow === 0 ? -6 : 1 - dow);
+  const diffToMon = dow === 0 ? -6 : 1 - dow;
   const mon = new Date(today);
   mon.setDate(today.getDate() + diffToMon);
   const sun = new Date(mon);
@@ -57,7 +57,20 @@ export function formatHHMM(totalSeconds: number): string {
 }
 
 const DAY_SHORT_PT = ["Dom.", "Seg.", "Ter.", "Qua.", "Qui.", "Sex.", "Sáb."];
-const MONTH_SHORT_PT = ["jan.", "fev.", "mar.", "abr.", "mai.", "jun.", "jul.", "ago.", "set.", "out.", "nov.", "dez."];
+const MONTH_SHORT_PT = [
+  "jan.",
+  "fev.",
+  "mar.",
+  "abr.",
+  "mai.",
+  "jun.",
+  "jul.",
+  "ago.",
+  "set.",
+  "out.",
+  "nov.",
+  "dez.",
+];
 
 export function formatHistoryDayHeader(dateISO: string): string {
   const d = new Date(dateISO + "T12:00:00Z");

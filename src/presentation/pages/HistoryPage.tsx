@@ -11,15 +11,16 @@ import { formatHHMMSS, formatHHMM, formatHistoryDayHeader } from "@shared/utils/
 import type { Task } from "@domain/entities/Task";
 
 const QUICK_LABELS: Record<QuickFilter, string> = {
-  today:   "Hoje",
+  today: "Hoje",
   "7days": "7 dias",
-  "30days":"30 dias",
-  month:   "Este mês",
-  custom:  "Personalizado",
+  "30days": "30 dias",
+  month: "Este mês",
+  custom: "Personalizado",
 };
 
 export function HistoryPage() {
-  const { filters, groups, totals, searched, search, updateFilter, setQuick, remove, reload } = useHistory();
+  const { filters, groups, totals, searched, search, updateFilter, setQuick, remove, reload } =
+    useHistory();
   const { projects } = useProjects();
   const { categories } = useCategories();
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -74,14 +75,20 @@ export function HistoryPage() {
             <div className="flex gap-2">
               <DatePickerInput
                 value={filters.startDate}
-                onChange={(v) => { updateFilter("startDate", v); updateFilter("quick", "custom"); }}
+                onChange={(v) => {
+                  updateFilter("startDate", v);
+                  updateFilter("quick", "custom");
+                }}
                 placeholder="Início"
                 className="flex-1"
               />
               <span className="self-center text-gray-500 text-sm">→</span>
               <DatePickerInput
                 value={filters.endDate}
-                onChange={(v) => { updateFilter("endDate", v); updateFilter("quick", "custom"); }}
+                onChange={(v) => {
+                  updateFilter("endDate", v);
+                  updateFilter("quick", "custom");
+                }}
                 placeholder="Fim"
                 className="flex-1"
               />
@@ -90,23 +97,37 @@ export function HistoryPage() {
               type="text"
               value={filters.name}
               onChange={(e) => updateFilter("name", e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") handleSearch(); }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+              }}
               placeholder="Nome da tarefa"
               className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
             />
             <div className="flex gap-2">
               <Autocomplete
                 value={projectName}
-                onChange={(v) => { setProjectName(v); if (!v) updateFilter("projectId", null); }}
-                onSelect={(o) => { setProjectName(o.name); updateFilter("projectId", o.id); }}
+                onChange={(v) => {
+                  setProjectName(v);
+                  if (!v) updateFilter("projectId", null);
+                }}
+                onSelect={(o) => {
+                  setProjectName(o.name);
+                  updateFilter("projectId", o.id);
+                }}
                 options={projects}
                 placeholder="Projeto"
                 className="flex-1"
               />
               <Autocomplete
                 value={categoryName}
-                onChange={(v) => { setCategoryName(v); if (!v) updateFilter("categoryId", null); }}
-                onSelect={(o) => { setCategoryName(o.name); updateFilter("categoryId", o.id); }}
+                onChange={(v) => {
+                  setCategoryName(v);
+                  if (!v) updateFilter("categoryId", null);
+                }}
+                onSelect={(o) => {
+                  setCategoryName(o.name);
+                  updateFilter("categoryId", o.id);
+                }}
                 options={categories}
                 placeholder="Categoria"
                 className="flex-1"
@@ -147,10 +168,10 @@ export function HistoryPage() {
       {searched && (
         <div className="grid grid-cols-4 gap-px bg-gray-700 border-b border-gray-700 shrink-0">
           {[
-            { label: "Total",       value: formatHHMMSS(totals.totalSeconds) },
-            { label: "Billable",    value: formatHHMMSS(totals.billableSeconds) },
-            { label: "Non-billable",value: formatHHMMSS(totals.nonBillableSeconds) },
-            { label: "Registros",   value: String(totals.count) },
+            { label: "Total", value: formatHHMMSS(totals.totalSeconds) },
+            { label: "Billable", value: formatHHMMSS(totals.billableSeconds) },
+            { label: "Non-billable", value: formatHHMMSS(totals.nonBillableSeconds) },
+            { label: "Registros", value: String(totals.count) },
           ].map(({ label, value }) => (
             <div key={label} className="flex flex-col items-center py-3 bg-gray-950">
               <span className="text-xs text-gray-500">{label}</span>
@@ -167,7 +188,9 @@ export function HistoryPage() {
         )}
 
         {!searched && (
-          <p className="text-center text-gray-600 text-sm py-12">Use os filtros acima para buscar registros</p>
+          <p className="text-center text-gray-600 text-sm py-12">
+            Use os filtros acima para buscar registros
+          </p>
         )}
 
         {groups.map((group) => (
@@ -238,7 +261,11 @@ export function HistoryPage() {
 
       {/* Modal de exportação */}
       {exportOpen && (
-        <ExportModal projects={projects} categories={categories} onClose={() => setExportOpen(false)} />
+        <ExportModal
+          projects={projects}
+          categories={categories}
+          onClose={() => setExportOpen(false)}
+        />
       )}
 
       {/* Modal de edição */}

@@ -12,9 +12,7 @@ export function ProjectsPanel() {
   const [bulkText, setBulkText] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
 
-  const filtered = projects.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = projects.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   const handleAdd = async () => {
     if (!newName.trim()) return;
@@ -76,9 +74,7 @@ export function ProjectsPanel() {
             {search ? "Nenhum projeto encontrado." : "Nenhum projeto cadastrado."}
           </p>
         ) : (
-          filtered.map((p) => (
-            <ProjectCard key={p.id} project={p} onDelete={deleteProject} />
-          ))
+          filtered.map((p) => <ProjectCard key={p.id} project={p} onDelete={deleteProject} />)
         )}
       </div>
     </div>

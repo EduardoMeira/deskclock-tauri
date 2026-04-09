@@ -24,7 +24,12 @@ describe("createPlannedTask", () => {
     const repo = makeRepo();
     const task = await createPlannedTask(
       repo,
-      { name: "Reunião", scheduleType: "specific_date", scheduleDate: "2026-04-08", billable: true },
+      {
+        name: "Reunião",
+        scheduleType: "specific_date",
+        scheduleDate: "2026-04-08",
+        billable: true,
+      },
       NOW
     );
     expect(task.name).toBe("Reunião");

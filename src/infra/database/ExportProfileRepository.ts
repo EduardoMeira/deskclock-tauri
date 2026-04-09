@@ -1,6 +1,13 @@
 import { getDb } from "./db";
 import type { IExportProfileRepository } from "@domain/repositories/IExportProfileRepository";
-import type { ExportProfile, ExportFormat, CsvSeparator, DurationFormat, DateFormat, ExportColumn } from "@domain/entities/ExportProfile";
+import type {
+  ExportProfile,
+  ExportFormat,
+  CsvSeparator,
+  DurationFormat,
+  DateFormat,
+  ExportColumn,
+} from "@domain/entities/ExportProfile";
 import type { UUID } from "@shared/types";
 
 interface ExportProfileRow {
@@ -39,7 +46,8 @@ export class ExportProfileRepository implements IExportProfileRepository {
   async findById(id: UUID): Promise<ExportProfile | null> {
     const db = await getDb();
     const rows = await db.select<ExportProfileRow[]>(
-      "SELECT * FROM export_profiles WHERE id = $1", [id]
+      "SELECT * FROM export_profiles WHERE id = $1",
+      [id]
     );
     return rows[0] ? rowToProfile(rows[0]) : null;
   }
@@ -59,9 +67,14 @@ export class ExportProfileRepository implements IExportProfileRepository {
         (id, name, is_default, format, separator, duration_format, date_format, columns)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
       [
-        profile.id, profile.name, profile.isDefault ? 1 : 0,
-        profile.format, profile.separator, profile.durationFormat,
-        profile.dateFormat, JSON.stringify(profile.columns),
+        profile.id,
+        profile.name,
+        profile.isDefault ? 1 : 0,
+        profile.format,
+        profile.separator,
+        profile.durationFormat,
+        profile.dateFormat,
+        JSON.stringify(profile.columns),
       ]
     );
   }
@@ -74,9 +87,14 @@ export class ExportProfileRepository implements IExportProfileRepository {
         duration_format=$5, date_format=$6, columns=$7
        WHERE id=$8`,
       [
-        profile.name, profile.isDefault ? 1 : 0,
-        profile.format, profile.separator, profile.durationFormat,
-        profile.dateFormat, JSON.stringify(profile.columns), profile.id,
+        profile.name,
+        profile.isDefault ? 1 : 0,
+        profile.format,
+        profile.separator,
+        profile.durationFormat,
+        profile.dateFormat,
+        JSON.stringify(profile.columns),
+        profile.id,
       ]
     );
   }

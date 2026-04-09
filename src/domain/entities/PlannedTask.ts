@@ -14,11 +14,11 @@ export interface PlannedTask {
   categoryId: UUID | null;
   billable: boolean;
   scheduleType: ScheduleType;
-  scheduleDate: string | null;       // ISO date YYYY-MM-DD, para specific_date
-  recurringDays: number[] | null;    // 0=Dom..6=Sáb, para recurring
-  periodStart: string | null;        // ISO date, para period
-  periodEnd: string | null;          // ISO date, para period
-  completedDates: string[];          // ISO dates em que foi concluída
+  scheduleDate: string | null; // ISO date YYYY-MM-DD, para specific_date
+  recurringDays: number[] | null; // 0=Dom..6=Sáb, para recurring
+  periodStart: string | null; // ISO date, para period
+  periodEnd: string | null; // ISO date, para period
+  completedDates: string[]; // ISO dates em que foi concluída
   actions: PlannedTaskAction[];
   sortOrder: number;
   createdAt: string;

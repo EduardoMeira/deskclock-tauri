@@ -79,7 +79,8 @@ function SliderRow({
           {description && <p className="text-xs text-gray-500 mt-0.5">{description}</p>}
         </div>
         <span className="text-sm text-gray-400 tabular-nums">
-          {value}{unit}
+          {value}
+          {unit}
         </span>
       </div>
       <input
@@ -152,7 +153,9 @@ function SelectRow({
         className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
         ))}
       </select>
     </div>
@@ -197,7 +200,9 @@ export function SettingsPage() {
     setShortcutToggleOverlay(config.get("shortcutToggleOverlay"));
     setShortcutToggleWindow(config.get("shortcutToggleWindow"));
     // Lê estado real do autostart do SO
-    isEnabled().then(setStartOnBoot).catch(() => {});
+    isEnabled()
+      .then(setStartOnBoot)
+      .catch(() => {});
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleTheme(value: string) {
@@ -222,9 +227,14 @@ export function SettingsPage() {
     } satisfies OverlayConfigChangedPayload);
   }
 
-  async function applyShortcuts(overrides?: Partial<{
-    toggleTask: string; stopTask: string; toggleOverlay: string; toggleWindow: string;
-  }>) {
+  async function applyShortcuts(
+    overrides?: Partial<{
+      toggleTask: string;
+      stopTask: string;
+      toggleOverlay: string;
+      toggleWindow: string;
+    }>
+  ) {
     const t = overrides?.toggleTask ?? shortcutToggleTask;
     const s = overrides?.stopTask ?? shortcutStopTask;
     const o = overrides?.toggleOverlay ?? shortcutToggleOverlay;
@@ -244,9 +254,15 @@ export function SettingsPage() {
   }
 
   async function handleToggle(
-    key: "showWelcomeMessage" | "overlayAlwaysVisible" | "overlayShowOnStart" | "overlaySnapToGrid" | "overlayShowGridIndicator" | "liveTrayTimer",
+    key:
+      | "showWelcomeMessage"
+      | "overlayAlwaysVisible"
+      | "overlayShowOnStart"
+      | "overlaySnapToGrid"
+      | "overlayShowGridIndicator"
+      | "liveTrayTimer",
     setter: (v: boolean) => void,
-    value: boolean,
+    value: boolean
   ) {
     setter(value);
     await config.set(key, value);
@@ -262,11 +278,7 @@ export function SettingsPage() {
     }
   }
 
-  async function handleSlider(
-    key: "overlayOpacity",
-    setter: (v: number) => void,
-    value: number,
-  ) {
+  async function handleSlider(key: "overlayOpacity", setter: (v: number) => void, value: number) {
     setter(value);
     await config.set(key, value);
     await emit(OVERLAY_EVENTS.OVERLAY_CONFIG_CHANGED, {
@@ -387,7 +399,10 @@ export function SettingsPage() {
 
         <Section title="Atalhos globais">
           <p className="text-xs text-gray-500 -mt-2 mb-2">
-            Use o formato do Tauri: <span className="font-mono text-gray-400">CmdOrCtrl+Shift+T</span>, <span className="font-mono text-gray-400">Alt+F1</span>, etc. Deixe em branco para desativar.
+            Use o formato do Tauri:{" "}
+            <span className="font-mono text-gray-400">CmdOrCtrl+Shift+T</span>,{" "}
+            <span className="font-mono text-gray-400">Alt+F1</span>, etc. Deixe em branco para
+            desativar.
           </p>
           <TextRow
             label="Iniciar / Pausar / Retomar"
@@ -422,7 +437,6 @@ export function SettingsPage() {
             onBlur={() => applyShortcuts({ toggleWindow: shortcutToggleWindow })}
           />
         </Section>
-
       </div>
     </div>
   );

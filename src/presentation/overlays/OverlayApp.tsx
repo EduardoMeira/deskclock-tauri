@@ -57,7 +57,7 @@ function OverlayAppInner() {
       }
       setMode(newMode);
     },
-    [config],
+    [config]
   );
 
   // Aplica tamanho de fonte e tema ao iniciar
@@ -90,9 +90,11 @@ function OverlayAppInner() {
         } else if (payload.key === "theme") {
           applyTheme(payload.value as Theme);
         }
-      },
+      }
     );
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []);
 
   // Muda modo quando solicitado pelo main window (ex: após fechar welcome)
@@ -101,9 +103,11 @@ function OverlayAppInner() {
       OVERLAY_EVENTS.OVERLAY_SET_MODE,
       ({ payload }) => {
         switchMode(payload.mode);
-      },
+      }
     );
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, [switchMode]);
 
   // Restaura posição salva ao montar
@@ -129,28 +133,27 @@ function OverlayAppInner() {
         } else {
           setMode((prev) => (prev === "compact" ? "compact" : "planning"));
         }
-      },
+      }
     );
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Snap-to-grid + persistência de posição no evento tauri://move
   useEffect(() => {
-    const unlisten = appWindow.listen<{ x: number; y: number }>(
-      "tauri://move",
-      ({ payload }) => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(async () => {
-          let { x, y } = payload;
-          if (config.get("overlaySnapToGrid")) {
-            ({ x, y } = snapPositionToGrid(x, y));
-            await appWindow.setPosition(new PhysicalPosition(x, y));
-          }
-          const key = `overlayPosition_${mode}` as Parameters<typeof config.set>[0];
-          await config.set(key, { x, y } as never);
-        }, 200);
-      },
-    );
+    const unlisten = appWindow.listen<{ x: number; y: number }>("tauri://move", ({ payload }) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(async () => {
+        let { x, y } = payload;
+        if (config.get("overlaySnapToGrid")) {
+          ({ x, y } = snapPositionToGrid(x, y));
+          await appWindow.setPosition(new PhysicalPosition(x, y));
+        }
+        const key = `overlayPosition_${mode}` as Parameters<typeof config.set>[0];
+        await config.set(key, { x, y } as never);
+      }, 200);
+    });
     return () => {
       unlisten.then((fn) => fn());
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -177,23 +180,31 @@ function OverlayAppInner() {
     } satisfies RunningTaskChangedPayload);
   }, [runningTask]);
 
-  const handleStop = useCallback(async (completed: boolean) => {
-    if (!runningTask) return;
-    const stoppedTask = await stopTaskUC(taskRepo, runningTask.id, new Date().toISOString());
-    setRunningTask(null);
-    await emit(OVERLAY_EVENTS.RUNNING_TASK_CHANGED, {
-      task: null,
-      source: "overlay",
-    } satisfies RunningTaskChangedPayload);
-    await emit(OVERLAY_EVENTS.TASK_STOPPED, {
-      task: stoppedTask,
-      completed,
-    } satisfies TaskStoppedPayload);
-    await switchMode("planning");
-  }, [runningTask, switchMode]);
+  const handleStop = useCallback(
+    async (completed: boolean) => {
+      if (!runningTask) return;
+      const stoppedTask = await stopTaskUC(taskRepo, runningTask.id, new Date().toISOString());
+      setRunningTask(null);
+      await emit(OVERLAY_EVENTS.RUNNING_TASK_CHANGED, {
+        task: null,
+        source: "overlay",
+      } satisfies RunningTaskChangedPayload);
+      await emit(OVERLAY_EVENTS.TASK_STOPPED, {
+        task: stoppedTask,
+        completed,
+      } satisfies TaskStoppedPayload);
+      await switchMode("planning");
+    },
+    [runningTask, switchMode]
+  );
 
   const handleStartTask = useCallback(
-    async (input: { name?: string | null; projectId?: string | null; categoryId?: string | null; billable: boolean }) => {
+    async (input: {
+      name?: string | null;
+      projectId?: string | null;
+      categoryId?: string | null;
+      billable: boolean;
+    }) => {
       const task = await startTaskUC(taskRepo, input, new Date().toISOString());
       setRunningTask(task);
       await emit(OVERLAY_EVENTS.RUNNING_TASK_CHANGED, {
@@ -202,7 +213,7 @@ function OverlayAppInner() {
       } satisfies RunningTaskChangedPayload);
       await switchMode("execution");
     },
-    [switchMode],
+    [switchMode]
   );
 
   const handleNavigatePlanning = useCallback(async () => {

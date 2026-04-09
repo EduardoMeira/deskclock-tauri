@@ -16,7 +16,14 @@ interface TaskCardProps {
 }
 
 export function TaskCard({
-  task, projects, categories, playDisabled = false, onPlay, onEdit, onDelete, onToggleBillable,
+  task,
+  projects,
+  categories,
+  playDisabled = false,
+  onPlay,
+  onEdit,
+  onDelete,
+  onToggleBillable,
 }: TaskCardProps) {
   const project = projects.find((p) => p.id === task.projectId);
   const category = categories.find((c) => c.id === task.categoryId);
@@ -26,7 +33,9 @@ export function TaskCard({
     <div className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-gray-800/50 group">
       <button
         onClick={() => onToggleBillable(task)}
-        title={task.billable ? "Billable — clique para alterar" : "Non-billable — clique para alterar"}
+        title={
+          task.billable ? "Billable — clique para alterar" : "Non-billable — clique para alterar"
+        }
         className="flex-shrink-0"
       >
         <span

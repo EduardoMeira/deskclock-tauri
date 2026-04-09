@@ -84,7 +84,9 @@ describe("PlannedTaskRepository", () => {
     });
 
     it("desserializa completed_dates como array", async () => {
-      mockDb.select.mockResolvedValue([makeRow({ completed_dates: '["2026-04-07","2026-04-08"]' })]);
+      mockDb.select.mockResolvedValue([
+        makeRow({ completed_dates: '["2026-04-07","2026-04-08"]' }),
+      ]);
       const repo = new PlannedTaskRepository();
       const result = await repo.findById("pt1");
       expect(result?.completedDates).toEqual(["2026-04-07", "2026-04-08"]);
@@ -172,7 +174,9 @@ describe("PlannedTaskRepository", () => {
       const repo = new PlannedTaskRepository();
       await repo.complete("pt1", "2026-04-08");
       const args = mockDb.execute.mock.calls[0][1] as unknown[];
-      const datesArg = args.find((a) => typeof a === "string" && a.includes("2026-04-08")) as string;
+      const datesArg = args.find(
+        (a) => typeof a === "string" && a.includes("2026-04-08")
+      ) as string;
       const parsed = JSON.parse(datesArg);
       expect(parsed).toHaveLength(1);
     });
@@ -193,10 +197,7 @@ describe("PlannedTaskRepository", () => {
     it("executa DELETE com o id correto", async () => {
       const repo = new PlannedTaskRepository();
       await repo.delete("pt1");
-      expect(mockDb.execute).toHaveBeenCalledWith(
-        expect.stringContaining("DELETE"),
-        ["pt1"]
-      );
+      expect(mockDb.execute).toHaveBeenCalledWith(expect.stringContaining("DELETE"), ["pt1"]);
     });
   });
 

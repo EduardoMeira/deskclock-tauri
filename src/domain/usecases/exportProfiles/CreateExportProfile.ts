@@ -1,5 +1,11 @@
 import type { IExportProfileRepository } from "@domain/repositories/IExportProfileRepository";
-import type { ExportProfile, ExportFormat, CsvSeparator, DurationFormat, DateFormat } from "@domain/entities/ExportProfile";
+import type {
+  ExportProfile,
+  ExportFormat,
+  CsvSeparator,
+  DurationFormat,
+  DateFormat,
+} from "@domain/entities/ExportProfile";
 import { DEFAULT_COLUMNS } from "@domain/entities/ExportProfile";
 import { generateUUID } from "@shared/utils/uuid";
 

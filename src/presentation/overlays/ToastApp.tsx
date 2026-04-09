@@ -3,7 +3,11 @@ import { getCurrentWindow, primaryMonitor } from "@tauri-apps/api/window";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { listen } from "@tauri-apps/api/event";
 import { CheckCircle2, XCircle, Info, X } from "lucide-react";
-import { OVERLAY_EVENTS, type ToastMessagePayload, type ToastVariant } from "@shared/types/overlayEvents";
+import {
+  OVERLAY_EVENTS,
+  type ToastMessagePayload,
+  type ToastVariant,
+} from "@shared/types/overlayEvents";
 
 const TOAST_WIDTH = 320;
 const TOAST_HEIGHT = 88;
@@ -16,7 +20,10 @@ interface ToastState {
   visible: boolean;
 }
 
-const VARIANT_STYLES: Record<ToastVariant, { border: string; icon: React.ReactNode; text: string }> = {
+const VARIANT_STYLES: Record<
+  ToastVariant,
+  { border: string; icon: React.ReactNode; text: string }
+> = {
   success: {
     border: "border-green-500",
     icon: <CheckCircle2 size={18} className="text-green-400 shrink-0" />,
@@ -60,24 +67,21 @@ export function ToastApp() {
 
   // Escuta eventos de toast
   useEffect(() => {
-    const unlisten = listen<ToastMessagePayload>(
-      OVERLAY_EVENTS.TOAST_MESSAGE,
-      ({ payload }) => {
-        if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
+    const unlisten = listen<ToastMessagePayload>(OVERLAY_EVENTS.TOAST_MESSAGE, ({ payload }) => {
+      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
 
-        setToast({ variant: payload.variant, message: payload.message, visible: true });
-        setAnimating(true);
+      setToast({ variant: payload.variant, message: payload.message, visible: true });
+      setAnimating(true);
 
-        const duration = payload.duration ?? 3500;
-        dismissTimerRef.current = setTimeout(() => {
-          setAnimating(false);
-          setTimeout(() => {
-            setToast((t) => ({ ...t, visible: false }));
-            appWindow.hide().catch(() => {});
-          }, 300); // aguarda fade-out
-        }, duration);
-      },
-    );
+      const duration = payload.duration ?? 3500;
+      dismissTimerRef.current = setTimeout(() => {
+        setAnimating(false);
+        setTimeout(() => {
+          setToast((t) => ({ ...t, visible: false }));
+          appWindow.hide().catch(() => {});
+        }, 300); // aguarda fade-out
+      }, duration);
+    });
     return () => {
       unlisten.then((fn) => fn());
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);

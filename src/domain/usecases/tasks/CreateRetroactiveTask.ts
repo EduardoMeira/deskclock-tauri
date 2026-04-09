@@ -15,7 +15,7 @@ interface CreateRetroactiveInput {
 export async function createRetroactiveTask(
   repo: ITaskRepository,
   input: CreateRetroactiveInput,
-  nowISO: string,
+  nowISO: string
 ): Promise<Task> {
   const task: Task = {
     id: generateUUID(),

@@ -9,8 +9,13 @@ const { ExportProfileRepository } = await import("@infra/database/ExportProfileR
 
 function makeRow(overrides: Partial<Record<string, unknown>> = {}) {
   return {
-    id: "ep1", name: "Padrão", is_default: 1, format: "csv",
-    separator: "comma", duration_format: "hh:mm:ss", date_format: "iso",
+    id: "ep1",
+    name: "Padrão",
+    is_default: 1,
+    format: "csv",
+    separator: "comma",
+    duration_format: "hh:mm:ss",
+    date_format: "iso",
     columns: JSON.stringify(DEFAULT_COLUMNS),
     ...overrides,
   };
@@ -18,8 +23,13 @@ function makeRow(overrides: Partial<Record<string, unknown>> = {}) {
 
 function makeProfile(overrides: Partial<ExportProfile> = {}): ExportProfile {
   return {
-    id: "ep1", name: "Padrão", isDefault: true, format: "csv",
-    separator: "comma", durationFormat: "hh:mm:ss", dateFormat: "iso",
+    id: "ep1",
+    name: "Padrão",
+    isDefault: true,
+    format: "csv",
+    separator: "comma",
+    durationFormat: "hh:mm:ss",
+    dateFormat: "iso",
     columns: [...DEFAULT_COLUMNS],
     ...overrides,
   };

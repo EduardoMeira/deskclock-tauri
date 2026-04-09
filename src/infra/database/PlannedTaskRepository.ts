@@ -96,10 +96,9 @@ export class PlannedTaskRepository implements IPlannedTaskRepository {
 
   async findById(id: UUID): Promise<PlannedTask | null> {
     const db = await getDb();
-    const rows = await db.select<PlannedTaskRow[]>(
-      "SELECT * FROM planned_tasks WHERE id = $1",
-      [id]
-    );
+    const rows = await db.select<PlannedTaskRow[]>("SELECT * FROM planned_tasks WHERE id = $1", [
+      id,
+    ]);
     return rows[0] ? rowToTask(rows[0]) : null;
   }
 
@@ -115,14 +114,12 @@ export class PlannedTaskRepository implements IPlannedTaskRepository {
       [dateISO]
     );
     const dayOfWeek = new Date(dateISO + "T12:00:00Z").getUTCDay();
-    return rows
-      .map(rowToTask)
-      .filter((t) => {
-        if (t.scheduleType === "recurring") {
-          return Array.isArray(t.recurringDays) && t.recurringDays.includes(dayOfWeek);
-        }
-        return true;
-      });
+    return rows.map(rowToTask).filter((t) => {
+      if (t.scheduleType === "recurring") {
+        return Array.isArray(t.recurringDays) && t.recurringDays.includes(dayOfWeek);
+      }
+      return true;
+    });
   }
 
   async findForWeek(startISO: string, endISO: string): Promise<PlannedTask[]> {
@@ -147,10 +144,10 @@ export class PlannedTaskRepository implements IPlannedTaskRepository {
     if (!rows[0]) return;
     const dates: string[] = JSON.parse(rows[0].completed_dates);
     if (!dates.includes(dateISO)) dates.push(dateISO);
-    await db.execute(
-      "UPDATE planned_tasks SET completed_dates = $1 WHERE id = $2",
-      [JSON.stringify(dates), id]
-    );
+    await db.execute("UPDATE planned_tasks SET completed_dates = $1 WHERE id = $2", [
+      JSON.stringify(dates),
+      id,
+    ]);
   }
 
   async uncomplete(id: UUID, dateISO: string): Promise<void> {
@@ -162,10 +159,10 @@ export class PlannedTaskRepository implements IPlannedTaskRepository {
     if (!rows[0]) return;
     const dates: string[] = JSON.parse(rows[0].completed_dates);
     const filtered = dates.filter((d) => d !== dateISO);
-    await db.execute(
-      "UPDATE planned_tasks SET completed_dates = $1 WHERE id = $2",
-      [JSON.stringify(filtered), id]
-    );
+    await db.execute("UPDATE planned_tasks SET completed_dates = $1 WHERE id = $2", [
+      JSON.stringify(filtered),
+      id,
+    ]);
   }
 
   async reorder(ids: UUID[]): Promise<void> {
@@ -173,10 +170,7 @@ export class PlannedTaskRepository implements IPlannedTaskRepository {
     const db = await getDb();
     await Promise.all(
       ids.map((id, idx) =>
-        db.execute(
-          "UPDATE planned_tasks SET sort_order = $1 WHERE id = $2",
-          [idx, id]
-        )
+        db.execute("UPDATE planned_tasks SET sort_order = $1 WHERE id = $2", [idx, id])
       )
     );
   }

@@ -31,7 +31,12 @@ function buildISO(dateISO: string, hhmm: string): string {
   return d.toISOString();
 }
 
-export function RetroactiveTaskModal({ projects, categories, onSave, onClose }: RetroactiveTaskModalProps) {
+export function RetroactiveTaskModal({
+  projects,
+  categories,
+  onSave,
+  onClose,
+}: RetroactiveTaskModalProps) {
   const [name, setName] = useState("");
   const [projectName, setProjectName] = useState("");
   const [categoryName, setCategoryName] = useState("");
@@ -60,7 +65,9 @@ export function RetroactiveTaskModal({ projects, categories, onSave, onClose }: 
       if (new Date(endISO) <= new Date(startISO)) {
         endISO = buildISO(addDaysISO(startDate, 1), endTime);
       }
-      durationSeconds = Math.round((new Date(endISO).getTime() - new Date(startISO).getTime()) / 1000);
+      durationSeconds = Math.round(
+        (new Date(endISO).getTime() - new Date(startISO).getTime()) / 1000
+      );
       if (durationSeconds <= 0) {
         setError("Hora de fim deve ser depois da hora de início.");
         return;
@@ -90,7 +97,7 @@ export function RetroactiveTaskModal({ projects, categories, onSave, onClose }: 
         endTime: endISO,
         durationSeconds,
       },
-      new Date().toISOString(),
+      new Date().toISOString()
     );
     setSaving(false);
     onSave();
@@ -197,14 +204,20 @@ export function RetroactiveTaskModal({ projects, categories, onSave, onClose }: 
               <input
                 type="time"
                 value={endTime}
-                onChange={(e) => { setEndTime(e.target.value); setError(""); }}
+                onChange={(e) => {
+                  setEndTime(e.target.value);
+                  setError("");
+                }}
                 className="w-24 px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
               />
             ) : (
               <input
                 type="text"
                 value={durationInput}
-                onChange={(e) => { setDurationInput(e.target.value); setError(""); }}
+                onChange={(e) => {
+                  setDurationInput(e.target.value);
+                  setError("");
+                }}
                 placeholder="HH:MM:SS, MM:SS ou minutos"
                 className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
               />
@@ -215,7 +228,10 @@ export function RetroactiveTaskModal({ projects, categories, onSave, onClose }: 
         </div>
 
         <div className="flex justify-end gap-2 mt-5">
-          <button onClick={onClose} className="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200">
+          <button
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm text-gray-400 hover:text-gray-200"
+          >
             Cancelar
           </button>
           <button

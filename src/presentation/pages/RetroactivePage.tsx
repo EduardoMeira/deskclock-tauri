@@ -17,8 +17,29 @@ const repo = new TaskRepository();
 
 type DurationMode = "endtime" | "duration";
 
-const DAY_NAMES_PT = ["domingo", "segunda-feira", "terça-feira", "quarta-feira", "quinta-feira", "sexta-feira", "sábado"];
-const MONTH_NAMES_PT = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+const DAY_NAMES_PT = [
+  "domingo",
+  "segunda-feira",
+  "terça-feira",
+  "quarta-feira",
+  "quinta-feira",
+  "sexta-feira",
+  "sábado",
+];
+const MONTH_NAMES_PT = [
+  "janeiro",
+  "fevereiro",
+  "março",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
+];
 
 function formatDateHeader(dateISO: string): string {
   const d = new Date(dateISO + "T12:00:00Z");
@@ -154,7 +175,7 @@ export function RetroactivePage() {
         endISO = buildISO(addDaysISO(selectedDate, 1), endTime);
       }
       durationSeconds = Math.round(
-        (new Date(endISO).getTime() - new Date(startISO).getTime()) / 1000,
+        (new Date(endISO).getTime() - new Date(startISO).getTime()) / 1000
       );
     } else {
       const parsed = parseDurationInput(durationInput);
@@ -181,7 +202,7 @@ export function RetroactivePage() {
         endTime: endISO,
         durationSeconds,
       },
-      new Date().toISOString(),
+      new Date().toISOString()
     );
     setSaving(false);
 
@@ -212,7 +233,11 @@ export function RetroactivePage() {
         >
           <ChevronLeft size={16} />
         </button>
-        <DatePickerInput value={selectedDate} onChange={setSelectedDate} className="text-sm font-medium text-gray-200" />
+        <DatePickerInput
+          value={selectedDate}
+          onChange={setSelectedDate}
+          className="text-sm font-medium text-gray-200"
+        />
         <button
           onClick={() => setSelectedDate(addDaysISO(selectedDate, 1))}
           disabled={selectedDate >= today}
@@ -222,7 +247,9 @@ export function RetroactivePage() {
         </button>
         <span className="flex-1 text-sm text-gray-400">{formatDateHeader(selectedDate)}</span>
         {totalSeconds > 0 && (
-          <span className="text-xs text-gray-500 font-mono">{formatHHMMSS(totalSeconds)} total</span>
+          <span className="text-xs text-gray-500 font-mono">
+            {formatHHMMSS(totalSeconds)} total
+          </span>
         )}
       </div>
 
@@ -234,7 +261,9 @@ export function RetroactivePage() {
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) handleAdd(); }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.nativeEvent.isComposing) handleAdd();
+          }}
           placeholder="Nome da tarefa (opcional)"
           className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
         />
@@ -284,8 +313,13 @@ export function RetroactivePage() {
           <input
             type="time"
             value={startTime}
-            onChange={(e) => { setStartTime(e.target.value); setError(""); }}
-            onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+            onChange={(e) => {
+              setStartTime(e.target.value);
+              setError("");
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleAdd();
+            }}
             className="w-24 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
           />
 
@@ -293,7 +327,9 @@ export function RetroactivePage() {
             <button
               onClick={() => setMode("endtime")}
               className={`px-2.5 py-1 text-xs rounded transition-colors ${
-                mode === "endtime" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400 hover:text-gray-200"
+                mode === "endtime"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-800 text-gray-400 hover:text-gray-200"
               }`}
             >
               Hora fim
@@ -301,7 +337,9 @@ export function RetroactivePage() {
             <button
               onClick={() => setMode("duration")}
               className={`px-2.5 py-1 text-xs rounded transition-colors ${
-                mode === "duration" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400 hover:text-gray-200"
+                mode === "duration"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-800 text-gray-400 hover:text-gray-200"
               }`}
             >
               Duração
@@ -312,16 +350,26 @@ export function RetroactivePage() {
             <input
               type="time"
               value={endTime}
-              onChange={(e) => { setEndTime(e.target.value); setError(""); }}
-              onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+              onChange={(e) => {
+                setEndTime(e.target.value);
+                setError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAdd();
+              }}
               className="w-24 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
             />
           ) : (
             <input
               type="text"
               value={durationInput}
-              onChange={(e) => { setDurationInput(e.target.value); setError(""); }}
-              onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+              onChange={(e) => {
+                setDurationInput(e.target.value);
+                setError("");
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleAdd();
+              }}
               placeholder="HH:MM ou minutos"
               className="w-32 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
             />
@@ -342,9 +390,7 @@ export function RetroactivePage() {
       {/* Lista de tarefas — pr-2 evita que a scrollbar sobreponha os botões */}
       <div className="flex-1 overflow-y-auto pr-2">
         {tasks.length === 0 ? (
-          <p className="text-center text-gray-600 text-sm py-10">
-            Nenhuma entrada para este dia
-          </p>
+          <p className="text-center text-gray-600 text-sm py-10">Nenhuma entrada para este dia</p>
         ) : (
           tasks.map((t) => (
             <TaskRow

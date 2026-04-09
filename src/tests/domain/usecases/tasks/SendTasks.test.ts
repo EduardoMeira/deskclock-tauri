@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
-import { sendTasks, NoIntegrationError, NoTasksSelectedError } from "@domain/usecases/tasks/SendTasks";
+import {
+  sendTasks,
+  NoIntegrationError,
+  NoTasksSelectedError,
+} from "@domain/usecases/tasks/SendTasks";
 import type { ITaskSender } from "@domain/integrations/ITaskSender";
 import type { Task } from "@domain/entities/Task";
 
@@ -67,7 +71,9 @@ describe("sendTasks", () => {
 
   it("propaga erros lançados pelo sender", async () => {
     const sender = makeSender({
-      send: vi.fn(async () => { throw new Error("Falha na integração"); }),
+      send: vi.fn(async () => {
+        throw new Error("Falha na integração");
+      }),
     });
     await expect(sendTasks(sender, [makeTask()])).rejects.toThrow("Falha na integração");
   });

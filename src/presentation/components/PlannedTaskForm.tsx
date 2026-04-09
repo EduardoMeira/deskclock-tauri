@@ -110,7 +110,12 @@ export function PlannedTaskForm({
           type="text"
           value={form.name}
           onChange={(e) => set("name", e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleSubmit(); } }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              void handleSubmit();
+            }
+          }}
           placeholder="Nome da tarefa"
           className="flex-1 px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
         />
@@ -127,7 +132,10 @@ export function PlannedTaskForm({
         <Autocomplete
           value={form.projectName}
           onChange={(v) => set("projectName", v)}
-          onSelect={(o) => { set("projectId", o.id); set("projectName", o.name); }}
+          onSelect={(o) => {
+            set("projectId", o.id);
+            set("projectName", o.name);
+          }}
           options={projects}
           placeholder="Projeto"
           className="flex-1"
@@ -172,7 +180,11 @@ export function PlannedTaskForm({
                     : "bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200"
                 }`}
               >
-                {type === "specific_date" ? "Data única" : type === "recurring" ? "Recorrente" : "Período"}
+                {type === "specific_date"
+                  ? "Data única"
+                  : type === "recurring"
+                    ? "Recorrente"
+                    : "Período"}
               </button>
             ))}
           </div>

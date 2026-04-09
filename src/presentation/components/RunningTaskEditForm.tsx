@@ -18,7 +18,11 @@ interface RunningTaskEditFormProps {
 }
 
 export function RunningTaskEditForm({
-  task, projects, categories, onSave, onCancel,
+  task,
+  projects,
+  categories,
+  onSave,
+  onCancel,
 }: RunningTaskEditFormProps) {
   const [name, setName] = useState(task.name ?? "");
   const [projectName, setProjectName] = useState(

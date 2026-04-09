@@ -14,20 +14,36 @@ const { TaskRepository } = await import("@infra/database/TaskRepository");
 
 function makeRow(overrides: Partial<Record<string, unknown>> = {}) {
   return {
-    id: "t1", name: null, project_id: null, category_id: null,
-    billable: 1, start_time: "2026-04-08T09:00:00.000Z", end_time: null,
-    duration_seconds: 3600, status: "completed",
-    created_at: "2026-04-08T09:00:00.000Z", updated_at: "2026-04-08T10:00:00.000Z",
+    id: "t1",
+    name: null,
+    project_id: null,
+    category_id: null,
+    billable: 1,
+    start_time: "2026-04-08T09:00:00.000Z",
+    end_time: null,
+    duration_seconds: 3600,
+    status: "completed",
+    created_at: "2026-04-08T09:00:00.000Z",
+    updated_at: "2026-04-08T10:00:00.000Z",
     ...overrides,
   };
 }
 
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
-    id: "t1", name: null, projectId: null, categoryId: null, billable: true,
-    startTime: "2026-04-08T09:00:00.000Z", endTime: null, durationSeconds: 3600,
-    status: "completed", sentToSheets: false, createdAt: "2026-04-08T09:00:00.000Z",
-    updatedAt: "2026-04-08T10:00:00.000Z", ...overrides,
+    id: "t1",
+    name: null,
+    projectId: null,
+    categoryId: null,
+    billable: true,
+    startTime: "2026-04-08T09:00:00.000Z",
+    endTime: null,
+    durationSeconds: 3600,
+    status: "completed",
+    sentToSheets: false,
+    createdAt: "2026-04-08T09:00:00.000Z",
+    updatedAt: "2026-04-08T10:00:00.000Z",
+    ...overrides,
   };
 }
 
@@ -63,14 +79,17 @@ describe("TaskRepository", () => {
     });
 
     it("mapeia snake_case para camelCase", async () => {
-      mockDb.select.mockResolvedValue([makeRow({
-        project_id: "p1", category_id: "c1",
-        start_time: "2026-04-08T09:00:00.000Z",
-        end_time: "2026-04-08T10:00:00.000Z",
-        duration_seconds: 3600,
-        created_at: "2026-04-08T09:00:00.000Z",
-        updated_at: "2026-04-08T10:00:00.000Z",
-      })]);
+      mockDb.select.mockResolvedValue([
+        makeRow({
+          project_id: "p1",
+          category_id: "c1",
+          start_time: "2026-04-08T09:00:00.000Z",
+          end_time: "2026-04-08T10:00:00.000Z",
+          duration_seconds: 3600,
+          created_at: "2026-04-08T09:00:00.000Z",
+          updated_at: "2026-04-08T10:00:00.000Z",
+        }),
+      ]);
       const repo = new TaskRepository();
       const result = await repo.findById("t1");
       expect(result?.projectId).toBe("p1");
@@ -86,10 +105,7 @@ describe("TaskRepository", () => {
       mockDb.select.mockResolvedValue([makeRow({ status: "running" })]);
       const repo = new TaskRepository();
       const result = await repo.findByStatus("running");
-      expect(mockDb.select).toHaveBeenCalledWith(
-        expect.stringContaining("status"),
-        ["running"]
-      );
+      expect(mockDb.select).toHaveBeenCalledWith(expect.stringContaining("status"), ["running"]);
       expect(result).toHaveLength(1);
     });
   });
@@ -101,10 +117,7 @@ describe("TaskRepository", () => {
       const start = "2026-04-08T00:00:00.000Z";
       const end = "2026-04-08T23:59:59.999Z";
       const result = await repo.findByDateRange(start, end);
-      expect(mockDb.select).toHaveBeenCalledWith(
-        expect.any(String),
-        [start, end]
-      );
+      expect(mockDb.select).toHaveBeenCalledWith(expect.any(String), [start, end]);
       expect(result).toHaveLength(1);
     });
   });
@@ -150,10 +163,7 @@ describe("TaskRepository", () => {
     it("executa DELETE com o id correto", async () => {
       const repo = new TaskRepository();
       await repo.delete("t1");
-      expect(mockDb.execute).toHaveBeenCalledWith(
-        expect.stringContaining("DELETE"),
-        ["t1"]
-      );
+      expect(mockDb.execute).toHaveBeenCalledWith(expect.stringContaining("DELETE"), ["t1"]);
     });
   });
 

@@ -38,10 +38,11 @@ export class CategoryRepository implements ICategoryRepository {
 
   async save(category: Category): Promise<void> {
     const db = await getDb();
-    await db.execute(
-      "INSERT INTO categories (id, name, default_billable) VALUES ($1, $2, $3)",
-      [category.id, category.name, category.defaultBillable ? 1 : 0]
-    );
+    await db.execute("INSERT INTO categories (id, name, default_billable) VALUES ($1, $2, $3)", [
+      category.id,
+      category.name,
+      category.defaultBillable ? 1 : 0,
+    ]);
   }
 
   async delete(id: UUID): Promise<void> {

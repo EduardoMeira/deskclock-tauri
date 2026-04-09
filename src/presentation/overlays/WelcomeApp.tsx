@@ -58,7 +58,8 @@ function WelcomeAppInner() {
 
         <div>
           <h1 className="text-base font-semibold text-gray-100 pr-5">
-            {greeting}{displayName ? `, ${displayName}` : ""}!
+            {greeting}
+            {displayName ? `, ${displayName}` : ""}!
           </h1>
           <p className="text-xs text-gray-400 mt-1">No que iremos trabalhar hoje?</p>
         </div>

@@ -35,9 +35,7 @@ export function PlannedTasksSection({
             >
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-gray-200 truncate">{task.name}</p>
-                {project && (
-                  <p className="text-xs text-gray-500 truncate">{project.name}</p>
-                )}
+                {project && <p className="text-xs text-gray-500 truncate">{project.name}</p>}
               </div>
               {!playDisabled && (
                 <button

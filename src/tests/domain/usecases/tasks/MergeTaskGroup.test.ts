@@ -7,10 +7,17 @@ const NOW = "2026-04-08T11:00:00.000Z";
 
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
-    id: "t1", name: "Task A", projectId: "p1", categoryId: "c1",
-    billable: true, startTime: "2026-04-08T09:00:00.000Z",
-    endTime: "2026-04-08T10:00:00.000Z", durationSeconds: 3600,
-    status: "completed", sentToSheets: false, createdAt: "2026-04-08T09:00:00.000Z",
+    id: "t1",
+    name: "Task A",
+    projectId: "p1",
+    categoryId: "c1",
+    billable: true,
+    startTime: "2026-04-08T09:00:00.000Z",
+    endTime: "2026-04-08T10:00:00.000Z",
+    durationSeconds: 3600,
+    status: "completed",
+    sentToSheets: false,
+    createdAt: "2026-04-08T09:00:00.000Z",
     updatedAt: "2026-04-08T10:00:00.000Z",
     ...overrides,
   };
@@ -20,7 +27,12 @@ describe("mergeTaskGroup", () => {
   it("cria um registro com duração somada", async () => {
     const tasks = [
       makeTask({ id: "t1", durationSeconds: 3600 }),
-      makeTask({ id: "t2", durationSeconds: 1800, startTime: "2026-04-08T10:00:00.000Z", endTime: "2026-04-08T10:30:00.000Z" }),
+      makeTask({
+        id: "t2",
+        durationSeconds: 1800,
+        startTime: "2026-04-08T10:00:00.000Z",
+        endTime: "2026-04-08T10:30:00.000Z",
+      }),
     ];
     const repo: ITaskRepository = {
       save: vi.fn(async () => undefined),
@@ -39,7 +51,12 @@ describe("mergeTaskGroup", () => {
   it("exclui os registros originais via deleteMany", async () => {
     const tasks = [
       makeTask({ id: "t1", durationSeconds: 3600 }),
-      makeTask({ id: "t2", durationSeconds: 900, startTime: "2026-04-08T10:00:00.000Z", endTime: "2026-04-08T10:15:00.000Z" }),
+      makeTask({
+        id: "t2",
+        durationSeconds: 900,
+        startTime: "2026-04-08T10:00:00.000Z",
+        endTime: "2026-04-08T10:15:00.000Z",
+      }),
     ];
     const repo: ITaskRepository = {
       save: vi.fn(async () => undefined),

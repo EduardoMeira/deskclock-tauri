@@ -26,8 +26,16 @@ describe("createRetroactiveTask", () => {
     const repo = makeRepo();
     const task = await createRetroactiveTask(
       repo,
-      { name: null, projectId: null, categoryId: null, billable: true, startTime: START, endTime: END, durationSeconds: DURATION },
-      NOW,
+      {
+        name: null,
+        projectId: null,
+        categoryId: null,
+        billable: true,
+        startTime: START,
+        endTime: END,
+        durationSeconds: DURATION,
+      },
+      NOW
     );
     expect(task.status).toBe("completed");
   });
@@ -36,8 +44,16 @@ describe("createRetroactiveTask", () => {
     const repo = makeRepo();
     const task = await createRetroactiveTask(
       repo,
-      { name: null, projectId: null, categoryId: null, billable: true, startTime: START, endTime: END, durationSeconds: DURATION },
-      NOW,
+      {
+        name: null,
+        projectId: null,
+        categoryId: null,
+        billable: true,
+        startTime: START,
+        endTime: END,
+        durationSeconds: DURATION,
+      },
+      NOW
     );
     expect(repo.save).toHaveBeenCalledWith(task);
   });
@@ -46,8 +62,16 @@ describe("createRetroactiveTask", () => {
     const repo = makeRepo();
     const task = await createRetroactiveTask(
       repo,
-      { name: null, projectId: null, categoryId: null, billable: true, startTime: START, endTime: END, durationSeconds: DURATION },
-      NOW,
+      {
+        name: null,
+        projectId: null,
+        categoryId: null,
+        billable: true,
+        startTime: START,
+        endTime: END,
+        durationSeconds: DURATION,
+      },
+      NOW
     );
     expect(task.startTime).toBe(START);
     expect(task.endTime).toBe(END);
@@ -58,8 +82,16 @@ describe("createRetroactiveTask", () => {
     const repo = makeRepo();
     const task = await createRetroactiveTask(
       repo,
-      { name: "Reunião", projectId: "proj-1", categoryId: "cat-1", billable: false, startTime: START, endTime: END, durationSeconds: 3600 },
-      NOW,
+      {
+        name: "Reunião",
+        projectId: "proj-1",
+        categoryId: "cat-1",
+        billable: false,
+        startTime: START,
+        endTime: END,
+        durationSeconds: 3600,
+      },
+      NOW
     );
     expect(task.name).toBe("Reunião");
     expect(task.projectId).toBe("proj-1");
@@ -71,15 +103,31 @@ describe("createRetroactiveTask", () => {
     const repo = makeRepo();
     const task = await createRetroactiveTask(
       repo,
-      { name: null, projectId: null, categoryId: null, billable: true, startTime: START, endTime: END, durationSeconds: DURATION },
-      NOW,
+      {
+        name: null,
+        projectId: null,
+        categoryId: null,
+        billable: true,
+        startTime: START,
+        endTime: END,
+        durationSeconds: DURATION,
+      },
+      NOW
     );
     expect(task.name).toBeNull();
   });
 
   it("gera id único a cada chamada", async () => {
     const repo = makeRepo();
-    const input = { name: null, projectId: null, categoryId: null, billable: true, startTime: START, endTime: END, durationSeconds: DURATION };
+    const input = {
+      name: null,
+      projectId: null,
+      categoryId: null,
+      billable: true,
+      startTime: START,
+      endTime: END,
+      durationSeconds: DURATION,
+    };
     const [t1, t2] = await Promise.all([
       createRetroactiveTask(repo, input, NOW),
       createRetroactiveTask(repo, input, NOW),
@@ -91,8 +139,16 @@ describe("createRetroactiveTask", () => {
     const repo = makeRepo();
     const task = await createRetroactiveTask(
       repo,
-      { name: null, projectId: null, categoryId: null, billable: true, startTime: START, endTime: END, durationSeconds: DURATION },
-      NOW,
+      {
+        name: null,
+        projectId: null,
+        categoryId: null,
+        billable: true,
+        startTime: START,
+        endTime: END,
+        durationSeconds: DURATION,
+      },
+      NOW
     );
     expect(task.createdAt).toBe(NOW);
     expect(task.updatedAt).toBe(NOW);
@@ -102,8 +158,16 @@ describe("createRetroactiveTask", () => {
     const repo = makeRepo();
     await createRetroactiveTask(
       repo,
-      { name: null, projectId: null, categoryId: null, billable: true, startTime: START, endTime: END, durationSeconds: DURATION },
-      NOW,
+      {
+        name: null,
+        projectId: null,
+        categoryId: null,
+        billable: true,
+        startTime: START,
+        endTime: END,
+        durationSeconds: DURATION,
+      },
+      NOW
     );
     expect(repo.update).not.toHaveBeenCalled();
     expect(repo.findByStatus).not.toHaveBeenCalled();
