@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Send, CheckSquare, Square, X } from "lucide-react";
 import type { Task } from "@domain/entities/Task";
 import type { Project } from "@domain/entities/Project";
@@ -12,6 +12,8 @@ import { updateTask } from "@domain/usecases/tasks/UpdateTask";
 import { mergeTaskGroup } from "@domain/usecases/tasks/MergeTaskGroup";
 import { sendTasks, NoIntegrationError, NoTasksSelectedError } from "@domain/usecases/tasks/SendTasks";
 import { useRunningTask } from "@presentation/contexts/RunningTaskContext";
+import { useAppConfig } from "@presentation/contexts/ConfigContext";
+import { GoogleSheetsTaskSender } from "@infra/integrations/GoogleSheetsTaskSender";
 import { formatHHMMSS } from "@shared/utils/time";
 
 const repo = new TaskRepository();
@@ -28,7 +30,18 @@ export function TodayEntriesSection({
   groups, projects, categories, reload, totalSeconds,
 }: TodayEntriesSectionProps) {
   const { startTask, runningTask } = useRunningTask();
+  const config = useAppConfig();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  // Sender real quando Google Sheets estiver configurado e conectado
+  const googleSheetsSender = useMemo(() => {
+    if (!config.isLoaded) return null;
+    const spreadsheetId = config.get("integrationGoogleSheetsSpreadsheetId");
+    const refreshToken = config.get("googleRefreshToken");
+    if (!spreadsheetId || !refreshToken) return null;
+    return new GoogleSheetsTaskSender(config, spreadsheetId, projects, categories);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.isLoaded]);
 
   // send mode
   const [sendMode, setSendMode] = useState(false);
@@ -71,8 +84,7 @@ export function TodayEntriesSection({
       .flatMap((g) => g.tasks);
 
     try {
-      // sender = null até que uma integração seja configurada
-      await sendTasks(null, tasksToSend);
+      await sendTasks(googleSheetsSender, tasksToSend);
     } catch (err) {
       if (err instanceof NoIntegrationError) {
         setSendMessage({ text: "Nenhuma integração configurada.", error: true });

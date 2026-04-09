@@ -32,6 +32,11 @@ export interface AppConfig {
   // Integrações
   integrationGoogleSheetsSpreadsheetId: string;
   integrationGoogleSheetsAutoSync: boolean;
+  // Tokens Google OAuth (armazenados localmente no SQLite)
+  googleAccessToken: string;
+  googleRefreshToken: string;
+  googleTokenExpiry: number;
+  googleUserEmail: string;
 }
 
 const DEFAULTS: AppConfig = {
@@ -55,11 +60,15 @@ const DEFAULTS: AppConfig = {
   overlayPosition_compact: { x: -1, y: -1 },
   integrationGoogleSheetsSpreadsheetId: "",
   integrationGoogleSheetsAutoSync: false,
+  googleAccessToken: "",
+  googleRefreshToken: "",
+  googleTokenExpiry: 0,
+  googleUserEmail: "",
 };
 
 type ConfigKey = keyof AppConfig;
 
-interface ConfigContextValue {
+export interface ConfigContextValue {
   isLoaded: boolean;
   get<K extends ConfigKey>(key: K): AppConfig[K];
   set<K extends ConfigKey>(key: K, value: AppConfig[K]): Promise<void>;
