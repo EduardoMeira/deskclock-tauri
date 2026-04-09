@@ -40,7 +40,7 @@ export function CompactOverlayContent({ onExpand, onStartTask }: CompactOverlayC
         onClick={handleClick}
         className="absolute inset-0 flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors"
       >
-        <Clock size={18} className="text-gray-300" />
+        <Clock size={18} className="text-blue-400" />
       </button>
 
       {pendingCount > 0 && (
