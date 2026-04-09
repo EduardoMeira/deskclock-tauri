@@ -26,7 +26,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: "t1", name: null, projectId: null, categoryId: null, billable: true,
     startTime: "2026-04-08T09:00:00.000Z", endTime: null, durationSeconds: 3600,
-    status: "completed", createdAt: "2026-04-08T09:00:00.000Z",
+    status: "completed", sentToSheets: false, createdAt: "2026-04-08T09:00:00.000Z",
     updatedAt: "2026-04-08T10:00:00.000Z", ...overrides,
   };
 }

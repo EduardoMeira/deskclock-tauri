@@ -243,6 +243,12 @@ pub fn run() {
             sql: include_str!("../migrations/005_config.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 6,
+            description: "task_sheets_sent",
+            sql: include_str!("../migrations/006_task_sheets_sent.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

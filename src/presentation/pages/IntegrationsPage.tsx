@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { TableProperties, Calendar, CheckCircle2, Circle, LogIn, LogOut, Loader2 } from "lucide-react";
+import { TableProperties, Calendar, CheckCircle2, Circle, LogIn, LogOut, Loader2, ChevronDown, ChevronRight, ArrowUp, ArrowDown } from "lucide-react";
 import { useAppConfig } from "@presentation/contexts/ConfigContext";
 import { startGoogleOAuth } from "@infra/integrations/google/GoogleOAuth";
 import { GoogleTokenManager } from "@infra/integrations/google/GoogleTokenManager";
+import { DEFAULT_COLUMN_MAPPING, type SheetColumnMapping } from "@shared/types/sheetsConfig";
 
 const SHEETS_SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",
@@ -85,20 +86,98 @@ function IntegrationCard({
   );
 }
 
+/* ── Column mapping editor ── */
+
+function ColumnMappingEditor({
+  mapping,
+  onChange,
+}: {
+  mapping: SheetColumnMapping;
+  onChange: (m: SheetColumnMapping) => void;
+}) {
+  function toggleEnabled(idx: number) {
+    const next = mapping.map((c, i) => i === idx ? { ...c, enabled: !c.enabled } : c);
+    onChange(next);
+  }
+
+  function setLabel(idx: number, label: string) {
+    const next = mapping.map((c, i) => i === idx ? { ...c, label } : c);
+    onChange(next);
+  }
+
+  function moveUp(idx: number) {
+    if (idx === 0) return;
+    const next = [...mapping];
+    [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+    onChange(next);
+  }
+
+  function moveDown(idx: number) {
+    if (idx === mapping.length - 1) return;
+    const next = [...mapping];
+    [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+    onChange(next);
+  }
+
+  return (
+    <div className="space-y-1">
+      {mapping.map((col, idx) => (
+        <div
+          key={col.field}
+          className={`flex items-center gap-2 px-2 py-1.5 rounded ${
+            col.enabled ? "bg-gray-800/50" : "bg-gray-900/30 opacity-50"
+          }`}
+        >
+          <Toggle checked={col.enabled} onChange={() => toggleEnabled(idx)} />
+          <input
+            type="text"
+            value={col.label}
+            onChange={(e) => setLabel(idx, e.target.value)}
+            disabled={!col.enabled}
+            className="flex-1 bg-transparent border-b border-gray-700 focus:border-blue-500 text-xs text-gray-200 outline-none py-0.5 disabled:text-gray-600"
+          />
+          <span className="text-xs text-gray-600 w-16 shrink-0">{col.field}</span>
+          <div className="flex gap-0.5">
+            <button
+              onClick={() => moveUp(idx)}
+              disabled={idx === 0}
+              className="p-0.5 text-gray-600 hover:text-gray-300 disabled:opacity-20"
+            >
+              <ArrowUp size={12} />
+            </button>
+            <button
+              onClick={() => moveDown(idx)}
+              disabled={idx === mapping.length - 1}
+              className="p-0.5 text-gray-600 hover:text-gray-300 disabled:opacity-20"
+            >
+              <ArrowDown size={12} />
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── Google Sheets ── */
 
 function GoogleSheetsIntegration() {
   const config = useAppConfig();
   const [spreadsheetId, setSpreadsheetId] = useState("");
+  const [sheetName, setSheetName] = useState("DeskClock");
+  const [columnMapping, setColumnMapping] = useState<SheetColumnMapping>(DEFAULT_COLUMN_MAPPING);
   const [autoSync, setAutoSync] = useState(false);
   const [connected, setConnected] = useState(false);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [colsOpen, setColsOpen] = useState(false);
 
   useEffect(() => {
     if (!config.isLoaded) return;
     setSpreadsheetId(config.get("integrationGoogleSheetsSpreadsheetId"));
+    setSheetName(config.get("integrationGoogleSheetsSheetName") || "DeskClock");
+    setColumnMapping(config.get("integrationGoogleSheetsColumnMapping") ?? DEFAULT_COLUMN_MAPPING);
     setAutoSync(config.get("integrationGoogleSheetsAutoSync"));
     setConnected(!!config.get("googleRefreshToken"));
     setEmail(config.get("googleUserEmail"));
@@ -106,6 +185,17 @@ function GoogleSheetsIntegration() {
 
   async function handleSpreadsheetIdBlur() {
     await config.set("integrationGoogleSheetsSpreadsheetId", spreadsheetId.trim());
+  }
+
+  async function handleSheetNameBlur() {
+    const name = sheetName.trim() || "DeskClock";
+    setSheetName(name);
+    await config.set("integrationGoogleSheetsSheetName", name);
+  }
+
+  async function handleColumnMappingChange(next: SheetColumnMapping) {
+    setColumnMapping(next);
+    await config.set("integrationGoogleSheetsColumnMapping", next);
   }
 
   async function handleAutoSync(value: boolean) {
@@ -154,6 +244,39 @@ function GoogleSheetsIntegration() {
           className="w-72 bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
         />
       </Row>
+      <Row label="Nome da aba">
+        <input
+          type="text"
+          value={sheetName}
+          onChange={(e) => setSheetName(e.target.value)}
+          onBlur={handleSheetNameBlur}
+          placeholder="DeskClock"
+          className="w-48 bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+        />
+      </Row>
+
+      {/* Mapeamento de colunas */}
+      <div className="py-2.5 border-b border-gray-800">
+        <button
+          onClick={() => setColsOpen((v) => !v)}
+          className="flex items-center gap-1.5 text-sm text-gray-300 hover:text-gray-100 w-full text-left"
+        >
+          {colsOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          Mapeamento de colunas
+          <span className="ml-auto text-xs text-gray-600">
+            {columnMapping.filter((c) => c.enabled).length}/{columnMapping.length} ativas
+          </span>
+        </button>
+        {colsOpen && (
+          <div className="mt-2">
+            <p className="text-xs text-gray-500 mb-2">
+              Ative/desative colunas, edite os rótulos e reordene conforme a planilha.
+            </p>
+            <ColumnMappingEditor mapping={columnMapping} onChange={handleColumnMappingChange} />
+          </div>
+        )}
+      </div>
+
       <Row label="Sincronizar automaticamente ao concluir tarefa">
         <Toggle checked={autoSync} onChange={handleAutoSync} />
       </Row>
@@ -193,8 +316,6 @@ function GoogleCalendarIntegration() {
 
   useEffect(() => {
     if (!config.isLoaded) return;
-    // Calendar usará os mesmos tokens do Google (mesmo account)
-    // Para simplificar, verifica se já há autenticação ativa
     setConnected(!!config.get("googleRefreshToken"));
     setEmail(config.get("googleUserEmail"));
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps

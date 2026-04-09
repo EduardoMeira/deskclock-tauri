@@ -9,4 +9,5 @@ export interface ITaskRepository {
   findByDateRange(startISO: string, endISO: string): Promise<Task[]>;
   delete(id: UUID): Promise<void>;
   deleteMany(ids: UUID[]): Promise<void>;
+  markSentToSheets(ids: UUID[]): Promise<void>;
 }

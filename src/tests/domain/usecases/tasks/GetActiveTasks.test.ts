@@ -8,6 +8,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     id: "t1", name: null, projectId: null, categoryId: null,
     billable: true, startTime: "2026-04-08T09:00:00.000Z",
     endTime: null, durationSeconds: 0, status: "running",
+    sentToSheets: false,
     createdAt: "2026-04-08T09:00:00.000Z", updatedAt: "2026-04-08T09:00:00.000Z",
     ...overrides,
   };
@@ -21,6 +22,7 @@ describe("getActiveTasks", () => {
       save: vi.fn(), update: vi.fn(), findById: vi.fn(async () => null),
       findByStatus: vi.fn(async (s) => s === "running" ? [running] : [paused]),
       findByDateRange: vi.fn(async () => []), delete: vi.fn(), deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await getActiveTasks(repo);
     expect(result).toHaveLength(2);
@@ -33,6 +35,7 @@ describe("getActiveTasks", () => {
       save: vi.fn(), update: vi.fn(), findById: vi.fn(async () => null),
       findByStatus: vi.fn(async () => []),
       findByDateRange: vi.fn(async () => []), delete: vi.fn(), deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await getActiveTasks(repo);
     expect(result).toHaveLength(0);

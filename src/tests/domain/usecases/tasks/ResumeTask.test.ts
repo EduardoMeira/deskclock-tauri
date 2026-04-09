@@ -15,6 +15,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     endTime: null,
     durationSeconds: 300,
     status: "paused",
+    sentToSheets: false,
     createdAt: "2026-04-08T09:00:00.000Z",
     updatedAt: "2026-04-08T09:05:00.000Z",
     ...overrides,
@@ -34,6 +35,7 @@ describe("resumeTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await resumeTask(repo, "t1", NOW);
     expect(result.status).toBe("running");
@@ -49,6 +51,7 @@ describe("resumeTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await resumeTask(repo, "t1", NOW);
     expect(result.startTime).toBe(NOW);
@@ -64,6 +67,7 @@ describe("resumeTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await resumeTask(repo, "t1", NOW);
     expect(result.durationSeconds).toBe(300);
@@ -80,6 +84,7 @@ describe("resumeTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     await resumeTask(repo, "t1", NOW);
     expect(repo.update).toHaveBeenCalledWith(expect.objectContaining({ id: "other", status: "completed" }));
@@ -94,6 +99,7 @@ describe("resumeTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     await expect(resumeTask(repo, "t1", NOW)).rejects.toThrow(DomainError);
   });
@@ -108,6 +114,7 @@ describe("resumeTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     await expect(resumeTask(repo, "t1", NOW)).rejects.toThrow(DomainError);
   });

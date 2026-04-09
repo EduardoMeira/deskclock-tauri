@@ -4,6 +4,7 @@ import type { Task } from "@domain/entities/Task";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";
 import type { TaskGroup } from "@shared/utils/groupTasks";
+import { NULLABLE_FIELDS, type TaskField } from "@shared/types/sheetsConfig";
 import { TaskGroupCard } from "./TaskGroupCard";
 import { EditTaskModal } from "@presentation/modals/EditTaskModal";
 import { TaskRepository } from "@infra/database/TaskRepository";
@@ -26,6 +27,30 @@ interface TodayEntriesSectionProps {
   totalSeconds: number;
 }
 
+function validateTasks(tasks: Task[], enabledFields: TaskField[]): string | null {
+  const requiredNullable = NULLABLE_FIELDS.filter((f) => enabledFields.includes(f));
+  if (requiredNullable.length === 0) return null;
+
+  const fieldLabel: Record<TaskField, string> = {
+    date: "data", name: "nome", project: "projeto", category: "categoria",
+    billable: "billable", startTime: "início", endTime: "fim", duration: "duração",
+  };
+
+  const incomplete: string[] = [];
+  for (const task of tasks) {
+    const missing: string[] = [];
+    if (requiredNullable.includes("name") && !task.name?.trim()) missing.push(fieldLabel.name);
+    if (requiredNullable.includes("project") && !task.projectId) missing.push(fieldLabel.project);
+    if (requiredNullable.includes("category") && !task.categoryId) missing.push(fieldLabel.category);
+    if (missing.length > 0) {
+      incomplete.push(`"${task.name ?? "(sem nome)"}" — faltam: ${missing.join(", ")}`);
+    }
+  }
+
+  if (incomplete.length === 0) return null;
+  return `Tarefas com dados incompletos:\n${incomplete.join("\n")}`;
+}
+
 export function TodayEntriesSection({
   groups, projects, categories, reload, totalSeconds,
 }: TodayEntriesSectionProps) {
@@ -33,7 +58,6 @@ export function TodayEntriesSection({
   const config = useAppConfig();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Sender real quando Google Sheets estiver configurado e conectado
   const googleSheetsSender = useMemo(() => {
     if (!config.isLoaded) return null;
     const spreadsheetId = config.get("integrationGoogleSheetsSpreadsheetId");
@@ -83,8 +107,20 @@ export function TodayEntriesSection({
       .filter((g) => selectedKeys.has(g.key))
       .flatMap((g) => g.tasks);
 
+    // Valida dados obrigatórios antes de enviar
+    const mapping = config.get("integrationGoogleSheetsColumnMapping");
+    const enabledFields = mapping.filter((c) => c.enabled).map((c) => c.field);
+    const validationError = validateTasks(tasksToSend, enabledFields);
+    if (validationError) {
+      setSendMessage({ text: validationError, error: true });
+      return;
+    }
+
     try {
       await sendTasks(googleSheetsSender, tasksToSend);
+      // Marca as tarefas como enviadas no banco
+      await repo.markSentToSheets(tasksToSend.map((t) => t.id));
+      reload();
       setSendMessage({ text: `${tasksToSend.length} tarefa(s) enviada(s) com sucesso.`, error: false });
       setSelectedKeys(new Set());
     } catch (err) {
@@ -176,7 +212,7 @@ export function TodayEntriesSection({
             </button>
           </div>
           {sendMessage && (
-            <p className={`text-xs ${sendMessage.error ? "text-red-400" : "text-green-400"}`}>
+            <p className={`text-xs whitespace-pre-line ${sendMessage.error ? "text-red-400" : "text-green-400"}`}>
               {sendMessage.text}
             </p>
           )}
