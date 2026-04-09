@@ -76,7 +76,7 @@ function OverlayAppInner() {
       setMode(running ? "execution" : "planning");
     });
     setOverlayOpacity(config.get("overlayOpacity") as number);
-  }, [config.isLoaded]);
+  }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Atualiza opacidade em tempo real quando o setting muda
   useEffect(() => {

@@ -33,7 +33,10 @@ export function CompactOverlayContent({ onExpand, onStartTask }: CompactOverlayC
       title={pendingCount > 0 ? "Ver tarefas planejadas" : "Iniciar nova tarefa"}
     >
       {/* Fundo circular — anel externo é a área de arraste */}
-      <div className="absolute inset-0 bg-gray-900 border border-gray-700 rounded-full shadow-xl" />
+      <div
+        data-tauri-drag-region
+        className="absolute inset-0 bg-gray-900 border border-gray-700 rounded-full shadow-xl"
+      />
 
       {/* Botão central menor — deixa o anel externo livre para arrastar */}
       <button

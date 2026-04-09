@@ -119,7 +119,13 @@ export function TodayEntriesSection({
 
   async function handleSend() {
     setSendMessage(null);
-    const tasksToSend = groups.filter((g) => selectedKeys.has(g.key)).flatMap((g) => g.tasks);
+    const selectedGroups = groups.filter((g) => selectedKeys.has(g.key));
+    // Um registro por grupo: usa a primeira tarefa como base, soma a duração total
+    const tasksToSend = selectedGroups.map((g) => ({
+      ...g.tasks[0],
+      durationSeconds: g.totalSeconds,
+    }));
+    const allTaskIds = selectedGroups.flatMap((g) => g.tasks.map((t) => t.id));
 
     // Valida dados obrigatórios antes de enviar
     const mapping = config.get("integrationGoogleSheetsColumnMapping");
@@ -133,10 +139,10 @@ export function TodayEntriesSection({
     setSending(true);
     try {
       await sendTasks(googleSheetsSender, tasksToSend);
-      await repo.markSentToSheets(tasksToSend.map((t) => t.id));
+      await repo.markSentToSheets(allTaskIds);
       reload();
       setSendMessage({
-        text: `${tasksToSend.length} tarefa(s) enviada(s) com sucesso.`,
+        text: `${selectedGroups.length} grupo(s) enviado(s) com sucesso.`,
         error: false,
       });
       setSelectedKeys(new Set());

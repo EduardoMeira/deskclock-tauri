@@ -18,6 +18,8 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
   const seconds = useTaskTimer(runningTask);
   const [editing, setEditing] = useState(false);
   const [confirmingStop, setConfirmingStop] = useState(false);
+  const [editingStartTime, setEditingStartTime] = useState(false);
+  const [startTimeInput, setStartTimeInput] = useState("");
 
   if (!runningTask) return null;
 
@@ -47,6 +49,26 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
     setEditing(false);
   }
 
+  function handleStartTimeClick() {
+    const d = new Date(runningTask.startTime);
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    setStartTimeInput(`${hh}:${mm}`);
+    setEditingStartTime(true);
+  }
+
+  async function handleStartTimeCommit() {
+    setEditingStartTime(false);
+    const [hh, mm] = startTimeInput.split(":").map(Number);
+    if (isNaN(hh) || isNaN(mm)) return;
+    // Constrói o novo startTime no dia atual (lógica de fuso local)
+    const base = new Date(runningTask.startTime);
+    base.setHours(hh, mm, 0, 0);
+    // Não permite hora de início no futuro
+    if (base > new Date()) return;
+    await updateActiveTask({ startTime: base.toISOString() });
+  }
+
   return (
     <section className="bg-gray-900 border border-gray-700 rounded-lg p-4">
       <div className="flex items-start justify-between gap-3">
@@ -59,10 +81,31 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
             />
             <span className="text-sm font-medium text-gray-100 truncate">{displayName}</span>
           </div>
-          <div className="flex gap-3 mt-1 text-xs text-gray-500">
+          <div className="flex gap-3 mt-1 text-xs text-gray-500 items-center">
             {project && <span>{project.name}</span>}
             {category && <span>{category.name}</span>}
-            <span>início {formatTimeOfDay(runningTask.startTime)}</span>
+            {editingStartTime ? (
+              <input
+                type="time"
+                value={startTimeInput}
+                onChange={(e) => setStartTimeInput(e.target.value)}
+                onBlur={handleStartTimeCommit}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleStartTimeCommit();
+                  if (e.key === "Escape") setEditingStartTime(false);
+                }}
+                autoFocus
+                className="bg-gray-800 border border-gray-600 rounded px-1 text-gray-200 text-xs focus:outline-none focus:border-blue-500"
+              />
+            ) : (
+              <button
+                onClick={handleStartTimeClick}
+                title="Editar hora de início"
+                className="hover:text-gray-300 transition-colors"
+              >
+                início {formatTimeOfDay(runningTask.startTime)}
+              </button>
+            )}
           </div>
         </div>
 

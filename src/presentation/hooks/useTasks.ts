@@ -18,6 +18,7 @@ interface TaskTotals {
 
 export function useTasks() {
   const { reloadSignal } = useRunningTask();
+  const [today, setToday] = useState(todayISO);
   const [groups, setGroups] = useState<TaskGroup[]>([]);
   const [totals, setTotals] = useState<TaskTotals>({
     billableSeconds: 0,
@@ -26,11 +27,19 @@ export function useTasks() {
     weekDays: 0,
   });
 
+  // Detecta virada de dia enquanto o app está aberto
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const current = todayISO();
+      setToday((prev) => (prev !== current ? current : prev));
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
   const load = useCallback(async () => {
-    const today = todayISO();
     const { start, end } = weekBoundsISO();
     const [tasks, weekData] = await Promise.all([
-      getTasksForDate(repo, today),
+      getTasksForDate(repo, todayISO()),
       getWeekTotal(repo, start, end),
     ]);
 
@@ -54,7 +63,7 @@ export function useTasks() {
 
   useEffect(() => {
     load();
-  }, [load, reloadSignal]);
+  }, [load, reloadSignal, today]);
 
   return { groups, totals, reload: load };
 }

@@ -289,7 +289,8 @@ export function ImportCalendarModal({
   function toggleEvent(id: string) {
     setSelected((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   }
@@ -299,7 +300,10 @@ export function ImportCalendarModal({
     const allDaySelected = dayEvents.every((e) => selected.has(e.id));
     setSelected((prev) => {
       const next = new Set(prev);
-      dayEvents.forEach((e) => (allDaySelected ? next.delete(e.id) : next.add(e.id)));
+      dayEvents.forEach((e) => {
+        if (allDaySelected) next.delete(e.id);
+        else next.add(e.id);
+      });
       return next;
     });
   }
@@ -307,7 +311,8 @@ export function ImportCalendarModal({
   function toggleDayCollapse(date: string) {
     setCollapsedDays((prev) => {
       const next = new Set(prev);
-      next.has(date) ? next.delete(date) : next.add(date);
+      if (next.has(date)) next.delete(date);
+      else next.add(date);
       return next;
     });
   }

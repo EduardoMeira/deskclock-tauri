@@ -492,7 +492,8 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                             onChange={() =>
                               setSelected((prev) => {
                                 const next = new Set(prev);
-                                next.has(t.id) ? next.delete(t.id) : next.add(t.id);
+                                if (next.has(t.id)) next.delete(t.id);
+                                else next.add(t.id);
                                 return next;
                               })
                             }

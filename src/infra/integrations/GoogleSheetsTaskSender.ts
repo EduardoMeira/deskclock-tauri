@@ -27,11 +27,7 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     const mapping = this.config.get("integrationGoogleSheetsColumnMapping");
     const enabledCols = mapping.filter((c) => c.enabled);
 
-    const sheetId = await this.ensureSheetExists(
-      token,
-      sheetName,
-      enabledCols.map((c) => c.label)
-    );
+    await this.ensureSheetExists(token, sheetName, enabledCols.map((c) => c.label));
 
     const rows = tasks.map((t) =>
       this.taskToRow(
@@ -78,12 +74,6 @@ export class GoogleSheetsTaskSender implements ITaskSender {
           `Verifique o nome da aba "${sheetName}" e as permissões da planilha.`
       );
     }
-
-    // Aplica formato de duração à coluna correspondente (idempotente)
-    const durationColIndex = enabledCols.findIndex((c) => c.field === "duration");
-    if (durationColIndex >= 0 && sheetId >= 0) {
-      await this.applyDurationColumnFormat(token, sheetId, durationColIndex);
-    }
   }
 
   private async ensureSheetExists(
@@ -128,40 +118,6 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     );
 
     return newSheetId;
-  }
-
-  private async applyDurationColumnFormat(
-    token: string,
-    sheetId: number,
-    colIndex: number
-  ): Promise<void> {
-    const fmt = this.config.get("integrationGoogleSheetsDurationFormat") ?? "HH:MM";
-    const pattern = fmt === "HH:MM:SS" ? "[hh]:mm:ss" : "[hh]:mm";
-
-    await fetch(`${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}:batchUpdate`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requests: [
-          {
-            repeatCell: {
-              range: {
-                sheetId,
-                startRowIndex: 1, // pula o cabeçalho
-                startColumnIndex: colIndex,
-                endColumnIndex: colIndex + 1,
-              },
-              cell: {
-                userEnteredFormat: {
-                  numberFormat: { type: "TIME", pattern },
-                },
-              },
-              fields: "userEnteredFormat.numberFormat",
-            },
-          },
-        ],
-      }),
-    });
   }
 
   private taskToRow(task: Task, fields: TaskField[]): (string | number)[] {

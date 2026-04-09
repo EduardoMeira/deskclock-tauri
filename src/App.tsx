@@ -114,6 +114,9 @@ function MainContent({
       async ({ payload }) => {
         welcomeActiveRef.current = false;
 
+        // Mostra a janela principal em todos os casos
+        await appWindow.show();
+
         if (payload.action === "navigate-planning") {
           setPage("planning");
         } else if (payload.action === "start-task") {
@@ -187,8 +190,13 @@ function AppInner() {
           welcomeActiveRef.current = true;
         }, 200);
       });
-    } else if (config.get("overlayAlwaysVisible")) {
-      getOverlay().then((overlay) => overlay?.show());
+      // Janela principal permanece oculta até o Welcome ser dispensado
+    } else {
+      // Sem welcome: mostra a janela principal imediatamente
+      appWindow.show();
+      if (config.get("overlayAlwaysVisible")) {
+        getOverlay().then((overlay) => overlay?.show());
+      }
     }
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -199,11 +207,12 @@ function AppInner() {
       welcomeActiveRef.current = false;
       const w = await getWelcome();
       await w?.hide();
+      await appWindow.show();
     });
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Navigate to planning when triggered from overlay
   useEffect(() => {

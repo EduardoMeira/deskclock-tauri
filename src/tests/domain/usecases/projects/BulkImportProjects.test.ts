@@ -28,15 +28,12 @@ describe("bulkImportProjects", () => {
   });
 
   it("reporta duplicatas em skipped sem interromper o import", async () => {
-    let callCount = 0;
     const repo = makeRepo({
       findByName: vi.fn(async (name) => {
         if (name === "Existente") return { id: "x", name: "Existente" };
         return null;
       }),
-      save: vi.fn(async () => {
-        callCount++;
-      }),
+      save: vi.fn(async () => {}),
     });
     const result = await bulkImportProjects(repo, "Novo\nExistente\nOutro");
     expect(result.created).toBe(2);

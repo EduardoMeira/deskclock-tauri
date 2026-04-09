@@ -86,7 +86,7 @@ export function ToastApp() {
       unlisten.then((fn) => fn());
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleDismiss() {
     if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
