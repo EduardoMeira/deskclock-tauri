@@ -14,6 +14,8 @@ import { useProjects } from "@presentation/hooks/useProjects";
 import { useCategories } from "@presentation/hooks/useCategories";
 import { usePlannedTasksForDate } from "@presentation/hooks/usePlannedTasks";
 import { useRunningTask } from "@presentation/contexts/RunningTaskContext";
+import { executeActions } from "@shared/utils/actions";
+import { openUrl, openPath } from "@tauri-apps/plugin-opener";
 import { PlannedTaskForm } from "@presentation/components/PlannedTaskForm";
 import { PlannedTaskItem } from "@presentation/components/PlannedTaskItem";
 import { todayISO } from "@shared/utils/time";
@@ -34,6 +36,7 @@ export function TodayPlanningView() {
       categoryId: task.categoryId,
       billable: task.billable,
     });
+    await executeActions(task.actions, { openUrl, openPath });
     await reload();
   }
 
