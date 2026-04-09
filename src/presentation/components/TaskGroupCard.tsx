@@ -11,6 +11,7 @@ interface TaskGroupCardProps {
   group: TaskGroup;
   projects: Project[];
   categories: Category[];
+  playDisabled?: boolean;
   onPlay: (task: Task) => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
@@ -19,7 +20,7 @@ interface TaskGroupCardProps {
 }
 
 export function TaskGroupCard({
-  group, projects, categories, onPlay, onEdit, onDelete, onMerge, onToggleBillable,
+  group, projects, categories, playDisabled = false, onPlay, onEdit, onDelete, onMerge, onToggleBillable,
 }: TaskGroupCardProps) {
   const [expanded, setExpanded] = useState(false);
   const { tasks } = group;
@@ -75,6 +76,7 @@ export function TaskGroupCard({
               task={t}
               projects={projects}
               categories={categories}
+              playDisabled={playDisabled}
               onPlay={onPlay}
               onEdit={onEdit}
               onDelete={onDelete}

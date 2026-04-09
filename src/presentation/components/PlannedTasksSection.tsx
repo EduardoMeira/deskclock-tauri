@@ -6,6 +6,7 @@ interface PlannedTasksSectionProps {
   tasks: PlannedTask[];
   projects: Project[];
   dateISO: string;
+  playDisabled?: boolean;
   onPlay: (task: PlannedTask) => void;
 }
 
@@ -13,6 +14,7 @@ export function PlannedTasksSection({
   tasks,
   projects,
   dateISO,
+  playDisabled = false,
   onPlay,
 }: PlannedTasksSectionProps) {
   const pending = tasks.filter((t) => !t.completedDates.includes(dateISO));
@@ -37,13 +39,15 @@ export function PlannedTasksSection({
                   <p className="text-xs text-gray-500 truncate">{project.name}</p>
                 )}
               </div>
-              <button
-                onClick={() => onPlay(task)}
-                className="ml-2 p-1.5 text-gray-400 hover:text-green-400 hover:bg-green-900/20 rounded transition-colors shrink-0"
-                title="Iniciar"
-              >
-                <Play size={14} />
-              </button>
+              {!playDisabled && (
+                <button
+                  onClick={() => onPlay(task)}
+                  className="ml-2 p-1.5 text-gray-400 hover:text-green-400 hover:bg-green-900/20 rounded transition-colors shrink-0"
+                  title="Iniciar"
+                >
+                  <Play size={14} />
+                </button>
+              )}
             </div>
           );
         })}

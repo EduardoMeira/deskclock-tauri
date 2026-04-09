@@ -8,6 +8,7 @@ interface TaskCardProps {
   task: Task;
   projects: Project[];
   categories: Category[];
+  playDisabled?: boolean;
   onPlay: (task: Task) => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
@@ -15,7 +16,7 @@ interface TaskCardProps {
 }
 
 export function TaskCard({
-  task, projects, categories, onPlay, onEdit, onDelete, onToggleBillable,
+  task, projects, categories, playDisabled = false, onPlay, onEdit, onDelete, onToggleBillable,
 }: TaskCardProps) {
   const project = projects.find((p) => p.id === task.projectId);
   const category = categories.find((c) => c.id === task.categoryId);
@@ -48,13 +49,15 @@ export function TaskCard({
       </span>
 
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={() => onPlay(task)}
-          title="Iniciar com estes dados"
-          className="p-1 text-gray-500 hover:text-green-400"
-        >
-          <Play size={13} />
-        </button>
+        {!playDisabled && (
+          <button
+            onClick={() => onPlay(task)}
+            title="Iniciar com estes dados"
+            className="p-1 text-gray-500 hover:text-green-400"
+          >
+            <Play size={13} />
+          </button>
+        )}
         <button
           onClick={() => onEdit(task)}
           title="Editar"

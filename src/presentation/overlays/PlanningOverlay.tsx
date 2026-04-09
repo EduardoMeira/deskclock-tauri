@@ -3,6 +3,8 @@ import { usePlannedTasksForDate } from "@presentation/hooks/usePlannedTasks";
 import { useRunningTask } from "@presentation/contexts/RunningTaskContext";
 import { useProjects } from "@presentation/hooks/useProjects";
 import { todayISO } from "@shared/utils/time";
+import { executeActions } from "@shared/utils/actions";
+import { openUrl, openPath } from "@tauri-apps/plugin-opener";
 import type { PlannedTask } from "@domain/entities/PlannedTask";
 
 interface PlanningOverlayProps {
@@ -28,6 +30,7 @@ export function PlanningOverlay({ onMinimize, onClose, onNavigatePlanning }: Pla
       categoryId: task.categoryId,
       billable: task.billable,
     });
+    await executeActions(task.actions, { openUrl, openPath });
     await reload();
     onClose();
   }
