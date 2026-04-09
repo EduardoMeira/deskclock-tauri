@@ -11,11 +11,11 @@
 
 | # | Item | Status | Notas |
 |---|------|--------|-------|
-| B1 | App aberto após meia-noite mostra tarefas de ontem na listagem de hoje | ⬜ | Data boundary: alguma comparação usa data UTC em vez de local |
-| B2 | Tarefas agrupadas sendo enviadas individualmente ao Sheets — deveria ir só o grupo | ⬜ | Modo de envio seleciona por grupo visualmente mas itera registros individuais |
-| B3 | Envio via sync altera formatação da coluna na planilha | ⬜ | `batchUpdate` com `numberFormat` não deve ser chamado; apenas remover segundos se formato HH:MM |
-| B4 | Toast de sucesso/falha do envio não dispara | ⬜ | Toast display corrigido (height + posição), mas o emit pode não estar sendo chamado no fluxo de envio |
-| B5 | Ao iniciar com Welcome habilitado, janela principal aparece junto | ⬜ | Janela main deve iniciar oculta e só mostrar após welcome ser dispensada |
+| B1 | App aberto após meia-noite mostra tarefas de ontem na listagem de hoje | ✅ | Intervalo de 60s detecta virada de dia e recarrega `useTasks` |
+| B2 | Tarefas agrupadas sendo enviadas individualmente ao Sheets — deveria ir só o grupo | ✅ | Modo de envio cria um registro por grupo com duração somada |
+| B3 | Envio via sync altera formatação da coluna na planilha | ✅ | Removido `applyDurationColumnFormat` do `send()` |
+| B4 | Toast de sucesso/falha do envio não dispara | ✅ | Delay de 50ms antes do `emit` garante janela pronta |
+| B5 | Ao iniciar com Welcome habilitado, janela principal aparece junto | ✅ | `visible: false` no tauri.conf.json; janela exibida após welcome ser dispensada |
 
 ---
 
@@ -26,13 +26,13 @@
 |---|------|--------|-------|
 | C1 | Overlay: janela não redimensiona ao confirmar parada de tarefa — conteúdo espremido | ✅ | `LogicalSize(280, 96)` ao entrar em `confirmingStop`; `LogicalSize` em todas as trocas de modo; `w-screen h-screen overflow-hidden` no root |
 | C2 | Toast espremido e posicionado errado | ✅ | Height 72→88, `LogicalPosition` com `scaleFactor`, `w-screen h-screen` no root |
-| C3 | Editar hora de início não disponível na tarefa em andamento | ⬜ | Campo deve aparecer na seção "tarefa atual" na tela de Tasks |
+| C3 | Editar hora de início não disponível na tarefa em andamento | ✅ | Clique no texto de início abre input time inline; Enter/blur salva, Escape cancela |
 | C4 | Clique no nome da tarefa no overlay de execução não faz nada | ⬜ | Comportamento esperado: abrir modal de edição ou focar janela principal |
-| C5 | Clicar em "Planejamento" na janela de boas-vindas não abre planejamento | ⬜ | Evento/comando Tauri para navegar até a página de planejamento |
+| C5 | Clicar em "Planejamento" na janela de boas-vindas não abre planejamento | ✅ | `appWindow.show()` chamado ao dispensar welcome; navega para planejamento |
 | C6 | Grid (snap-to-grid) não aparece e não trava posições — só funciona após reiniciar | ⬜ | Estado de grid não é aplicado em tempo real; indicador visual ausente |
 | C7 | Indicação visual no autocomplete para mostrar item selecionado (highlight) | ⬜ | Item ativo deve ter background diferenciado |
 | C8 | Exigir projeto e/ou tarefa ao concluir tarefa (se não preenchidos) | ⬜ | Prompt inline antes de confirmar conclusão |
-| C9 | Overlay compacto: arrastar só funciona pelas beiradas — botão central bloqueia o drag | ⬜ | O `button` com `absolute inset-0` intercepta mousedown impedindo o `data-tauri-drag-region` de atuar. Solução provável: mover o drag region para dentro do `button` ou usar `data-tauri-drag-region` diretamente no elemento pai sem botão sobreposto |
+| C9 | Overlay compacto: arrastar só funciona pelas beiradas — botão central bloqueia o drag | ✅ | `data-tauri-drag-region` adicionado ao fundo circular; botão central separado não bloqueia mais |
 
 ---
 
@@ -114,4 +114,4 @@ Sprint 6 — Features novas
 
 ---
 
-*Última atualização: 09/04/2026*
+*Última atualização: 09/04/2026 — Sprint 1 concluída*
