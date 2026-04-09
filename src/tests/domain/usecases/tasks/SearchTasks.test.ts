@@ -12,6 +12,7 @@ function makeRepo(tasks: Task[]): ITaskRepository {
     findByDateRange: vi.fn(async () => tasks),
     delete: vi.fn(),
     deleteMany: vi.fn(),
+    markSentToSheets: vi.fn(),
   };
 }
 
@@ -26,6 +27,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     endTime: "2026-04-08T10:00:00.000Z",
     durationSeconds: 3600,
     status: "completed",
+    sentToSheets: false,
     createdAt: "2026-04-08T09:00:00.000Z",
     updatedAt: "2026-04-08T10:00:00.000Z",
     ...overrides,

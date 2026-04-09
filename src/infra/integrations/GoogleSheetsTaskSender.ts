@@ -3,40 +3,35 @@ import type { ITaskSender } from "@domain/integrations/ITaskSender";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";
 import type { ConfigContextValue } from "@presentation/contexts/ConfigContext";
+import type { TaskField } from "@shared/types/sheetsConfig";
 import { GoogleTokenManager } from "./google/GoogleTokenManager";
 import { formatHHMMSS } from "@shared/utils/time";
 
 const SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
 
-/**
- * Implementa ITaskSender para o Google Sheets.
- * Appenda uma linha por tarefa na planilha configurada.
- *
- * Colunas (fixas):
- *   Data | Nome | Projeto | Categoria | Billable | Início | Fim | Duração
- */
 export class GoogleSheetsTaskSender implements ITaskSender {
   readonly integrationName = "Google Sheets";
   private tokenManager: GoogleTokenManager;
 
   constructor(
-    config: ConfigContextValue,
+    private config: ConfigContextValue,
     private spreadsheetId: string,
     private projects: Project[],
     private categories: Category[],
-    private sheetName = "DeskClock",
   ) {
     this.tokenManager = new GoogleTokenManager(config);
   }
 
   async send(tasks: Task[]): Promise<void> {
     const token = await this.tokenManager.getValidAccessToken();
+    const sheetName = this.config.get("integrationGoogleSheetsSheetName") || "DeskClock";
+    const mapping = this.config.get("integrationGoogleSheetsColumnMapping");
+    const enabledCols = mapping.filter((c) => c.enabled);
 
-    // Garante que a aba existe antes de fazer o append
-    await this.ensureSheetExists(token);
+    await this.ensureSheetExists(token, sheetName, enabledCols.map((c) => c.label));
 
-    const rows = tasks.map((t) => this.taskToRow(t));
-    const range = encodeURIComponent(`${this.sheetName}!A:H`);
+    const rows = tasks.map((t) => this.taskToRow(t, enabledCols.map((c) => c.field)));
+    const range = encodeURIComponent(`${sheetName}!A:${colLetter(enabledCols.length)}`);
     const url = `${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}/values/${range}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
 
     const res = await fetch(url, {
@@ -54,51 +49,40 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     }
   }
 
-  private async ensureSheetExists(token: string): Promise<void> {
-    // Verifica se a aba já existe
+  private async ensureSheetExists(token: string, sheetName: string, headers: string[]): Promise<void> {
     const metaUrl = `${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}?fields=sheets.properties.title`;
     const metaRes = await fetch(metaUrl, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!metaRes.ok) return; // não bloqueia o envio se não conseguir verificar
+    if (!metaRes.ok) return;
 
     const meta = await metaRes.json();
     const sheets: { properties: { title: string } }[] = meta.sheets ?? [];
-    const exists = sheets.some((s) => s.properties.title === this.sheetName);
+    const exists = sheets.some((s) => s.properties.title === sheetName);
 
     if (!exists) {
-      // Cria a aba e adiciona cabeçalho
       await fetch(`${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}:batchUpdate`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          requests: [{ addSheet: { properties: { title: this.sheetName } } }],
+          requests: [{ addSheet: { properties: { title: sheetName } } }],
         }),
       });
 
-      // Insere cabeçalho
-      const headerRange = encodeURIComponent(`${this.sheetName}!A1`);
+      const headerRange = encodeURIComponent(`${sheetName}!A1`);
       await fetch(
         `${SHEETS_API}/${encodeURIComponent(this.spreadsheetId)}/values/${headerRange}?valueInputOption=USER_ENTERED`,
         {
           method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            values: [["Data", "Nome", "Projeto", "Categoria", "Billable", "Início", "Fim", "Duração"]],
-          }),
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ values: [headers] }),
         },
       );
     }
   }
 
-  private taskToRow(task: Task): string[] {
+  private taskToRow(task: Task, fields: TaskField[]): string[] {
     const start = new Date(task.startTime);
     const project = this.projects.find((p) => p.id === task.projectId);
     const category = this.categories.find((c) => c.id === task.categoryId);
@@ -107,15 +91,30 @@ export class GoogleSheetsTaskSender implements ITaskSender {
     const fmtDate = (d: Date) => `${fmt2(d.getDate())}/${fmt2(d.getMonth() + 1)}/${d.getFullYear()}`;
     const fmtTime = (d: Date) => `${fmt2(d.getHours())}:${fmt2(d.getMinutes())}`;
 
-    return [
-      fmtDate(start),
-      task.name ?? "(sem nome)",
-      project?.name ?? "",
-      category?.name ?? "",
-      task.billable ? "Sim" : "Não",
-      fmtTime(start),
-      task.endTime ? fmtTime(new Date(task.endTime)) : "",
-      task.durationSeconds != null ? formatHHMMSS(task.durationSeconds) : "",
-    ];
+    const valueFor = (field: TaskField): string => {
+      switch (field) {
+        case "date":      return fmtDate(start);
+        case "name":      return task.name ?? "(sem nome)";
+        case "project":   return project?.name ?? "";
+        case "category":  return category?.name ?? "";
+        case "billable":  return task.billable ? "Sim" : "Não";
+        case "startTime": return fmtTime(start);
+        case "endTime":   return task.endTime ? fmtTime(new Date(task.endTime)) : "";
+        case "duration":  return task.durationSeconds != null ? formatHHMMSS(task.durationSeconds) : "";
+      }
+    };
+
+    return fields.map(valueFor);
   }
+}
+
+/** Converte índice 1-based para letra de coluna: 1→A, 2→B, …, 26→Z, 27→AA */
+function colLetter(n: number): string {
+  let result = "";
+  while (n > 0) {
+    const rem = (n - 1) % 26;
+    result = String.fromCharCode(65 + rem) + result;
+    n = Math.floor((n - 1) / 26);
+  }
+  return result;
 }

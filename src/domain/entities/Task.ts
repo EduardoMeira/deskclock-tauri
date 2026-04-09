@@ -12,6 +12,7 @@ export interface Task {
   endTime: string | null;
   durationSeconds: number | null;
   status: TaskStatus;
+  sentToSheets: boolean;
   createdAt: string;
   updatedAt: string;
 }

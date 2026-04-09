@@ -12,6 +12,7 @@ function makeRepo(overrides: Partial<ITaskRepository> = {}): ITaskRepository {
     findByDateRange: vi.fn(async () => []),
     delete: vi.fn(async () => undefined),
     deleteMany: vi.fn(async () => undefined),
+    markSentToSheets: vi.fn(),
     ...overrides,
   };
 }
@@ -70,6 +71,7 @@ describe("startTask", () => {
       endTime: null,
       durationSeconds: 0,
       status: "running",
+      sentToSheets: false,
       createdAt: "2026-04-08T09:00:00.000Z",
       updatedAt: "2026-04-08T09:00:00.000Z",
     };
@@ -89,6 +91,7 @@ describe("startTask", () => {
       endTime: null,
       durationSeconds: 300,
       status: "paused",
+      sentToSheets: false,
       createdAt: "2026-04-08T09:00:00.000Z",
       updatedAt: "2026-04-08T09:30:00.000Z",
     };

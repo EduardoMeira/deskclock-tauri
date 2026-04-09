@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, ChevronRight, Merge } from "lucide-react";
+import { ChevronDown, ChevronRight, Merge, CheckCheck } from "lucide-react";
 import type { Task } from "@domain/entities/Task";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";
@@ -34,6 +34,8 @@ export function TaskGroupCard({
   const category = categories.find((c) => c.id === first.categoryId);
   const displayName = first.name ?? "(sem nome)";
   const isGroup = tasks.length > 1;
+  const allSent = tasks.every((t) => t.sentToSheets);
+  const someSent = !allSent && tasks.some((t) => t.sentToSheets);
 
   return (
     <div className="border border-gray-800 rounded-lg overflow-hidden">
@@ -70,6 +72,14 @@ export function TaskGroupCard({
         <span className="text-sm font-mono text-gray-300 flex-shrink-0">
           {formatDurationCompact(group.totalSeconds)}
         </span>
+        {(allSent || someSent) && (
+          <span
+            title={allSent ? "Enviado para o Google Sheets" : "Enviado parcialmente"}
+            className={`flex-shrink-0 ${allSent ? "text-green-500" : "text-yellow-500"}`}
+          >
+            <CheckCheck size={13} />
+          </span>
+        )}
         {isGroup && (
           <button
             onClick={(e) => { e.stopPropagation(); onMerge(group); }}

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { ConfigRepository } from "@infra/database/ConfigRepository";
+import { DEFAULT_COLUMN_MAPPING, type SheetColumnMapping } from "@shared/types/sheetsConfig";
 
 export interface OverlayPosition {
   x: number;
@@ -31,6 +32,8 @@ export interface AppConfig {
   overlayPosition_compact: OverlayPosition;
   // Integrações
   integrationGoogleSheetsSpreadsheetId: string;
+  integrationGoogleSheetsSheetName: string;
+  integrationGoogleSheetsColumnMapping: SheetColumnMapping;
   integrationGoogleSheetsAutoSync: boolean;
   // Tokens Google OAuth (armazenados localmente no SQLite)
   googleAccessToken: string;
@@ -59,6 +62,8 @@ const DEFAULTS: AppConfig = {
   overlayPosition_planning: { x: -1, y: -1 },
   overlayPosition_compact: { x: -1, y: -1 },
   integrationGoogleSheetsSpreadsheetId: "",
+  integrationGoogleSheetsSheetName: "DeskClock",
+  integrationGoogleSheetsColumnMapping: DEFAULT_COLUMN_MAPPING,
   integrationGoogleSheetsAutoSync: false,
   googleAccessToken: "",
   googleRefreshToken: "",

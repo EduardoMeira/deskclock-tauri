@@ -1,4 +1,4 @@
-import { Play, Pencil, Trash2 } from "lucide-react";
+import { Play, Pencil, Trash2, CheckCheck } from "lucide-react";
 import type { Task } from "@domain/entities/Task";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";
@@ -47,6 +47,11 @@ export function TaskCard({
       <span className="text-xs text-gray-400 font-mono flex-shrink-0">
         {formatDurationCompact(task.durationSeconds ?? 0)}
       </span>
+      {task.sentToSheets && (
+        <span title="Enviado para o Google Sheets" className="text-green-500 flex-shrink-0">
+          <CheckCheck size={12} />
+        </span>
+      )}
 
       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {!playDisabled && (

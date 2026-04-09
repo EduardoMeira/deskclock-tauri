@@ -15,6 +15,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     endTime: null,
     durationSeconds: 0,
     status: "running",
+    sentToSheets: false,
     createdAt: "2026-04-08T09:00:00.000Z",
     updatedAt: "2026-04-08T09:00:00.000Z",
     ...overrides,
@@ -34,6 +35,7 @@ describe("updateTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await updateTask(repo, "t1", { name: "Novo Nome" }, NOW);
     expect(result.name).toBe("Novo Nome");
@@ -50,6 +52,7 @@ describe("updateTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await updateTask(repo, "t1", { name: null }, NOW);
     expect(result.name).toBeNull();
@@ -65,6 +68,7 @@ describe("updateTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await updateTask(repo, "t1", { billable: false }, NOW);
     expect(result.updatedAt).toBe(NOW);
@@ -79,6 +83,7 @@ describe("updateTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     await expect(updateTask(repo, "t1", {}, NOW)).rejects.toThrow(DomainError);
   });
@@ -93,6 +98,7 @@ describe("updateTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     await updateTask(repo, "t1", { name: "X" }, NOW);
     expect(repo.update).toHaveBeenCalledOnce();
@@ -108,6 +114,7 @@ describe("updateTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const newStart = "2026-04-08T08:00:00.000Z";
     const result = await updateTask(repo, "t1", { startTime: newStart }, NOW);
@@ -124,6 +131,7 @@ describe("updateTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const newEnd = "2026-04-08T11:00:00.000Z";
     const result = await updateTask(repo, "t1", { endTime: newEnd, durationSeconds: 7200 }, NOW);
@@ -141,6 +149,7 @@ describe("updateTask", () => {
       findByDateRange: vi.fn(async () => []),
       delete: vi.fn(),
       deleteMany: vi.fn(),
+      markSentToSheets: vi.fn(),
     };
     const result = await updateTask(repo, "t1", {
       startTime: "2026-04-08T07:00:00.000Z",
