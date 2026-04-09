@@ -57,6 +57,7 @@ Aplicativo desktop de registro de horas trabalhadas, construído com Tauri + Rea
 - Autostart na inicialização do sistema operacional
 - Timer ao vivo no ícone da bandeja (system tray)
 - Atalhos globais configuráveis: toggle tarefa, parar, mostrar/ocultar overlay e janela
+- Temas: Azul, Verde, Escuro, Claro
 - Tamanho de fonte: P, M, G, GG
 - Saudação personalizada no Welcome Overlay
 
@@ -84,9 +85,26 @@ Aplicativo desktop de registro de horas trabalhadas, construído com Tauri + Rea
 ### Pré-requisitos
 
 - [Node.js](https://nodejs.org/) 18+
-- [pnpm](https://pnpm.io/) 8+
-- [Rust](https://rustup.rs/) (stable)
-- Dependências do Tauri para o seu SO: [tauri.app/start/prerequisites](https://tauri.app/start/prerequisites/)
+- [pnpm](https://pnpm.io/) 9+
+- [Rust](https://rustup.rs/) (stable, mínimo 1.77.2)
+- Dependências do sistema para o seu SO (ver seção abaixo)
+
+#### Dependências do sistema — Linux (Ubuntu/Debian)
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+  libgtk-3-dev \
+  libwebkit2gtk-4.1-dev \
+  librsvg2-dev \
+  patchelf \
+  libxdo-dev \
+  libayatana-appindicator3-dev
+```
+
+#### Dependências do sistema — Windows
+
+Nenhuma instalação adicional necessária. O Tauri utiliza o WebView2, que já vem integrado no Windows 10 (atualização 1803+) e Windows 11.
 
 ### Instalação
 
@@ -99,10 +117,10 @@ pnpm install
 ### Desenvolvimento
 
 ```bash
-# Frontend (Vite dev server)
+# Frontend apenas (Vite dev server, sem janela nativa)
 pnpm dev
 
-# App Tauri completo (abre a janela nativa)
+# App Tauri completo com hot reload
 pnpm tauri dev
 ```
 
@@ -125,27 +143,103 @@ pnpm test:coverage
 pnpm lint
 pnpm lint:fix
 pnpm format
+pnpm format:check
 ```
 
 ---
 
-## Build
+## Build local
 
 ```bash
-# Verifica tipos e gera bundle de produção
-pnpm build
+# 1. Verifica tipos TypeScript
+pnpm tsc --noEmit
 
-# Gera instalador nativo para o SO atual
+# 2. Roda os testes
+pnpm test
+
+# 3. Gera o instalador nativo para o SO atual
 pnpm tauri build
 ```
 
-Os artefatos são gerados em `src-tauri/target/release/bundle/`.
+Os artefatos são gerados em `src-tauri/target/release/bundle/`:
 
-| SO | Formato(s) |
-|---|---|
-| Windows | `.msi`, `.exe` (NSIS) |
-| Ubuntu / Debian | `.deb`, `.AppImage` |
-| Arch Linux | `.pkg.tar.zst`, `.AppImage` |
+| SO | Pasta | Formatos |
+|---|---|---|
+| Windows | `bundle/msi/` e `bundle/nsis/` | `.msi`, `.exe` |
+| Ubuntu / Debian | `bundle/deb/` | `.deb` |
+| Linux (universal) | `bundle/appimage/` | `.AppImage` |
+
+---
+
+## CI/CD — Integração e Entrega Contínua
+
+O projeto possui dois workflows no GitHub Actions, localizados em `.github/workflows/`.
+
+### `ci.yml` — Integração Contínua
+
+Roda automaticamente em todo **push para `main`** e em todo **pull request** aberto contra `main`.
+
+**O que executa:**
+1. `pnpm tsc --noEmit` — verifica tipos TypeScript sem gerar artefatos
+2. `pnpm test` — roda os 245+ testes unitários com Vitest
+3. `pnpm lint` — valida o código com ESLint
+
+Um PR só deve ser mergeado se todos esses passos passarem.
+
+### `release.yml` — Release Multiplataforma
+
+Gera instaladores nativos e publica uma release no GitHub. Pode ser ativado de duas formas:
+
+#### 1. Via tag Git (fluxo principal)
+
+```bash
+# Certifique-se de que main está estável e os testes passam
+git checkout main
+git pull
+
+# Crie e empurre a tag com o número da versão
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+O workflow é disparado automaticamente, builda para Linux e Windows em paralelo, e cria um **rascunho de release** no GitHub com os instaladores anexados.
+
+#### 2. Via interface do GitHub (dispatch manual)
+
+1. Acesse **Actions → Release** no repositório
+2. Clique em **Run workflow**
+3. Escolha se deseja criar como rascunho ou publicar diretamente
+
+#### O que o workflow faz
+
+```
+Para cada plataforma (ubuntu-22.04, windows-latest):
+  1. Instala dependências do sistema (apenas Linux)
+  2. Configura pnpm, Node 20 e Rust stable
+  3. Restaura cache do Cargo (acelera rebuilds)
+  4. pnpm install
+  5. pnpm tsc --noEmit    ← falha rápido se houver erro de tipo
+  6. pnpm test            ← falha rápido se algum teste quebrar
+  7. pnpm tauri build     ← gera o instalador
+  8. Publica no GitHub Releases
+```
+
+#### Artefatos produzidos por release
+
+| Plataforma | Arquivo | Uso |
+|---|---|---|
+| Linux | `DeskClock_x.y.z_amd64.deb` | Ubuntu, Debian, Mint e derivados |
+| Linux | `DeskClock_x.y.z_amd64.AppImage` | Qualquer distro (incluindo Arch) — sem instalação |
+| Windows | `DeskClock_x.y.z_x64.msi` | Instalador MSI (recomendado para empresas) |
+| Windows | `DeskClock_x.y.z_x64-setup.exe` | Instalador NSIS (recomendado para usuários finais) |
+
+#### Publicar o rascunho
+
+Após o workflow concluir:
+1. Acesse **Releases** no repositório
+2. Abra o rascunho gerado
+3. Revise a descrição, adicione notas de versão se necessário
+4. Clique em **Publish release**
 
 ---
 
@@ -166,29 +260,42 @@ src/
 │   ├── modals/       # EditTaskModal, ExportModal…
 │   ├── hooks/        # useRunningTask, useHistory, usePlannedTasks…
 │   └── contexts/     # ConfigContext (configurações globais)
-├── shared/           # Types, utils (time, groupTasks, fontSize)
+├── shared/           # Types, utils (time, groupTasks, fontSize, theme)
 └── tests/            # Espelha src/ — unit tests com Vitest
 src-tauri/            # Backend Rust (Tauri)
 ├── src/lib.rs        # Comandos, tray, atalhos globais, janelas
-├── capabilities/     # Permissões por janela
+├── capabilities/     # Permissões por janela (default.json)
 └── Cargo.toml
+.github/
+├── workflows/ci.yml       # Testes e lint em todo push/PR
+└── workflows/release.yml  # Build multiplataforma e publicação de release
 ```
 
 ---
 
-## Convenções
+## Convenções de desenvolvimento
 
 - Commits semânticos: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
-- Branches: `feat/<nome>`, `fix/<nome>`, `refactor/<nome>`
-- `main` sempre estável e buildável
+- Branches: `feat/<nome>`, `fix/<nome>`, `refactor/<nome>`, `chore/<nome>`
+- `main` sempre estável e com testes passando
+- Pull requests devem passar no CI antes do merge
+
+---
+
+## Versionamento
+
+O projeto segue [Semantic Versioning](https://semver.org/lang/pt-BR/):
+
+- **MAJOR** (`v1.0.0`): mudanças incompatíveis
+- **MINOR** (`v0.2.0`): novas funcionalidades retrocompatíveis
+- **PATCH** (`v0.1.1`): correções de bugs
+
+A versão é definida em `tauri.conf.json` (`"version"`) e deve estar alinhada com `Cargo.toml`.
 
 ---
 
 ## Pendências (próximas versões)
 
-- [ ] Temas de cor (Azul, Verde, Escuro, Claro)
-- [ ] Ações de tarefa planejada (abrir URL / arquivo ao iniciar)
-- [ ] Modo de envio (selecionar tarefas → integração externa)
+- [ ] Modo de envio (selecionar tarefas → enviar para integração externa)
 - [ ] Integração Google Sheets
 - [ ] Integração Google Calendar
-- [ ] Build multiplataforma automatizado (CI)

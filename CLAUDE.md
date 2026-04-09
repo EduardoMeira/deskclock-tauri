@@ -484,9 +484,9 @@ src/
 | 4 — Histórico | ✅ concluída | Tela de Histórico com filtros e agrupamento por dia (local timezone). |
 | 5 — Export | ✅ concluída | Perfis de exportação + CSV/XLSX/JSON + seleção de colunas. |
 | 6 — Overlays completos | ✅ concluída | Welcome Overlay. Comportamentos de arrastar, snap-to-grid, persistência de posição, opacidade. |
-| 7 — Configurações | ✅ concluída | Tela de Configurações. Atalhos globais. Acessibilidade (tamanho de fonte). Tray icon. Autostart. Tema: ⏳ pendente. |
-| 8 — Integrações | ⏳ pendente | Google Sheets (envio + sync automática). Google Calendar (importação). Modo de envio. |
-| 9 — Polish | 🔄 parcial | ✅ Lançamento retroativo (tela dedicada). ✅ Feedback link (sidebar). ⏳ Ações de tarefa (open URL/file). ⏳ Build multiplataforma. ⏳ README final. |
+| 7 — Configurações | ✅ concluída | Tela de Configurações. Atalhos globais. Acessibilidade (tamanho de fonte). Tray icon. Autostart. Temas (Azul, Verde, Escuro, Claro). |
+| 8 — Integrações | 🔄 parcial | ✅ Modo de envio (UI + ITaskSender). ✅ Tela de Integrações. ✅ Google Sheets OAuth + sender. ⏳ Google Sheets auto-sync. ⏳ Google Calendar (importação). |
+| 9 — Polish | ✅ concluída | ✅ Lançamento retroativo. ✅ Feedback link. ✅ Ações de tarefa (open URL/file). ✅ Build multiplataforma + CI/CD. ✅ README final. |
 
 ---
 
@@ -525,6 +525,12 @@ src/
 | 09/04/2026 | Data local do `startTime` como referência da tarefa | Usar `.slice(0,10)` no ISO UTC causava atribuição errada do dia em fusos UTC+; `startOfDayISO`/`endOfDayISO` agora convertem data local → UTC |
 | 09/04/2026 | Feedback como botão na sidebar (não em configurações) | Acesso com um clique sem navegar até a tela de configurações; usa `tauri-plugin-opener` |
 | 09/04/2026 | `EditTaskModal` edita hora início + hora fim (não duração) | A duração é derivada; editar os dois extremos é mais intuitivo e evita ambiguidade. ESC fecha, Enter salva |
+| 09/04/2026 | Integrações como tela separada na sidebar (não seção em Configurações) | Integrações têm complexidade própria (OAuth, config por integração); tela dedicada dá mais espaço e mantém Configurações focada em preferências do app |
+| 09/04/2026 | OAuth via Authorization Code + client_secret (não PKCE) | Credenciais em variável de ambiente (`GCP_CLIENT_ID`, `GCP_CLIENT_SECRET`), injetadas via Vite envPrefix. Aceitável para desktop app instalável |
+| 09/04/2026 | Servidor OAuth: `std::net::TcpListener` em thread separada (não tokio async) | Mais simples, sem dependência nova. Porta aleatória; emite evento `oauth_callback_received` para o frontend ao receber o redirect |
+| 09/04/2026 | Tokens OAuth salvos no Config (SQLite) | MVP: aceitável. Upgrade futuro: `tauri-plugin-stronghold` para armazenamento seguro |
+| 09/04/2026 | `ITaskSender` no domain — integrações expansíveis | Novas integrações (Jira, API própria, Notion…) implementam a interface em `infra/integrations/` sem alterar domain ou UI |
+| 09/04/2026 | Modo de envio: seleção por grupo (não por tarefa individual) | Grupos são a unidade semântica de envio; selecionar por tarefa individual dentro do grupo seria overengineering para o caso de uso principal |
 
 ---
 
