@@ -11,6 +11,7 @@ import { applyFontSize } from "@shared/utils/fontSize";
 import { applyTheme } from "@shared/utils/theme";
 import type { Theme } from "@shared/utils/theme";
 import { Sidebar, type Page } from "@presentation/components/Sidebar";
+import { TitleBar } from "@presentation/components/TitleBar";
 import { TasksPage } from "@presentation/pages/TasksPage";
 import { PlanningPage } from "@presentation/pages/PlanningPage";
 import { HistoryPage } from "@presentation/pages/HistoryPage";
@@ -140,11 +141,14 @@ function MainContent({
   }, [startTask, setPage, welcomeActiveRef]);
 
   return (
-    <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden">
-      <Sidebar current={page} onChange={setPage} />
-      <main className="flex-1 ml-14 overflow-hidden">
-        <PageContent page={page} />
-      </main>
+    <div className="flex flex-col h-screen bg-gray-950 text-gray-100 overflow-hidden">
+      <TitleBar page={page} />
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <Sidebar current={page} onChange={setPage} />
+        <main className="flex-1 overflow-hidden">
+          <PageContent page={page} />
+        </main>
+      </div>
     </div>
   );
 }

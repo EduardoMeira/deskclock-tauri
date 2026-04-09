@@ -1,7 +1,7 @@
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Emitter, Manager,
+    Emitter, Manager, PhysicalPosition,
 };
 use tauri_plugin_autostart::MacosLauncher;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
@@ -273,6 +273,7 @@ pub fn run() {
                     if let TrayIconEvent::Click {
                         button: MouseButton::Left,
                         button_state: MouseButtonState::Up,
+                        position,
                         ..
                     } = event
                     {
@@ -281,6 +282,29 @@ pub fn run() {
                             if window.is_visible().unwrap_or(false) {
                                 let _ = window.hide();
                             } else {
+                                // Posiciona a janela próxima ao ícone do tray
+                                if let Ok(Some(monitor)) = window.current_monitor().or_else(|_| window.primary_monitor()) {
+                                    let screen_h = monitor.size().height as i32;
+                                    let screen_w = monitor.size().width as i32;
+                                    let win_size = window.outer_size().unwrap_or_default();
+                                    let win_w = win_size.width as i32;
+                                    let win_h = win_size.height as i32;
+
+                                    let click_x = position.x as i32;
+                                    let click_y = position.y as i32;
+
+                                    let x = (click_x - win_w / 2).clamp(0, screen_w - win_w);
+                                    // Detecta se taskbar está na metade inferior ou superior da tela
+                                    let y = if click_y > screen_h / 2 {
+                                        (click_y - win_h - 8).max(0)
+                                    } else {
+                                        (click_y + 8).min(screen_h - win_h)
+                                    };
+
+                                    let _ = window.set_position(tauri::Position::Physical(
+                                        PhysicalPosition::new(x, y),
+                                    ));
+                                }
                                 let _ = window.show();
                                 let _ = window.set_focus();
                             }

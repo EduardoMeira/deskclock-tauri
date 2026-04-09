@@ -15,8 +15,9 @@
         "label": "main",
         "title": "DeskClock",
         "width": 800,
-        "height": 600,
+        "height": 620,
         "visible": false,
+        "decorations": false,
         "resizable": true,
         "fullscreen": false
       },

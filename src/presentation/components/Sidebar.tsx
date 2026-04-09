@@ -24,14 +24,14 @@ interface SidebarProps {
   onChange: (page: Page) => void;
 }
 
-const ITEMS: { page: Page; icon: React.ReactNode; label: string }[] = [
-  { page: "tasks", icon: <Timer size={20} />, label: "Tarefas" },
-  { page: "data", icon: <Database size={20} />, label: "Dados" },
-  { page: "planning", icon: <CalendarDays size={20} />, label: "Planejamento" },
-  { page: "history", icon: <History size={20} />, label: "Histórico" },
-  { page: "retroactive", icon: <FileClock size={20} />, label: "Lançamento retroativo" },
-  { page: "integrations", icon: <Plug size={20} />, label: "Integrações" },
-  { page: "settings", icon: <Settings size={20} />, label: "Configurações" },
+const ITEMS: { page: Page; icon: React.ReactNode; label: string; short: string }[] = [
+  { page: "tasks", icon: <Timer size={18} />, label: "Tarefas", short: "Tarefas" },
+  { page: "retroactive", icon: <FileClock size={18} />, label: "Lançamento retroativo", short: "Retroativo" },
+  { page: "planning", icon: <CalendarDays size={18} />, label: "Planejamento", short: "Planos" },
+  { page: "history", icon: <History size={18} />, label: "Histórico", short: "Histórico" },
+  { page: "data", icon: <Database size={18} />, label: "Dados", short: "Dados" },
+  { page: "integrations", icon: <Plug size={18} />, label: "Integrações", short: "Integrações" },
+  { page: "settings", icon: <Settings size={18} />, label: "Configurações", short: "Config." },
 ];
 
 const FEEDBACK_BASE_URL = "https://forms.monday.com/forms/5bb4399c79149a4a3714b97b852d6d21?r=use1";
@@ -43,20 +43,23 @@ async function openFeedback() {
 
 export function Sidebar({ current, onChange }: SidebarProps) {
   return (
-    <nav className="fixed left-0 top-0 h-full w-14 bg-gray-950 border-r border-gray-800 flex flex-col items-center py-4 z-30">
-      <div className="flex flex-col items-center gap-1 flex-1">
-        {ITEMS.map(({ page, icon, label }) => (
+    <nav className="w-[68px] shrink-0 h-full bg-gray-950 border-r border-gray-800 flex flex-col items-center py-3 z-30">
+      <div className="flex flex-col items-center gap-0.5 flex-1 w-full px-1">
+        {ITEMS.map(({ page, icon, label, short }) => (
           <button
             key={page}
             onClick={() => onChange(page)}
             title={label}
-            className={`w-10 h-10 flex items-center justify-center rounded-lg transition-colors ${
+            className={`w-full flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-lg transition-colors ${
               current === page
                 ? "bg-blue-600 text-white"
                 : "text-gray-500 hover:text-gray-200 hover:bg-gray-800"
             }`}
           >
             {icon}
+            <span className="text-[9px] font-medium leading-none truncate max-w-full">
+              {short}
+            </span>
           </button>
         ))}
       </div>
@@ -64,9 +67,10 @@ export function Sidebar({ current, onChange }: SidebarProps) {
       <button
         onClick={() => openFeedback().catch(() => {})}
         title="Enviar feedback"
-        className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-800 transition-colors"
+        className="w-12 flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-800 transition-colors"
       >
-        <MessageSquare size={18} />
+        <MessageSquare size={16} />
+        <span className="text-[9px] font-medium leading-none">Feedback</span>
       </button>
     </nav>
   );
