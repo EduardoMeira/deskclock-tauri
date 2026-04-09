@@ -1,12 +1,18 @@
-import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { useProjects } from "@presentation/hooks/useProjects";
 import { useCategories } from "@presentation/hooks/useCategories";
 import { usePlannedTasksForWeek } from "@presentation/hooks/usePlannedTasks";
 import { useRunningTask } from "@presentation/contexts/RunningTaskContext";
+import { useAppConfig } from "@presentation/contexts/ConfigContext";
 import { PlannedTaskForm } from "@presentation/components/PlannedTaskForm";
 import { PlannedTaskItem } from "@presentation/components/PlannedTaskItem";
+import { ImportCalendarModal } from "@presentation/modals/ImportCalendarModal";
+import { GoogleCalendarImporter } from "@infra/integrations/GoogleCalendarImporter";
+import { PlannedTaskRepository } from "@infra/database/PlannedTaskRepository";
 import type { PlannedTask } from "@domain/entities/PlannedTask";
+
+const plannedRepo = new PlannedTaskRepository();
 
 const DAY_SHORT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
@@ -63,14 +69,27 @@ type DayFilter = "all" | string; // "all" ou ISO date
 export function WeekPlanningView() {
   const [weekOffset, setWeekOffset] = useState(0);
   const [dayFilter, setDayFilter] = useState<DayFilter>("all");
+  const [showImportModal, setShowImportModal] = useState(false);
   const { start, end, label } = getWeekBounds(weekOffset);
   const days = getDaysOfWeek(start);
 
+  const config = useAppConfig();
   const { projects } = useProjects();
   const { categories } = useCategories();
   const { tasks, reload, create, update, remove, complete, uncomplete, duplicate } =
     usePlannedTasksForWeek(start, end);
   const { startTask } = useRunningTask();
+
+  const calendarConnected = config.isLoaded && !!config.get("googleRefreshToken");
+
+  const calendarImporter = useMemo(
+    () => (config.isLoaded ? new GoogleCalendarImporter(config) : null),
+    [config.isLoaded], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
+  // Intervalos ISO para o Calendar API (meia-noite local → UTC)
+  const calendarFromISO = new Date(start + "T00:00:00").toISOString();
+  const calendarToISO = new Date(end + "T23:59:59").toISOString();
 
   async function handlePlay(task: PlannedTask) {
     await startTask({
@@ -80,6 +99,11 @@ export function WeekPlanningView() {
       billable: task.billable,
     });
     await reload();
+  }
+
+  function handleImported(count: number) {
+    setShowImportModal(false);
+    if (count > 0) reload();
   }
 
   const filteredDays = dayFilter === "all" ? days : [dayFilter];
@@ -95,12 +119,24 @@ export function WeekPlanningView() {
           <ChevronLeft size={16} />
         </button>
         <span className="text-sm text-gray-300 font-medium">{label}</span>
-        <button
-          onClick={() => { setWeekOffset((o) => o + 1); setDayFilter("all"); }}
-          className="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
-        >
-          <ChevronRight size={16} />
-        </button>
+        <div className="flex items-center gap-1">
+          {calendarConnected && (
+            <button
+              onClick={() => setShowImportModal(true)}
+              title="Importar do Google Calendar"
+              className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-blue-400 transition-colors px-2 py-1 rounded hover:bg-gray-800"
+            >
+              <CalendarDays size={13} />
+              Importar
+            </button>
+          )}
+          <button
+            onClick={() => { setWeekOffset((o) => o + 1); setDayFilter("all"); }}
+            className="p-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
+          >
+            <ChevronRight size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Filtros rápidos de dia */}
@@ -139,6 +175,19 @@ export function WeekPlanningView() {
         defaultDate={dayFilter !== "all" ? dayFilter : start}
         onSubmit={create}
       />
+
+      {/* Modal de importação do Google Calendar */}
+      {showImportModal && calendarImporter && (
+        <ImportCalendarModal
+          importer={calendarImporter}
+          repo={plannedRepo}
+          fromISO={calendarFromISO}
+          toISO={calendarToISO}
+          weekLabel={label}
+          onImported={handleImported}
+          onClose={() => setShowImportModal(false)}
+        />
+      )}
 
       {/* Lista agrupada por dia */}
       {filteredDays.map((day) => {

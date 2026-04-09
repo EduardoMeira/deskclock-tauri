@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { TableProperties, Calendar, CheckCircle2, Circle, LogIn, LogOut, Loader2, ChevronDown, ChevronRight, GripVertical } from "lucide-react";
+import {
+  TableProperties, Calendar, CheckCircle2, Circle, LogIn, LogOut,
+  Loader2, ChevronDown, ChevronRight, GripVertical,
+} from "lucide-react";
 import {
   DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from "@dnd-kit/core";
@@ -12,13 +15,9 @@ import { startGoogleOAuth } from "@infra/integrations/google/GoogleOAuth";
 import { GoogleTokenManager } from "@infra/integrations/google/GoogleTokenManager";
 import { DEFAULT_COLUMN_MAPPING, type SheetColumn, type SheetColumnMapping } from "@shared/types/sheetsConfig";
 
-const SHEETS_SCOPES = [
+// Escopos unificados — uma única conexão Google para todos os serviços
+const ALL_GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/spreadsheets",
-  "openid",
-  "email",
-];
-
-const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
   "openid",
   "email",
@@ -57,38 +56,11 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({ label, children, disabled }: { label: string; children: React.ReactNode; disabled?: boolean }) {
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
+    <div className={`flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0 ${disabled ? "opacity-40 pointer-events-none" : ""}`}>
       <span className="text-sm text-gray-300">{label}</span>
       <div className="flex items-center gap-2">{children}</div>
-    </div>
-  );
-}
-
-function IntegrationCard({
-  icon, title, description, connected, email, children,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  connected: boolean;
-  email?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900/50 overflow-hidden">
-      <div className="flex items-start gap-3 px-4 py-3 border-b border-gray-800">
-        <div className="mt-0.5 text-gray-400">{icon}</div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-gray-100">{title}</h2>
-            <StatusBadge connected={connected} email={email} />
-          </div>
-          <p className="text-xs text-gray-500 mt-0.5">{description}</p>
-        </div>
-      </div>
-      <div className="px-4 py-1">{children}</div>
     </div>
   );
 }
@@ -127,13 +99,7 @@ function SortableSheetColumn({ col, idx, onToggle, onRename }: SortableSheetColu
   );
 }
 
-function ColumnMappingEditor({
-  mapping,
-  onChange,
-}: {
-  mapping: SheetColumnMapping;
-  onChange: (m: SheetColumnMapping) => void;
-}) {
+function ColumnMappingEditor({ mapping, onChange }: { mapping: SheetColumnMapping; onChange: (m: SheetColumnMapping) => void }) {
   const sensors = useSensors(useSensor(PointerSensor));
 
   function handleDragEnd(event: DragEndEvent) {
@@ -145,20 +111,18 @@ function ColumnMappingEditor({
     }
   }
 
-  function toggleEnabled(idx: number) {
-    onChange(mapping.map((c, i) => i === idx ? { ...c, enabled: !c.enabled } : c));
-  }
-
-  function setLabel(idx: number, label: string) {
-    onChange(mapping.map((c, i) => i === idx ? { ...c, label } : c));
-  }
-
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={mapping.map((c) => c.field)} strategy={verticalListSortingStrategy}>
         <div className="flex flex-col gap-1">
           {mapping.map((col, idx) => (
-            <SortableSheetColumn key={col.field} col={col} idx={idx} onToggle={toggleEnabled} onRename={setLabel} />
+            <SortableSheetColumn
+              key={col.field}
+              col={col}
+              idx={idx}
+              onToggle={(i) => onChange(mapping.map((c, j) => j === i ? { ...c, enabled: !c.enabled } : c))}
+              onRename={(i, label) => onChange(mapping.map((c, j) => j === i ? { ...c, label } : c))}
+            />
           ))}
         </div>
       </SortableContext>
@@ -166,19 +130,15 @@ function ColumnMappingEditor({
   );
 }
 
-/* ── Google Sheets ── */
+/* ── Sub-seção Google Sheets ── */
 
-function GoogleSheetsIntegration() {
+function SheetsSection({ disabled }: { disabled: boolean }) {
   const config = useAppConfig();
   const [spreadsheetId, setSpreadsheetId] = useState("");
   const [sheetName, setSheetName] = useState("DeskClock");
   const [columnMapping, setColumnMapping] = useState<SheetColumnMapping>(DEFAULT_COLUMN_MAPPING);
-  const [autoSync, setAutoSync] = useState(false);
   const [durationFormat, setDurationFormat] = useState<"HH:MM" | "HH:MM:SS">("HH:MM");
-  const [connected, setConnected] = useState(false);
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [autoSync, setAutoSync] = useState(false);
   const [colsOpen, setColsOpen] = useState(false);
 
   useEffect(() => {
@@ -186,30 +146,13 @@ function GoogleSheetsIntegration() {
     setSpreadsheetId(config.get("integrationGoogleSheetsSpreadsheetId"));
     setSheetName(config.get("integrationGoogleSheetsSheetName") || "DeskClock");
     setColumnMapping(config.get("integrationGoogleSheetsColumnMapping") ?? DEFAULT_COLUMN_MAPPING);
-    setAutoSync(config.get("integrationGoogleSheetsAutoSync"));
     setDurationFormat(config.get("integrationGoogleSheetsDurationFormat") ?? "HH:MM");
-    setConnected(!!config.get("googleRefreshToken"));
-    setEmail(config.get("googleUserEmail"));
+    setAutoSync(config.get("integrationGoogleSheetsAutoSync"));
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  async function handleSpreadsheetIdBlur() {
-    await config.set("integrationGoogleSheetsSpreadsheetId", spreadsheetId.trim());
-  }
-
-  async function handleSheetNameBlur() {
-    const name = sheetName.trim() || "DeskClock";
-    setSheetName(name);
-    await config.set("integrationGoogleSheetsSheetName", name);
-  }
 
   async function handleColumnMappingChange(next: SheetColumnMapping) {
     setColumnMapping(next);
     await config.set("integrationGoogleSheetsColumnMapping", next);
-  }
-
-  async function handleAutoSync(value: boolean) {
-    setAutoSync(value);
-    await config.set("integrationGoogleSheetsAutoSync", value);
   }
 
   async function handleDurationFormat(value: "HH:MM" | "HH:MM:SS") {
@@ -217,45 +160,16 @@ function GoogleSheetsIntegration() {
     await config.set("integrationGoogleSheetsDurationFormat", value);
   }
 
-  async function handleConnect() {
-    setLoading(true);
-    setError(null);
-    try {
-      const tokens = await startGoogleOAuth(SHEETS_SCOPES);
-      const manager = new GoogleTokenManager(config);
-      await manager.saveTokens(tokens);
-      setConnected(true);
-      setEmail(tokens.email);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao conectar com o Google.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleDisconnect() {
-    const manager = new GoogleTokenManager(config);
-    await manager.clearTokens();
-    setConnected(false);
-    setEmail("");
-  }
-
   return (
-    <IntegrationCard
-      icon={<TableProperties size={20} />}
-      title="Google Sheets"
-      description="Envie tarefas registradas para uma planilha no Google."
-      connected={connected}
-      email={email}
-    >
+    <div className={disabled ? "opacity-40 pointer-events-none" : ""}>
       <Row label="ID da planilha">
         <input
           type="text"
           value={spreadsheetId}
           onChange={(e) => setSpreadsheetId(e.target.value)}
-          onBlur={handleSpreadsheetIdBlur}
+          onBlur={() => config.set("integrationGoogleSheetsSpreadsheetId", spreadsheetId.trim())}
           placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
-          className="w-72 bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+          className="w-64 bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
         />
       </Row>
       <Row label="Nome da aba">
@@ -263,9 +177,13 @@ function GoogleSheetsIntegration() {
           type="text"
           value={sheetName}
           onChange={(e) => setSheetName(e.target.value)}
-          onBlur={handleSheetNameBlur}
+          onBlur={async () => {
+            const name = sheetName.trim() || "DeskClock";
+            setSheetName(name);
+            await config.set("integrationGoogleSheetsSheetName", name);
+          }}
           placeholder="DeskClock"
-          className="w-48 bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
+          className="w-40 bg-gray-800 border border-gray-700 rounded px-2.5 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500"
         />
       </Row>
 
@@ -309,36 +227,57 @@ function GoogleSheetsIntegration() {
         </div>
       </Row>
       <Row label="Sincronizar automaticamente ao concluir tarefa">
-        <Toggle checked={autoSync} onChange={handleAutoSync} />
+        <Toggle checked={autoSync} onChange={async (v) => { setAutoSync(v); await config.set("integrationGoogleSheetsAutoSync", v); }} />
       </Row>
-      <Row label="Autorização Google">
-        {error && <span className="text-xs text-red-400 mr-2">{error}</span>}
-        {connected ? (
-          <button
-            onClick={handleDisconnect}
-            className="flex items-center gap-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded transition-colors"
-          >
-            <LogOut size={12} />
-            Desconectar
-          </button>
-        ) : (
-          <button
-            onClick={handleConnect}
-            disabled={loading}
-            className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded transition-colors"
-          >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <LogIn size={12} />}
-            {loading ? "Aguardando autorização…" : "Conectar com Google"}
-          </button>
-        )}
-      </Row>
-    </IntegrationCard>
+    </div>
   );
 }
 
-/* ── Google Calendar ── */
+/* ── Sub-seção Google Calendar ── */
 
-function GoogleCalendarIntegration() {
+function CalendarSection({ disabled }: { disabled: boolean }) {
+  return (
+    <div className={disabled ? "opacity-40 pointer-events-none" : ""}>
+      <div className="py-2.5">
+        <p className="text-xs text-gray-500">
+          Importe eventos do Google Calendar como tarefas planejadas diretamente na tela de{" "}
+          <span className="text-gray-400">Planejamento → Semana</span>.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ── Card Google (unificado) ── */
+
+function SubSection({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-t border-gray-800">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 w-full px-4 py-3 text-left hover:bg-gray-800/30 transition-colors"
+      >
+        <span className="text-gray-500">{icon}</span>
+        <span className="text-sm font-medium text-gray-200">{title}</span>
+        <span className="ml-auto text-gray-600">
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </span>
+      </button>
+      {open && <div className="px-4 pb-2">{children}</div>}
+    </div>
+  );
+}
+
+function GoogleIntegrationCard() {
   const config = useAppConfig();
   const [connected, setConnected] = useState(false);
   const [email, setEmail] = useState("");
@@ -355,7 +294,7 @@ function GoogleCalendarIntegration() {
     setLoading(true);
     setError(null);
     try {
-      const tokens = await startGoogleOAuth(CALENDAR_SCOPES);
+      const tokens = await startGoogleOAuth(ALL_GOOGLE_SCOPES);
       const manager = new GoogleTokenManager(config);
       await manager.saveTokens(tokens);
       setConnected(true);
@@ -375,42 +314,58 @@ function GoogleCalendarIntegration() {
   }
 
   return (
-    <IntegrationCard
-      icon={<Calendar size={20} />}
-      title="Google Calendar"
-      description="Importe eventos do Google Calendar como tarefas planejadas."
-      connected={connected}
-      email={email}
-    >
-      <Row label="Autorização Google">
-        {error && <span className="text-xs text-red-400 mr-2">{error}</span>}
-        {connected ? (
-          <button
-            onClick={handleDisconnect}
-            className="flex items-center gap-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded transition-colors"
-          >
-            <LogOut size={12} />
-            Desconectar
-          </button>
-        ) : (
-          <button
-            onClick={handleConnect}
-            disabled={loading}
-            className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded transition-colors"
-          >
-            {loading ? <Loader2 size={12} className="animate-spin" /> : <LogIn size={12} />}
-            {loading ? "Aguardando autorização…" : "Conectar com Google"}
-          </button>
-        )}
-      </Row>
-      {connected && (
-        <Row label="Importar eventos">
-          <span className="text-xs text-gray-500 italic">
-            Disponível na tela de Planejamento (em breve)
-          </span>
-        </Row>
-      )}
-    </IntegrationCard>
+    <div className="rounded-xl border border-gray-800 bg-gray-900/50 overflow-hidden">
+      {/* Header do card */}
+      <div className="flex items-start gap-3 px-4 py-3 border-b border-gray-800">
+        <div className="mt-0.5 shrink-0">
+          {/* Ícone Google simplificado */}
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-gray-100">Google</h2>
+            <StatusBadge connected={connected} email={email} />
+          </div>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Acesse o Sheets e o Calendar com uma única conta.
+          </p>
+        </div>
+        <div className="shrink-0 flex items-center gap-2">
+          {error && <span className="text-xs text-red-400">{error}</span>}
+          {connected ? (
+            <button
+              onClick={handleDisconnect}
+              className="flex items-center gap-1.5 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded transition-colors"
+            >
+              <LogOut size={12} />
+              Desconectar
+            </button>
+          ) : (
+            <button
+              onClick={handleConnect}
+              disabled={loading}
+              className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded transition-colors"
+            >
+              {loading ? <Loader2 size={12} className="animate-spin" /> : <LogIn size={12} />}
+              {loading ? "Aguardando…" : "Conectar com Google"}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Sub-seções */}
+      <SubSection icon={<TableProperties size={15} />} title="Google Sheets">
+        <SheetsSection disabled={!connected} />
+      </SubSection>
+      <SubSection icon={<Calendar size={15} />} title="Google Calendar">
+        <CalendarSection disabled={!connected} />
+      </SubSection>
+    </div>
   );
 }
 
@@ -426,10 +381,7 @@ export function IntegrationsPage() {
         </p>
       </div>
 
-      <div className="space-y-4">
-        <GoogleSheetsIntegration />
-        <GoogleCalendarIntegration />
-      </div>
+      <GoogleIntegrationCard />
     </div>
   );
 }
