@@ -29,6 +29,9 @@ export interface AppConfig {
   overlayPosition_execution: OverlayPosition;
   overlayPosition_planning: OverlayPosition;
   overlayPosition_compact: OverlayPosition;
+  // Integrações
+  integrationGoogleSheetsSpreadsheetId: string;
+  integrationGoogleSheetsAutoSync: boolean;
 }
 
 const DEFAULTS: AppConfig = {
@@ -50,6 +53,8 @@ const DEFAULTS: AppConfig = {
   overlayPosition_execution: { x: -1, y: -1 },
   overlayPosition_planning: { x: -1, y: -1 },
   overlayPosition_compact: { x: -1, y: -1 },
+  integrationGoogleSheetsSpreadsheetId: "",
+  integrationGoogleSheetsAutoSync: false,
 };
 
 type ConfigKey = keyof AppConfig;

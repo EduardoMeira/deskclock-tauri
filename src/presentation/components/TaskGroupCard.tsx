@@ -12,6 +12,9 @@ interface TaskGroupCardProps {
   projects: Project[];
   categories: Category[];
   playDisabled?: boolean;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: (group: TaskGroup) => void;
   onPlay: (task: Task) => void;
   onEdit: (task: Task) => void;
   onDelete: (task: Task) => void;
@@ -20,7 +23,9 @@ interface TaskGroupCardProps {
 }
 
 export function TaskGroupCard({
-  group, projects, categories, playDisabled = false, onPlay, onEdit, onDelete, onMerge, onToggleBillable,
+  group, projects, categories, playDisabled = false,
+  selectable = false, selected = false, onToggleSelect,
+  onPlay, onEdit, onDelete, onMerge, onToggleBillable,
 }: TaskGroupCardProps) {
   const [expanded, setExpanded] = useState(false);
   const { tasks } = group;
@@ -34,9 +39,17 @@ export function TaskGroupCard({
     <div className="border border-gray-800 rounded-lg overflow-hidden">
       <div
         className="flex items-center gap-2 px-3 py-2 bg-gray-900 cursor-pointer hover:bg-gray-800/80"
-        onClick={() => isGroup && setExpanded((v) => !v)}
+        onClick={() => !selectable && isGroup && setExpanded((v) => !v)}
       >
-        {isGroup && (
+        {selectable ? (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={(e) => { e.stopPropagation(); onToggleSelect?.(group); }}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-shrink-0 accent-blue-500 cursor-pointer"
+          />
+        ) : isGroup && (
           <span className="text-gray-500 flex-shrink-0">
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </span>

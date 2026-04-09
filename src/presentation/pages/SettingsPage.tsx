@@ -159,17 +159,6 @@ function SelectRow({
   );
 }
 
-function ComingSoonSection({ title }: { title: string }) {
-  return (
-    <div className="mb-8">
-      <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-4">
-        {title}
-      </h2>
-      <p className="text-xs text-gray-600 italic">Em breve</p>
-    </div>
-  );
-}
-
 export function SettingsPage() {
   const config = useAppConfig();
 
@@ -434,7 +423,6 @@ export function SettingsPage() {
           />
         </Section>
 
-        <ComingSoonSection title="Integrações" />
       </div>
     </div>
   );

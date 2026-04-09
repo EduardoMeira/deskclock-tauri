@@ -1,7 +1,7 @@
-import { Timer, Database, CalendarDays, History, Settings, MessageSquare, FileClock } from "lucide-react";
+import { Timer, Database, CalendarDays, History, Settings, MessageSquare, FileClock, Plug } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
-export type Page = "tasks" | "data" | "planning" | "history" | "retroactive" | "settings";
+export type Page = "tasks" | "data" | "planning" | "history" | "retroactive" | "integrations" | "settings";
 
 interface SidebarProps {
   current: Page;
@@ -13,8 +13,9 @@ const ITEMS: { page: Page; icon: React.ReactNode; label: string }[] = [
   { page: "data",        icon: <Database size={20} />,     label: "Dados" },
   { page: "planning",    icon: <CalendarDays size={20} />, label: "Planejamento" },
   { page: "history",     icon: <History size={20} />,      label: "Histórico" },
-  { page: "retroactive", icon: <FileClock size={20} />,    label: "Lançamento retroativo" },
-  { page: "settings",    icon: <Settings size={20} />,     label: "Configurações" },
+  { page: "retroactive",   icon: <FileClock size={20} />, label: "Lançamento retroativo" },
+  { page: "integrations", icon: <Plug size={20} />,       label: "Integrações" },
+  { page: "settings",     icon: <Settings size={20} />,   label: "Configurações" },
 ];
 
 const FEEDBACK_URL = "https://github.com/emeirav/deskclock-tauri/issues";
