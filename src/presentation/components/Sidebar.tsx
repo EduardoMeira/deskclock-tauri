@@ -1,5 +1,5 @@
 import { Timer, Database, CalendarDays, History, Settings, MessageSquare, FileClock, Plug } from "lucide-react";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { openInBrowser, getPlatform } from "@shared/utils/shell";
 
 export type Page = "tasks" | "data" | "planning" | "history" | "retroactive" | "integrations" | "settings";
 
@@ -18,7 +18,12 @@ const ITEMS: { page: Page; icon: React.ReactNode; label: string }[] = [
   { page: "settings",     icon: <Settings size={20} />,   label: "Configurações" },
 ];
 
-const FEEDBACK_URL = "https://github.com/emeirav/deskclock-tauri/issues";
+const FEEDBACK_BASE_URL = "https://forms.monday.com/forms/5bb4399c79149a4a3714b97b852d6d21?r=use1";
+
+async function openFeedback() {
+  const os = await getPlatform();
+  await openInBrowser(`${FEEDBACK_BASE_URL}&os=${os}`);
+}
 
 export function Sidebar({ current, onChange }: SidebarProps) {
   return (
@@ -41,7 +46,7 @@ export function Sidebar({ current, onChange }: SidebarProps) {
       </div>
 
       <button
-        onClick={() => openUrl(FEEDBACK_URL).catch(() => {})}
+        onClick={() => openFeedback().catch(() => {})}
         title="Enviar feedback"
         className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-600 hover:text-gray-300 hover:bg-gray-800 transition-colors"
       >
