@@ -29,7 +29,7 @@
 | C3 | Editar hora de início não disponível na tarefa em andamento | ✅ | Clique no texto de início abre input time inline; Enter/blur salva, Escape cancela |
 | C4 | Clique no nome da tarefa no overlay de execução não faz nada | ⬜ | Comportamento esperado: abrir modal de edição ou focar janela principal |
 | C5 | Clicar em "Planejamento" na janela de boas-vindas não abre planejamento | ✅ | `appWindow.show()` chamado ao dispensar welcome; navega para planejamento |
-| C6 | Grid (snap-to-grid) não aparece e não trava posições — só funciona após reiniciar | ⬜ | Estado de grid não é aplicado em tempo real; indicador visual ausente |
+| C6 | Grid (snap-to-grid) não aparece e não trava posições — só funciona após reiniciar | ✅ | Estado reativo via `OVERLAY_CONFIG_CHANGED`; indicador visual removido a pedido |
 | C7 | Indicação visual no autocomplete para mostrar item selecionado (highlight) | ⬜ | Item ativo deve ter background diferenciado |
 | C8 | Exigir projeto e/ou tarefa ao concluir tarefa (se não preenchidos) | ⬜ | Prompt inline antes de confirmar conclusão |
 | C9 | Overlay compacto: arrastar só funciona pelas beiradas — botão central bloqueia o drag | ✅ | `data-tauri-drag-region` adicionado ao fundo circular; botão central separado não bloqueia mais |
@@ -54,10 +54,10 @@
 |---|------|--------|-------|
 | L5 | Overlay compacto: badge dentro dos limites da janela | ✅ | `top-0 right-0` em vez de `-top-1 -right-1`; botão reduzido para liberar anel externo como drag area; grip visual com 3 pontos |
 | L6 | Overlay planning: altura dinâmica conforme quantidade de tarefas | ✅ | `useEffect` em `PlanningOverlayContent` chama `setSize(LogicalSize)` baseado em `pending.length`; máx 6 linhas visíveis |
-| L7 | Overlay de execução: revisar espaçamento e tipografia | ⬜ | Legibilidade do timer, espaçamento geral |
-| L8 | Overlay idle (planning): botão "Nova tarefa" deve aparecer no topo, não após lista extensa | ⬜ | Mover botão para acima da lista de tarefas planejadas |
-| L9 | Incrementar menu do tray icon com mais controles | ⬜ | Ex: Iniciar/Parar tarefa, Mostrar/Ocultar janela, sair |
-| L10 | Reavaliar quais configurações de overlay fazem sentido ser parametrizáveis | ⬜ | Candidatos a fixar: snap-to-grid, indicador de grade |
+| L7 | Overlay de execução: revisar espaçamento e tipografia | ✅ | Nome menor/cinza, timer maior/bold, botões verticais |
+| L8 | Overlay idle (planning): botão "Nova tarefa" deve aparecer no topo, não após lista extensa | ✅ | Botão movido para acima da lista |
+| L9 | Incrementar menu do tray icon com mais controles | ✅ | Iniciar/Pausar e Parar tarefa adicionados ao menu |
+| L10 | Reavaliar quais configurações de overlay fazem sentido ser parametrizáveis | ✅ | Removidos overlayAlwaysVisible e overlayShowOnStart (hardcoded true); indicador de grade removido |
 
 ### 3.3 Telas específicas
 
@@ -68,7 +68,7 @@
 | L13 | Tela de Lançamento Retroativo: elementos parecem desposicionados | ⬜ | Revisar grid/layout do formulário e da lista |
 | L14 | Tela de Dados: revisão geral de layout | ⬜ | A definir após outras telas estabilizarem |
 | L15 | Tela de Integrações: usar accordion — detalhes só ao expandir | ⬜ | Card por integração colapsável; estado inicial: colapsado |
-| L16 | Tela de Configurações: scroll quando mapeamento de colunas está expandido | ⬜ | Overflow-y na seção, não na página toda |
+| L16 | Tela de Integrações: scroll quando mapeamento de colunas está expandido | ⬜ | Overflow-y na seção, não na página toda |
 
 ### 3.4 Componentes globais
 
@@ -114,4 +114,4 @@ Sprint 6 — Features novas
 
 ---
 
-*Última atualização: 09/04/2026 — Sprints 1 e 2 concluídas*
+*Última atualização: 09/04/2026 — Sprints 1, 2 e 3 concluídas*

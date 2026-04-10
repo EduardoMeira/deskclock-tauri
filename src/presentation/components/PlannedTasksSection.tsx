@@ -25,7 +25,7 @@ export function PlannedTasksSection({
       <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
         Planejadas para hoje
       </h2>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 max-h-44 overflow-y-auto">
         {pending.map((task) => {
           const project = projects.find((p) => p.id === task.projectId);
           return (

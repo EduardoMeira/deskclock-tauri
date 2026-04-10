@@ -46,6 +46,24 @@ export function TaskGroupCard({
   const allSent = tasks.every((t) => t.sentToSheets);
   const someSent = !allSent && tasks.some((t) => t.sentToSheets);
 
+  // Tarefa individual sem agrupamento: renderiza direto sem cabeçalho de grupo
+  if (!isGroup && !selectable) {
+    return (
+      <div className="border border-gray-800 rounded-lg overflow-hidden">
+        <TaskCard
+          task={first}
+          projects={projects}
+          categories={categories}
+          playDisabled={playDisabled}
+          onPlay={onPlay}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onToggleBillable={onToggleBillable}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="border border-gray-800 rounded-lg overflow-hidden">
       <div

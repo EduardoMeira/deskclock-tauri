@@ -95,7 +95,14 @@ export function PlannedTaskForm({
         periodStart: form.scheduleType === "period" ? form.periodStart || null : null,
         periodEnd: form.scheduleType === "period" ? form.periodEnd || null : null,
       });
-      setForm({ ...INITIAL, scheduleDate: defaultDate });
+      setForm((prev) => ({
+        ...INITIAL,
+        scheduleType: prev.scheduleType,
+        scheduleDate: prev.scheduleDate,
+        recurringDays: prev.recurringDays,
+        periodStart: prev.periodStart,
+        periodEnd: prev.periodEnd,
+      }));
       nameRef.current?.focus();
     } finally {
       setSubmitting(false);
@@ -191,11 +198,6 @@ export function PlannedTaskForm({
 
           {form.scheduleType === "specific_date" && (
             <div className="flex items-center gap-2">
-              <DatePickerInput
-                value={form.scheduleDate}
-                onChange={(v) => set("scheduleDate", v)}
-                className="flex-1"
-              />
               <button
                 type="button"
                 onClick={() => set("scheduleDate", todayISO())}
@@ -207,6 +209,11 @@ export function PlannedTaskForm({
               >
                 Hoje
               </button>
+              <DatePickerInput
+                value={form.scheduleDate}
+                onChange={(v) => set("scheduleDate", v)}
+                className="flex-1"
+              />
             </div>
           )}
 
