@@ -63,6 +63,22 @@
   --color-gray-50: var(--tw-gray-950);
 }
 
+/* ── Scrollbars uniformes ── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.373 0.034 259.733 / 0.6);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.446 0.03 256.802 / 0.8);
+}
+
 select {
   color-scheme: dark;
   appearance: none;

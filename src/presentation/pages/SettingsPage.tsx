@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { emit } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
@@ -124,6 +124,99 @@ function TextRow({
         onBlur={onBlur}
         className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500"
       />
+    </div>
+  );
+}
+
+const MODIFIER_KEYS = new Set(["Control", "Shift", "Alt", "Meta", "CmdOrCtrl"]);
+const KEY_MAP: Record<string, string> = {
+  " ": "Space",
+  Control: "Ctrl",
+  Meta: "Super",
+};
+
+function buildAccelerator(e: React.KeyboardEvent): string {
+  const parts: string[] = [];
+  if (e.ctrlKey) parts.push("CmdOrCtrl");
+  if (e.shiftKey) parts.push("Shift");
+  if (e.altKey) parts.push("Alt");
+  if (e.metaKey && !e.ctrlKey) parts.push("CmdOrCtrl");
+  const key = e.key;
+  if (!MODIFIER_KEYS.has(key)) {
+    parts.push(KEY_MAP[key] ?? (key.length === 1 ? key.toUpperCase() : key));
+  }
+  return parts.join("+");
+}
+
+function ShortcutRow({
+  label,
+  description,
+  value,
+  onSave,
+}: {
+  label: string;
+  description?: string;
+  value: string;
+  onSave: (v: string) => void;
+}) {
+  const [recording, setRecording] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  function startRecording() {
+    setRecording(true);
+    btnRef.current?.focus();
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (!recording) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.key === "Escape") {
+      setRecording(false);
+      return;
+    }
+    const acc = buildAccelerator(e);
+    if (acc && !MODIFIER_KEYS.has(e.key)) {
+      onSave(acc);
+      setRecording(false);
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex-1 min-w-0">
+        <p className="text-sm text-gray-200">{label}</p>
+        {description && <p className="text-xs text-gray-500 mt-0.5">{description}</p>}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        {value && !recording && (
+          <span className="font-mono text-xs text-gray-300 bg-gray-800 border border-gray-700 px-2 py-1 rounded">
+            {value}
+          </span>
+        )}
+        <button
+          ref={btnRef}
+          onClick={startRecording}
+          onKeyDown={handleKeyDown}
+          onBlur={() => setRecording(false)}
+          className={`px-3 py-1.5 text-xs rounded border transition-colors focus:outline-none ${
+            recording
+              ? "bg-blue-900/40 border-blue-500 text-blue-300 animate-pulse"
+              : "bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500"
+          }`}
+        >
+          {recording ? "Pressione a combinação…" : value ? "Alterar" : "Gravar"}
+        </button>
+        {value && !recording && (
+          <button
+            onClick={() => onSave("")}
+            className="text-xs text-gray-600 hover:text-red-400 transition-colors"
+            title="Remover atalho"
+          >
+            ✕
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -366,43 +459,29 @@ export function SettingsPage() {
         </Section>
 
         <Section title="Atalhos globais">
-          <p className="text-xs text-gray-500 -mt-2 mb-2">
-            Use o formato do Tauri:{" "}
-            <span className="font-mono text-gray-400">CmdOrCtrl+Shift+T</span>,{" "}
-            <span className="font-mono text-gray-400">Alt+F1</span>, etc. Deixe em branco para
-            desativar.
-          </p>
-          <TextRow
+          <ShortcutRow
             label="Iniciar / Pausar / Retomar"
             description="Alterna execução da tarefa atual"
             value={shortcutToggleTask}
-            placeholder="Ex: CmdOrCtrl+Shift+Space"
-            onChange={setShortcutToggleTask}
-            onBlur={() => applyShortcuts({ toggleTask: shortcutToggleTask })}
+            onSave={(v) => { setShortcutToggleTask(v); applyShortcuts({ toggleTask: v }); }}
           />
-          <TextRow
+          <ShortcutRow
             label="Parar"
             description="Para a tarefa em execução"
             value={shortcutStopTask}
-            placeholder="Ex: CmdOrCtrl+Shift+S"
-            onChange={setShortcutStopTask}
-            onBlur={() => applyShortcuts({ stopTask: shortcutStopTask })}
+            onSave={(v) => { setShortcutStopTask(v); applyShortcuts({ stopTask: v }); }}
           />
-          <TextRow
+          <ShortcutRow
             label="Mostrar / Ocultar overlay"
             description="Alterna visibilidade do overlay"
             value={shortcutToggleOverlay}
-            placeholder="Ex: CmdOrCtrl+Shift+O"
-            onChange={setShortcutToggleOverlay}
-            onBlur={() => applyShortcuts({ toggleOverlay: shortcutToggleOverlay })}
+            onSave={(v) => { setShortcutToggleOverlay(v); applyShortcuts({ toggleOverlay: v }); }}
           />
-          <TextRow
+          <ShortcutRow
             label="Mostrar / Ocultar janela"
             description="Alterna visibilidade da janela principal"
             value={shortcutToggleWindow}
-            placeholder="Ex: CmdOrCtrl+Shift+W"
-            onChange={setShortcutToggleWindow}
-            onBlur={() => applyShortcuts({ toggleWindow: shortcutToggleWindow })}
+            onSave={(v) => { setShortcutToggleWindow(v); applyShortcuts({ toggleWindow: v }); }}
           />
         </Section>
       </div>

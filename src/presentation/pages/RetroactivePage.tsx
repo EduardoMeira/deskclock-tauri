@@ -308,73 +308,47 @@ export function RetroactivePage() {
         </div>
 
         {/* Tempos */}
-        <div className="flex gap-2 items-center flex-wrap">
-          <span className="text-xs text-gray-500 shrink-0">Início</span>
+        <div className="flex gap-2 items-center">
+          <span className="text-xs text-gray-500 w-10 shrink-0">Início</span>
           <input
             type="time"
             value={startTime}
-            onChange={(e) => {
-              setStartTime(e.target.value);
-              setError("");
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleAdd();
-            }}
-            className="w-24 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+            onChange={(e) => { setStartTime(e.target.value); setError(""); }}
+            onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+            className="w-28 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
           />
-
           <div className="flex gap-1 shrink-0">
             <button
               onClick={() => setMode("endtime")}
-              className={`px-2.5 py-1 text-xs rounded transition-colors ${
-                mode === "endtime"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:text-gray-200"
-              }`}
+              className={`px-2.5 py-1 text-xs rounded transition-colors ${mode === "endtime" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400 hover:text-gray-200"}`}
             >
               Hora fim
             </button>
             <button
               onClick={() => setMode("duration")}
-              className={`px-2.5 py-1 text-xs rounded transition-colors ${
-                mode === "duration"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-400 hover:text-gray-200"
-              }`}
+              className={`px-2.5 py-1 text-xs rounded transition-colors ${mode === "duration" ? "bg-blue-600 text-white" : "bg-gray-800 text-gray-400 hover:text-gray-200"}`}
             >
               Duração
             </button>
           </div>
-
           {mode === "endtime" ? (
             <input
               type="time"
               value={endTime}
-              onChange={(e) => {
-                setEndTime(e.target.value);
-                setError("");
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAdd();
-              }}
-              className="w-24 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+              onChange={(e) => { setEndTime(e.target.value); setError(""); }}
+              onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
+              className="w-28 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
             />
           ) : (
             <input
               type="text"
               value={durationInput}
-              onChange={(e) => {
-                setDurationInput(e.target.value);
-                setError("");
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAdd();
-              }}
+              onChange={(e) => { setDurationInput(e.target.value); setError(""); }}
+              onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
               placeholder="HH:MM ou minutos"
-              className="w-32 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              className="w-36 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
             />
           )}
-
           <button
             onClick={handleAdd}
             disabled={saving}
