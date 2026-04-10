@@ -27,11 +27,11 @@
 | C1 | Overlay: janela não redimensiona ao confirmar parada de tarefa — conteúdo espremido | ✅ | `LogicalSize(280, 96)` ao entrar em `confirmingStop`; `LogicalSize` em todas as trocas de modo; `w-screen h-screen overflow-hidden` no root |
 | C2 | Toast espremido e posicionado errado | ✅ | Height 72→88, `LogicalPosition` com `scaleFactor`, `w-screen h-screen` no root |
 | C3 | Editar hora de início não disponível na tarefa em andamento | ✅ | Clique no texto de início abre input time inline; Enter/blur salva, Escape cancela |
-| C4 | Clique no nome da tarefa no overlay de execução não faz nada | ⬜ | Comportamento esperado: abrir modal de edição ou focar janela principal |
+| C4 | Clique no nome da tarefa no overlay de execução não faz nada | ✅ | Comportamento esperado: abrir modal de edição ou focar janela principal |
 | C5 | Clicar em "Planejamento" na janela de boas-vindas não abre planejamento | ✅ | `appWindow.show()` chamado ao dispensar welcome; navega para planejamento |
 | C6 | Grid (snap-to-grid) não aparece e não trava posições — só funciona após reiniciar | ✅ | Estado reativo via `OVERLAY_CONFIG_CHANGED`; indicador visual removido a pedido |
-| C7 | Indicação visual no autocomplete para mostrar item selecionado (highlight) | ⬜ | Item ativo deve ter background diferenciado |
-| C8 | Exigir projeto e/ou tarefa ao concluir tarefa (se não preenchidos) | ⬜ | Prompt inline antes de confirmar conclusão |
+| C7 | Indicação visual no autocomplete para mostrar item selecionado (highlight) | ✅ | Item ativo com `bg-blue-600/40`; navegação com ↑↓ |
+| C8 | Exigir projeto e/ou tarefa ao concluir tarefa (se não preenchidos) | ✅ | Etapa intermediária com formulário inline antes do "Concluída?" |
 | C9 | Overlay compacto: arrastar só funciona pelas beiradas — botão central bloqueia o drag | ✅ | `data-tauri-drag-region` adicionado ao fundo circular; botão central separado não bloqueia mais |
 
 ---
@@ -114,4 +114,4 @@ Sprint 6 — Features novas
 
 ---
 
-*Última atualização: 09/04/2026 — Sprints 1, 2, 3 e 4 concluídas*
+*Última atualização: 09/04/2026 — Sprints 1, 2, 3, 4 e 5 concluídas*
