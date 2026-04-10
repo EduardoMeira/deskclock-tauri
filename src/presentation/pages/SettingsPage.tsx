@@ -170,11 +170,8 @@ export function SettingsPage() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [startOnBoot, setStartOnBoot] = useState(false);
   const [liveTrayTimer, setLiveTrayTimer] = useState(false);
-  const [overlayAlwaysVisible, setOverlayAlwaysVisible] = useState(true);
-  const [overlayShowOnStart, setOverlayShowOnStart] = useState(true);
   const [overlayOpacity, setOverlayOpacity] = useState(100);
   const [overlaySnapToGrid, setOverlaySnapToGrid] = useState(false);
-  const [overlayShowGridIndicator, setOverlayShowGridIndicator] = useState(false);
   const [fontSize, setFontSize] = useState<"P" | "M" | "G" | "GG">("M");
   const [theme, setTheme] = useState<Theme>("azul");
   const [shortcutToggleTask, setShortcutToggleTask] = useState("");
@@ -187,11 +184,8 @@ export function SettingsPage() {
     if (!config.isLoaded) return;
     setUserName(config.get("userName"));
     setShowWelcome(config.get("showWelcomeMessage"));
-    setOverlayAlwaysVisible(config.get("overlayAlwaysVisible"));
-    setOverlayShowOnStart(config.get("overlayShowOnStart"));
     setOverlayOpacity(config.get("overlayOpacity"));
     setOverlaySnapToGrid(config.get("overlaySnapToGrid"));
-    setOverlayShowGridIndicator(config.get("overlayShowGridIndicator"));
     setLiveTrayTimer(config.get("liveTrayTimer"));
     setFontSize(config.get("fontSize"));
     setTheme(config.get("theme") as Theme);
@@ -254,13 +248,7 @@ export function SettingsPage() {
   }
 
   async function handleToggle(
-    key:
-      | "showWelcomeMessage"
-      | "overlayAlwaysVisible"
-      | "overlayShowOnStart"
-      | "overlaySnapToGrid"
-      | "overlayShowGridIndicator"
-      | "liveTrayTimer",
+    key: "showWelcomeMessage" | "overlaySnapToGrid" | "liveTrayTimer",
     setter: (v: boolean) => void,
     value: boolean
   ) {
@@ -335,18 +323,6 @@ export function SettingsPage() {
         </Section>
 
         <Section title="Overlay">
-          <ToggleRow
-            label="Sempre visível"
-            description="Overlay permanece visível após concluir uma tarefa"
-            value={overlayAlwaysVisible}
-            onChange={(v) => handleToggle("overlayAlwaysVisible", setOverlayAlwaysVisible, v)}
-          />
-          <ToggleRow
-            label="Mostrar ao iniciar tarefa"
-            description="Execution overlay aparece automaticamente ao iniciar"
-            value={overlayShowOnStart}
-            onChange={(v) => handleToggle("overlayShowOnStart", setOverlayShowOnStart, v)}
-          />
           <SliderRow
             label="Opacidade em repouso"
             description="Opacidade quando o cursor não está sobre o overlay"
@@ -361,14 +337,6 @@ export function SettingsPage() {
             description="Encaixa o overlay em grade ao soltar o arraste"
             value={overlaySnapToGrid}
             onChange={(v) => handleToggle("overlaySnapToGrid", setOverlaySnapToGrid, v)}
-          />
-          <ToggleRow
-            label="Mostrar indicador visual da grade"
-            description="Exibe a grade enquanto arrasta o overlay"
-            value={overlayShowGridIndicator}
-            onChange={(v) =>
-              handleToggle("overlayShowGridIndicator", setOverlayShowGridIndicator, v)
-            }
           />
         </Section>
 

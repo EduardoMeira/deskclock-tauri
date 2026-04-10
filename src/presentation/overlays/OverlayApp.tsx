@@ -42,6 +42,7 @@ function OverlayAppInner() {
   const [mode, setMode] = useState<OverlayMode>("compact");
   const [isHovered, setIsHovered] = useState(false);
   const [overlayOpacity, setOverlayOpacity] = useState(100);
+  const [snapToGrid, setSnapToGrid] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // switchMode definido antes dos effects que dependem dele
@@ -76,6 +77,7 @@ function OverlayAppInner() {
       setMode(running ? "execution" : "planning");
     });
     setOverlayOpacity(config.get("overlayOpacity") as number);
+    setSnapToGrid(!!config.get("overlaySnapToGrid"));
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Atualiza opacidade em tempo real quando o setting muda
@@ -85,6 +87,8 @@ function OverlayAppInner() {
       ({ payload }) => {
         if (payload.key === "overlayOpacity") {
           setOverlayOpacity(payload.value as number);
+        } else if (payload.key === "overlaySnapToGrid") {
+          setSnapToGrid(!!payload.value);
         } else if (payload.key === "fontSize") {
           applyFontSize(payload.value as string);
         } else if (payload.key === "theme") {
@@ -144,21 +148,23 @@ function OverlayAppInner() {
   useEffect(() => {
     const unlisten = appWindow.listen<{ x: number; y: number }>("tauri://move", ({ payload }) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      const { x: rawX, y: rawY } = payload;
+      const snapped = snapToGrid ? snapPositionToGrid(rawX, rawY) : { x: rawX, y: rawY };
+
       debounceRef.current = setTimeout(async () => {
-        let { x, y } = payload;
-        if (config.get("overlaySnapToGrid")) {
-          ({ x, y } = snapPositionToGrid(x, y));
-          await appWindow.setPosition(new PhysicalPosition(x, y));
+        if (snapToGrid) {
+          await appWindow.setPosition(new PhysicalPosition(snapped.x, snapped.y));
         }
         const key = `overlayPosition_${mode}` as Parameters<typeof config.set>[0];
-        await config.set(key, { x, y } as never);
+        await config.set(key, snapped as never);
       }, 200);
     });
     return () => {
       unlisten.then((fn) => fn());
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [config, mode]);
+  }, [config, mode, snapToGrid]);
 
   const handlePause = useCallback(async () => {
     if (!runningTask) return;
