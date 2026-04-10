@@ -63,20 +63,20 @@
 
 | # | Item | Status | Notas |
 |---|------|--------|-------|
-| L11 | Tela de Tasks: formato mais compacto para tarefas individuais (não-grupo) | ⬜ | Tarefas sem grupo não deveriam ter cabeçalho que repete a informação da tarefa |
-| L12 | Tela de Tasks: limitar altura máxima da seção "planejadas para hoje" | ⬜ | Evitar que lista extensa empurre "entradas de hoje" para fora da viewport |
-| L13 | Tela de Lançamento Retroativo: elementos parecem desposicionados | ⬜ | Revisar grid/layout do formulário e da lista |
-| L14 | Tela de Dados: revisão geral de layout | ⬜ | A definir após outras telas estabilizarem |
-| L15 | Tela de Integrações: usar accordion — detalhes só ao expandir | ⬜ | Card por integração colapsável; estado inicial: colapsado |
-| L16 | Tela de Integrações: scroll quando mapeamento de colunas está expandido | ⬜ | Overflow-y na seção, não na página toda |
+| L11 | Tela de Tasks: formato mais compacto para tarefas individuais (não-grupo) | ✅ | Tarefas únicas renderizam `TaskCard` direto sem cabeçalho de grupo |
+| L12 | Tela de Tasks: limitar altura máxima da seção "planejadas para hoje" | ✅ | `max-h-44 overflow-y-auto` na lista de planejadas |
+| L13 | Tela de Lançamento Retroativo: elementos parecem desposicionados | ✅ | Linha de tempos em linha única sem `flex-wrap` |
+| L14 | Tela de Dados: revisão geral de layout | ✅ | `h-full overflow-y-auto` consistente com outras telas |
+| L15 | Tela de Integrações: usar accordion — detalhes só ao expandir | ✅ | Já implementado com `SubSection` colapsável |
+| L16 | Tela de Integrações: scroll quando mapeamento de colunas está expandido | ✅ | `h-full overflow-y-auto` no container da página |
 
 ### 3.4 Componentes globais
 
 | # | Item | Status | Notas |
 |---|------|--------|-------|
-| L17 | Scrollbars com estilo uniforme e clean em todas as telas | ⬜ | CSS global via `::-webkit-scrollbar` |
-| L18 | Atalhos globais: permitir "Gravar atalho" ao invés de digitar manualmente | ⬜ | Capturar `keydown` em modo de gravação e exibir combinação |
-| L19 | Tela de Planejamento: botão "Hoje" antes do input de data (não depois) | ⬜ | Inversão de ordem no `PlannedTaskForm` |
+| L17 | Scrollbars com estilo uniforme e clean em todas as telas | ✅ | `::-webkit-scrollbar` global no `index.css` |
+| L18 | Atalhos globais: permitir "Gravar atalho" ao invés de digitar manualmente | ✅ | `ShortcutRow` captura `keydown`, exibe combinação, botão Alterar/Gravar/✕ |
+| L19 | Tela de Planejamento: botão "Hoje" antes do input de data (não depois) | ✅ | Ordem invertida no `PlannedTaskForm` |
 
 ---
 
@@ -114,4 +114,4 @@ Sprint 6 — Features novas
 
 ---
 
-*Última atualização: 09/04/2026 — Sprints 1, 2 e 3 concluídas*
+*Última atualização: 09/04/2026 — Sprints 1, 2, 3 e 4 concluídas*
