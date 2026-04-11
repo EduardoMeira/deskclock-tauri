@@ -263,6 +263,7 @@ export function SettingsPage() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [startOnBoot, setStartOnBoot] = useState(false);
   const [liveTrayTimer, setLiveTrayTimer] = useState(false);
+  const [closeOnFocusLoss, setCloseOnFocusLoss] = useState(false);
   const [overlayOpacity, setOverlayOpacity] = useState(100);
   const [overlaySnapToGrid, setOverlaySnapToGrid] = useState(false);
   const [fontSize, setFontSize] = useState<"P" | "M" | "G" | "GG">("M");
@@ -280,6 +281,7 @@ export function SettingsPage() {
     setOverlayOpacity(config.get("overlayOpacity"));
     setOverlaySnapToGrid(config.get("overlaySnapToGrid"));
     setLiveTrayTimer(config.get("liveTrayTimer"));
+    setCloseOnFocusLoss(config.get("closeOnFocusLoss"));
     setFontSize(config.get("fontSize"));
     setTheme(config.get("theme") as Theme);
     setShortcutToggleTask(config.get("shortcutToggleTask"));
@@ -341,7 +343,7 @@ export function SettingsPage() {
   }
 
   async function handleToggle(
-    key: "showWelcomeMessage" | "overlaySnapToGrid" | "liveTrayTimer",
+    key: "showWelcomeMessage" | "overlaySnapToGrid" | "liveTrayTimer" | "closeOnFocusLoss",
     setter: (v: boolean) => void,
     value: boolean
   ) {
@@ -412,6 +414,12 @@ export function SettingsPage() {
             description="Mostra o tempo da tarefa em execução no tooltip do ícone"
             value={liveTrayTimer}
             onChange={(v) => handleToggle("liveTrayTimer", setLiveTrayTimer, v)}
+          />
+          <ToggleRow
+            label="Fechar ao perder foco"
+            description="Oculta a janela automaticamente ao clicar fora dela. Use o pin na barra de título para fixá-la temporariamente."
+            value={closeOnFocusLoss}
+            onChange={(v) => handleToggle("closeOnFocusLoss", setCloseOnFocusLoss, v)}
           />
         </Section>
 

@@ -59,6 +59,7 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
   }
 
   function handleStopClick() {
+    if (!runningTask) return;
     const missingName = !runningTask.name?.trim();
     const missingProject = !runningTask.projectId;
     if (missingName || missingProject) {
@@ -96,6 +97,7 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
   }
 
   function handleStartTimeClick() {
+    if (!runningTask) return;
     const d = new Date(runningTask.startTime);
     const hh = String(d.getHours()).padStart(2, "0");
     const mm = String(d.getMinutes()).padStart(2, "0");
@@ -105,6 +107,7 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
 
   async function handleStartTimeCommit() {
     setEditingStartTime(false);
+    if (!runningTask) return;
     const [hh, mm] = startTimeInput.split(":").map(Number);
     if (isNaN(hh) || isNaN(mm)) return;
     // Constrói o novo startTime no dia atual (lógica de fuso local)

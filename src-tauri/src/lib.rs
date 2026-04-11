@@ -289,9 +289,20 @@ pub fn run() {
                                 if let Ok(Some(monitor)) = window.current_monitor().or_else(|_| window.primary_monitor()) {
                                     let screen_h = monitor.size().height as i32;
                                     let screen_w = monitor.size().width as i32;
+                                    let scale = monitor.scale_factor();
                                     let win_size = window.outer_size().unwrap_or_default();
-                                    let win_w = win_size.width as i32;
-                                    let win_h = win_size.height as i32;
+                                    // outer_size() pode retornar 0 para janelas ainda não exibidas;
+                                    // nesse caso usa as dimensões lógicas configuradas × scale factor.
+                                    let win_w = if win_size.width > 0 {
+                                        win_size.width as i32
+                                    } else {
+                                        (800.0 * scale) as i32
+                                    };
+                                    let win_h = if win_size.height > 0 {
+                                        win_size.height as i32
+                                    } else {
+                                        (620.0 * scale) as i32
+                                    };
 
                                     let click_x = position.x as i32;
                                     let click_y = position.y as i32;

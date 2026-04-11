@@ -13,6 +13,7 @@ export interface AppConfig {
   showWelcomeMessage: boolean;
   startOnBoot: boolean;
   liveTrayTimer: boolean;
+  closeOnFocusLoss: boolean;
   // Acessibilidade
   fontSize: "P" | "M" | "G" | "GG";
   theme: "azul" | "verde" | "escuro" | "claro";
@@ -48,6 +49,7 @@ const DEFAULTS: AppConfig = {
   showWelcomeMessage: true,
   startOnBoot: false,
   liveTrayTimer: false,
+  closeOnFocusLoss: false,
   fontSize: "M" as const,
   theme: "azul" as const,
   shortcutToggleTask: "",

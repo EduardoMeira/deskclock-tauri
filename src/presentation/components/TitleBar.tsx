@@ -1,4 +1,4 @@
-import { Minus, X } from "lucide-react";
+import { Pin, PinOff, X } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { Page } from "./Sidebar";
 
@@ -16,12 +16,15 @@ const PAGE_LABELS: Record<Page, string> = {
 
 interface TitleBarProps {
   page: Page;
+  showPin: boolean;
+  isPinned: boolean;
+  onTogglePin: () => void;
 }
 
-export function TitleBar({ page }: TitleBarProps) {
+export function TitleBar({ page, showPin, isPinned, onTogglePin }: TitleBarProps) {
   return (
     <div className="h-8 bg-gray-950 border-b border-gray-800 flex items-center shrink-0 select-none">
-      {/* Área de arraste — ocupa todo o espaço exceto os botões */}
+      {/* Área de arraste */}
       <div data-tauri-drag-region className="flex-1 flex items-center gap-2 px-3 h-full min-w-0">
         <span className="text-xs font-semibold text-gray-500 tracking-wide">DeskClock</span>
         <span className="text-gray-700 text-xs">·</span>
@@ -30,13 +33,19 @@ export function TitleBar({ page }: TitleBarProps) {
 
       {/* Controles da janela */}
       <div className="flex items-center h-full shrink-0">
-        <button
-          onClick={() => appWindow.minimize()}
-          title="Minimizar"
-          className="h-full px-4 text-gray-500 hover:text-gray-200 hover:bg-gray-800 transition-colors"
-        >
-          <Minus size={12} />
-        </button>
+        {showPin && (
+          <button
+            onClick={onTogglePin}
+            title={isPinned ? "Desafixar janela (fecha ao perder foco)" : "Fixar janela (não fecha ao perder foco)"}
+            className={`h-full px-3 transition-colors ${
+              isPinned
+                ? "text-blue-400 hover:text-blue-300 hover:bg-gray-800"
+                : "text-gray-600 hover:text-gray-300 hover:bg-gray-800"
+            }`}
+          >
+            {isPinned ? <Pin size={12} /> : <PinOff size={12} />}
+          </button>
+        )}
         <button
           onClick={() => appWindow.hide()}
           title="Fechar (minimiza para o tray)"

@@ -57,10 +57,14 @@ function MainContent({
   page,
   setPage,
   welcomeActiveRef,
+  isPinned,
+  onTogglePin,
 }: {
   page: Page;
   setPage: (p: Page) => void;
   welcomeActiveRef: React.MutableRefObject<boolean>;
+  isPinned: boolean;
+  onTogglePin: () => void;
 }) {
   const { startTask, pauseTask, resumeTask, stopTask, runningTask } = useRunningTask();
   const config = useAppConfig();
@@ -140,9 +144,11 @@ function MainContent({
     };
   }, [startTask, setPage, welcomeActiveRef]);
 
+  const showPin = config.isLoaded && config.get("closeOnFocusLoss");
+
   return (
     <div className="flex flex-col h-screen bg-gray-950 text-gray-100 overflow-hidden">
-      <TitleBar page={page} />
+      <TitleBar page={page} showPin={showPin} isPinned={isPinned} onTogglePin={onTogglePin} />
       <div className="flex flex-1 min-h-0 overflow-hidden">
         <Sidebar current={page} onChange={setPage} />
         <main className="flex-1 overflow-hidden">
@@ -158,7 +164,14 @@ const appWindow = getCurrentWindow();
 function AppInner() {
   const config = useAppConfig();
   const [page, setPage] = useState<Page>("tasks");
+  const [isPinned, setIsPinned] = useState(false);
   const welcomeActiveRef = useRef(false);
+  const isPinnedRef = useRef(false);
+
+  // Mantém ref sincronizada com state (evita closure stale nos listeners)
+  useEffect(() => {
+    isPinnedRef.current = isPinned;
+  }, [isPinned]);
 
   // Aplica tamanho de fonte e tema salvos ao iniciar
   useEffect(() => {
@@ -180,6 +193,30 @@ function AppInner() {
     }).catch(() => {});
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Fecha janela ao perder foco, se habilitado e não fixada
+  useEffect(() => {
+    const unlisten = appWindow.listen("tauri://blur", () => {
+      if (!config.get("closeOnFocusLoss")) return;
+      if (isPinnedRef.current) return;
+      appWindow.hide();
+    });
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ESC fecha a janela (exceto quando um input/textarea/select está focado)
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      const tag = (document.activeElement as HTMLElement)?.tagName ?? "";
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
+      appWindow.hide();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   // Show welcome or overlay on startup
   useEffect(() => {
     if (!config.isLoaded) return;
@@ -187,16 +224,11 @@ function AppInner() {
       getWelcome().then((w) => {
         if (!w) return;
         w.show();
-        // Delay activating the ref so the initial window-focus event (fired at
-        // app start, before this effect runs) is not mistakenly treated as a
-        // tray-triggered focus.
         setTimeout(() => {
           welcomeActiveRef.current = true;
         }, 200);
       });
-      // Janela principal permanece oculta até o Welcome ser dispensado
     } else {
-      // Sem welcome: mostra a janela principal e o overlay imediatamente
       appWindow.show();
       getOverlay().then((overlay) => overlay?.show());
     }
@@ -238,7 +270,13 @@ function AppInner() {
 
   return (
     <RunningTaskProvider config={config}>
-      <MainContent page={page} setPage={setPage} welcomeActiveRef={welcomeActiveRef} />
+      <MainContent
+        page={page}
+        setPage={setPage}
+        welcomeActiveRef={welcomeActiveRef}
+        isPinned={isPinned}
+        onTogglePin={() => setIsPinned((v) => !v)}
+      />
     </RunningTaskProvider>
   );
 }
