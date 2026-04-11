@@ -201,16 +201,18 @@ pnpm format:check
 
 ## Build local
 
+Use o script `release` para validar e gerar o instalador em uma única etapa:
+
 ```bash
-# 1. Verifica tipos TypeScript
-pnpm tsc --noEmit
-
-# 2. Roda os testes
-pnpm test
-
-# 3. Gera o instalador nativo para o SO atual
-pnpm tauri build
+pnpm release
 ```
+
+Ele executa em sequência:
+1. `tsc --noEmit` — verifica tipos TypeScript
+2. `pnpm test` — roda os testes unitários
+3. `pnpm tauri build` — gera o instalador nativo para o SO atual
+
+> **Importante:** `pnpm tauri build` gera instaladores **apenas para a plataforma onde está rodando**. Para gerar o instalador Windows, execute no Windows (não no WSL2) ou use o CI (ver seção abaixo).
 
 Os artefatos são gerados em `src-tauri/target/release/bundle/`:
 
@@ -383,4 +385,35 @@ O projeto segue [Semantic Versioning](https://semver.org/lang/pt-BR/):
 - **MINOR** (`v0.2.0`): novas funcionalidades retrocompatíveis
 - **PATCH** (`v0.1.1`): correções de bugs
 
-A versão é definida em `tauri.conf.json` (`"version"`) e deve estar alinhada com `Cargo.toml`.
+### Como gerar uma nova versão
+
+A versão precisa estar atualizada em **dois arquivos** antes de criar a tag:
+
+**1. Atualize a versão nos dois arquivos de configuração:**
+
+```bash
+# src-tauri/tauri.conf.json  →  campo "version"
+# src-tauri/Cargo.toml       →  campo version (linha 3)
+```
+
+Ambos devem ter o mesmo número de versão (ex: `0.2.0`).
+
+**2. Faça o commit da versão:**
+
+```bash
+git add src-tauri/tauri.conf.json src-tauri/Cargo.toml
+git commit -m "chore: bump version to 0.2.0"
+```
+
+**3. Crie a tag e faça push:**
+
+```bash
+git tag v0.2.0
+git push origin main --tags
+```
+
+O workflow `release.yml` dispara automaticamente, builda para Linux e Windows em paralelo, e cria um **rascunho de release** no GitHub com os instaladores anexados.
+
+**4. Publique o release:**
+
+Acesse **Releases** no repositório, revise o rascunho e clique em **Publish release**.
