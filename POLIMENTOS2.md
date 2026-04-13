@@ -30,16 +30,16 @@
 
 ---
 
-## Branch 3 — Comportamento dos Overlays
+## Branch 3 — Comportamento dos Overlays ✅
 
 | # | Item | Status | Notas |
 |---|------|--------|-------|
-| O1 | Overlay idle reposicionado ao concluir tarefa | ⬜ | `RUNNING_TASK_CHANGED` com `task=null` chama `setMode` em vez de `switchMode`; não restaura posição salva |
-| O2 | Badge do overlay compacto: aspect-ratio e tamanho mínimo | ⬜ | Precisa de `aspect-ratio: 1/1`, `min-width: 16px`, `min-height: 16px`, `padding: 2px` |
-| O3 | Clique no overlay não abre em modo de edição | ⬜ | `didMoveRef` é setado pelo evento `tauri://resize` (não só drag); clique legítimo é descartado |
-| O4 | Mais destaque para o input de edição de hora inicial | ⬜ | Input pequeno e pouco visível em `RunningTaskSection`; aumentar e destacar visualmente |
-| O5 | Snap-to-grid pula antes de soltar o mouse | ⬜ | `setPosition` aplicado a cada evento `tauri://move`; deveria aplicar só no debounce final |
-| O6 | Overlay sai da tela e fica sob a barra de tarefas | ⬜ | Sem clamp de posição contra os limites do monitor; corrigir no handler de `tauri://move` |
+| O1 | Overlay idle reposicionado ao concluir tarefa | ✅ | `switchMode` com `modeRef` para leitura segura em closure; posição salva restaurada ao transitar para planning/compact |
+| O2 | Badge do overlay compacto: aspect-ratio e tamanho mínimo | ✅ | `min-w-[16px] min-h-[16px] h-4 px-[3px]` — circular para números, pill para "9+" |
+| O3 | Clique no overlay não abre em modo de edição | ✅ | `isMouseDownRef` guarda `didMoveRef`: só marca se mouse está pressionado; reposicionamentos programáticos não descartam cliques |
+| O4 | Mais destaque para o input de edição de hora inicial | ✅ | Botão com borda ao hover + ícone `Pen` sutil; input com `border-blue-500`, largura `w-24` e `ring` no focus |
+| O5 | Snap-to-grid pula antes de soltar o mouse | ✅ | Posição acumulada em `lastRawPosRef`; snap aplicado só no debounce final, sem pulos durante arraste |
+| O6 | Overlay sai da tela e fica sob a barra de tarefas | ✅ | Clamp via `currentMonitor()` no debounce de `tauri://move`; janela sempre dentro dos limites do monitor |
 
 ---
 
@@ -64,11 +64,11 @@
 ```
 Branch 1 — fix/window-controls         ✅ mergeado em main
 Branch 2 — fix/form-and-shortcuts      ✅ F1, F2, F3
-Branch 3 — fix/overlay-behavior        ⬜ O1, O2, O3, O4, O5, O6
+Branch 3 — fix/overlay-behavior        ✅ O1, O2, O3, O4, O5, O6
 Branch 4 — fix/sheets-duration         ⬜ S1
 Branch 5 — feat/compact-execution-overlay ⬜ E1
 ```
 
 ---
 
-*Última atualização: 11/04/2026 — Branches 1 e 2 concluídos*
+*Última atualização: 12/04/2026 — Branches 1, 2 e 3 concluídos*
