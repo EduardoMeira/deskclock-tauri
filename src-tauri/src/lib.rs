@@ -4,8 +4,9 @@ mod tray;
 
 use tauri::Manager;
 use commands::{
-    get_platform, open_in_browser, open_in_file_manager, save_file, start_oauth_server,
-    update_shortcuts, update_tray_tooltip,
+    check_for_update, download_and_install_update, get_platform, open_in_browser,
+    open_in_file_manager, relaunch_app, save_file, start_oauth_server, update_shortcuts,
+    update_tray_tooltip,
 };
 use tauri_plugin_autostart::MacosLauncher;
 
@@ -37,6 +38,7 @@ pub fn run() {
 
             Ok(())
         })
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_autostart::init(MacosLauncher::LaunchAgent, Some(vec![])))
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
@@ -54,6 +56,9 @@ pub fn run() {
             get_platform,
             open_in_browser,
             open_in_file_manager,
+            check_for_update,
+            download_and_install_update,
+            relaunch_app,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
