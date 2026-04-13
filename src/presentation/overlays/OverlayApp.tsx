@@ -18,6 +18,7 @@ import {
   type TaskStoppedPayload,
 } from "@shared/types/overlayEvents";
 import { snapPositionToGrid } from "@shared/utils/snapToGrid";
+import { currentMonitor } from "@tauri-apps/api/window";
 import { applyFontSize } from "@shared/utils/fontSize";
 import { applyTheme } from "@shared/utils/theme";
 import type { Theme } from "@shared/utils/theme";
@@ -44,6 +45,13 @@ function OverlayAppInner() {
   const [overlayOpacity, setOverlayOpacity] = useState(100);
   const [snapToGrid, setSnapToGrid] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastRawPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const modeRef = useRef<OverlayMode>("compact");
+
+  // Mantém modeRef sincronizado para uso em closures com dep vazia
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
 
   // switchMode definido antes dos effects que dependem dele
   const switchMode = useCallback(
@@ -135,25 +143,44 @@ function OverlayAppInner() {
         if (payload.task) {
           switchMode("execution");
         } else {
-          setMode((prev) => (prev === "compact" ? "compact" : "planning"));
+          // Usa modeRef para ler o modo atual sem depender de closure estale
+          switchMode(modeRef.current === "compact" ? "compact" : "planning");
         }
       }
     );
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [switchMode]);
 
-  // Snap-to-grid + persistência de posição no evento tauri://move
+  // Snap-to-grid + clamp ao monitor + persistência de posição
+  // Acumula posição em lastRawPosRef e aplica apenas no debounce final,
+  // evitando pulos durante o arraste quando snap-to-grid está ativo.
   useEffect(() => {
     const unlisten = appWindow.listen<{ x: number; y: number }>("tauri://move", ({ payload }) => {
+      lastRawPosRef.current = { x: payload.x, y: payload.y };
       if (debounceRef.current) clearTimeout(debounceRef.current);
 
-      const { x: rawX, y: rawY } = payload;
-      const snapped = snapToGrid ? snapPositionToGrid(rawX, rawY) : { x: rawX, y: rawY };
-
       debounceRef.current = setTimeout(async () => {
-        if (snapToGrid) {
+        const { x: rawX, y: rawY } = lastRawPosRef.current;
+
+        // Clamp: garante que a janela não saia da área do monitor
+        let finalX = rawX;
+        let finalY = rawY;
+        const monitor = await currentMonitor();
+        if (monitor) {
+          const { width: mW, height: mH } = monitor.size;
+          const { x: mX, y: mY } = monitor.position;
+          const { width: winW, height: winH } = OVERLAY_SIZES[modeRef.current];
+          const scale = monitor.scaleFactor;
+          finalX = Math.max(mX, Math.min(rawX, mX + mW - Math.round(winW * scale)));
+          finalY = Math.max(mY, Math.min(rawY, mY + mH - Math.round(winH * scale)));
+        }
+
+        // Aplica snap apenas depois de todos os ajustes
+        const snapped = snapToGrid ? snapPositionToGrid(finalX, finalY) : { x: finalX, y: finalY };
+
+        if (snapToGrid || finalX !== rawX || finalY !== rawY) {
           await appWindow.setPosition(new PhysicalPosition(snapped.x, snapped.y));
         }
         const key = `overlayPosition_${mode}` as Parameters<typeof config.set>[0];

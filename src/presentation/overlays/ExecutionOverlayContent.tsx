@@ -27,11 +27,22 @@ export function ExecutionOverlayContent({
   const displayName = task.name ?? "(sem nome)";
   const [confirmingStop, setConfirmingStop] = useState(false);
   const didMoveRef = useRef(false);
+  const isMouseDownRef = useRef(false);
 
-  // Detecta se a janela foi arrastada para distinguir clique de drag
+  // Detecta se a janela foi arrastada para distinguir clique de drag.
+  // Só marca didMove quando o botão do mouse está pressionado, evitando
+  // que reposicionamentos programáticos (resize, switchMode) descarte cliques.
+  useEffect(() => {
+    const handleMouseUp = () => { isMouseDownRef.current = false; };
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => document.removeEventListener("mouseup", handleMouseUp);
+  }, []);
+
   useEffect(() => {
     const unlisten = getCurrentWindow().listen("tauri://move", () => {
-      didMoveRef.current = true;
+      if (isMouseDownRef.current) {
+        didMoveRef.current = true;
+      }
     });
     return () => { unlisten.then((fn) => fn()); };
   }, []);
@@ -60,7 +71,7 @@ export function ExecutionOverlayContent({
   return (
     <div
       data-tauri-drag-region
-      onMouseDown={() => { didMoveRef.current = false; }}
+      onMouseDown={() => { isMouseDownRef.current = true; didMoveRef.current = false; }}
       className={`w-full h-full flex items-center gap-2 bg-gray-900 border-l-4 rounded-lg shadow-xl px-3 ${
         task.billable ? "border-l-blue-500" : "border-l-gray-600"
       }`}
