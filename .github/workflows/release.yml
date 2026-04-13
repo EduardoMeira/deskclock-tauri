@@ -68,7 +68,7 @@ jobs:
       - run: pnpm test
 
       # ── Build Tauri + publicar release ────────────────────────────────
-      - uses: tauri-apps/tauri-action@v0
+      - uses: tauri-apps/tauri-action@v0.5.16
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VITE_GCP_CLIENT_ID: ${{ secrets.GCP_CLIENT_ID }}
