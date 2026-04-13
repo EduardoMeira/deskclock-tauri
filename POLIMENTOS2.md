@@ -43,7 +43,16 @@
 
 ---
 
-## Branch 4 — Duração no Google Sheets
+## Branch 4 — Correções de Overlay e Janela Principal
+
+| # | Item | Status | Notas |
+|---|------|--------|-------|
+| P1 | Clique no execution overlay não abre em modo de edição | ⬜ | Race condition entre IPC e `tauri://focus`; múltiplas abordagens tentadas (pendingRef + focus listener, emit-first, listener direto + ignoreBlurRef) — nenhuma resolveu; investigar alternativa via Rust state ou outro mecanismo |
+| P2 | Janela principal aparece no centro-esquerda na primeira abertura | ⬜ | Deve abrir grudada no canto inferior direito acima da barra de tarefas (Windows); ignorar posição do tray como referência |
+
+---
+
+## Branch 5 — Duração no Google Sheets
 
 | # | Item | Status | Notas |
 |---|------|--------|-------|
@@ -51,7 +60,7 @@
 
 ---
 
-## Branch 5 — Overlay de Execução Compacto (nova feature) ✅
+## Branch 6 — Overlay de Execução Compacto (nova feature) ✅
 
 | # | Item | Status | Notas |
 |---|------|--------|-------|
@@ -65,10 +74,11 @@
 Branch 1 — fix/window-controls         ✅ mergeado em main
 Branch 2 — fix/form-and-shortcuts      ✅ F1, F2, F3
 Branch 3 — fix/overlay-behavior        ✅ O1, O2, O3, O4, O5, O6
-Branch 4 — fix/sheets-duration         ⬜ S1
-Branch 5 — feat/compact-execution-overlay ✅ E1
+Branch 4 — fix/overlay-and-window       ⬜ P1, P2
+Branch 5 — fix/sheets-duration         ⬜ S1
+Branch 6 — feat/compact-execution-overlay ✅ E1
 ```
 
 ---
 
-*Última atualização: 12/04/2026 — Branches 1, 2, 3 e 5 concluídos*
+*Última atualização: 13/04/2026 — Branches 1, 2, 3 e 6 concluídos; 4 e 5 pendentes*

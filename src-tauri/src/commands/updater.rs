@@ -10,9 +10,11 @@ pub struct UpdateInfo {
 pub async fn check_for_update(
     app: tauri::AppHandle,
 ) -> Result<Option<UpdateInfo>, String> {
+    use std::time::Duration;
     use tauri_plugin_updater::UpdaterExt;
     match app
         .updater_builder()
+        .timeout(Duration::from_secs(30))
         .build()
         .map_err(|e| e.to_string())?
         .check()
@@ -31,11 +33,13 @@ pub async fn check_for_update(
 /// Ao terminar, o frontend deve chamar relaunch_app() para reiniciar.
 #[tauri::command]
 pub async fn download_and_install_update(app: tauri::AppHandle) -> Result<(), String> {
+    use std::time::Duration;
     use tauri::Emitter;
     use tauri_plugin_updater::UpdaterExt;
 
     let update = app
         .updater_builder()
+        .timeout(Duration::from_secs(30))
         .build()
         .map_err(|e| e.to_string())?
         .check()
