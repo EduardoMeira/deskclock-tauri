@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Play, Pause, Square, Pencil, X, CheckCircle2, Clock, ArrowRight } from "lucide-react";
+import { Play, Pause, Square, Pencil, X, CheckCircle2, Clock, ArrowRight, Pen } from "lucide-react";
 import { listen } from "@tauri-apps/api/event";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";
@@ -150,15 +150,16 @@ export function RunningTaskSection({ projects, categories }: RunningTaskSectionP
                   if (e.key === "Escape") setEditingStartTime(false);
                 }}
                 autoFocus
-                className="bg-gray-800 border border-gray-600 rounded px-1 text-gray-200 text-xs focus:outline-none focus:border-blue-500"
+                className="w-24 bg-gray-800 border border-blue-500 rounded px-2 py-0.5 text-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             ) : (
               <button
                 onClick={handleStartTimeClick}
                 title="Editar hora de início"
-                className="hover:text-gray-300 transition-colors"
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 transition-colors group"
               >
                 início {formatTimeOfDay(runningTask.startTime)}
+                <Pen size={9} className="opacity-0 group-hover:opacity-60 transition-opacity" />
               </button>
             )}
           </div>

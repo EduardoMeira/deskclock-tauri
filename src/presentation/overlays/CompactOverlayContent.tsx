@@ -55,7 +55,7 @@ export function CompactOverlayContent({ onExpand, onStartTask }: CompactOverlayC
 
       {/* Badge dentro dos limites da janela */}
       {pendingCount > 0 && (
-        <span className="absolute top-0 right-0 w-4 h-4 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center pointer-events-none z-10">
+        <span className="absolute top-0 right-0 min-w-[16px] min-h-[16px] h-4 px-[3px] bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center pointer-events-none z-10">
           {pendingCount > 9 ? "9+" : pendingCount}
         </span>
       )}
