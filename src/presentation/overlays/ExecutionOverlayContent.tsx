@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Play, Pause, Square, CheckCircle2, Clock, X } from "lucide-react";
+import { Play, Pause, Square, CheckCircle2, Clock, X, Minimize2 } from "lucide-react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { emit } from "@tauri-apps/api/event";
@@ -14,6 +14,7 @@ interface ExecutionOverlayContentProps {
   onPause: () => void;
   onResume: () => void;
   onStop: (completed: boolean) => void;
+  onCompact: () => void;
 }
 
 export function ExecutionOverlayContent({
@@ -21,6 +22,7 @@ export function ExecutionOverlayContent({
   onPause,
   onResume,
   onStop,
+  onCompact,
 }: ExecutionOverlayContentProps) {
   const seconds = useTaskTimer(task);
   const isRunning = task.status === "running";
@@ -136,6 +138,13 @@ export function ExecutionOverlayContent({
               className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800 transition-colors"
             >
               <Square size={15} />
+            </button>
+            <button
+              onClick={onCompact}
+              className="p-1.5 text-gray-600 hover:text-gray-300 rounded hover:bg-gray-800 transition-colors"
+              title="Modo compacto"
+            >
+              <Minimize2 size={13} />
             </button>
           </div>
         </>

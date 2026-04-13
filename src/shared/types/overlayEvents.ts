@@ -21,7 +21,7 @@ export interface WelcomeClosedPayload {
 }
 
 export interface OverlaySetModePayload {
-  mode: "execution" | "planning" | "compact";
+  mode: "execution" | "planning" | "compact" | "execution-compact";
 }
 
 export interface OverlayConfigChangedPayload {
