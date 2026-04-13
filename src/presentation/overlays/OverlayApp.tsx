@@ -4,6 +4,7 @@ import { emit, listen } from "@tauri-apps/api/event";
 import { LogicalSize, PhysicalPosition } from "@tauri-apps/api/dpi";
 import type { Task } from "@domain/entities/Task";
 import { TaskRepository } from "@infra/database/TaskRepository";
+import { ProjectRepository } from "@infra/database/ProjectRepository";
 import { getActiveTasks } from "@domain/usecases/tasks/GetActiveTasks";
 import { pauseTask as pauseTaskUC } from "@domain/usecases/tasks/PauseTask";
 import { resumeTask as resumeTaskUC } from "@domain/usecases/tasks/ResumeTask";
@@ -25,21 +26,25 @@ import type { Theme } from "@shared/utils/theme";
 import { ExecutionOverlayContent } from "./ExecutionOverlayContent";
 import { PlanningOverlayContent } from "./PlanningOverlayContent";
 import { CompactOverlayContent } from "./CompactOverlayContent";
+import { CompactExecutionOverlayContent } from "./CompactExecutionOverlayContent";
 
-export type OverlayMode = "execution" | "planning" | "compact";
+export type OverlayMode = "execution" | "planning" | "compact" | "execution-compact";
 
 const OVERLAY_SIZES: Record<OverlayMode, { width: number; height: number }> = {
   execution: { width: 280, height: 80 },
   planning: { width: 288, height: 142 }, // altura real calculada em PlanningOverlayContent
   compact: { width: 52, height: 52 },
+  "execution-compact": { width: 62, height: 62 },
 };
 
 const taskRepo = new TaskRepository();
+const projectRepo = new ProjectRepository();
 const appWindow = getCurrentWindow();
 
 function OverlayAppInner() {
   const config = useAppConfig();
   const [runningTask, setRunningTask] = useState<Task | null>(null);
+  const [projectName, setProjectName] = useState<string | null>(null);
   const [mode, setMode] = useState<OverlayMode>("compact");
   const [isHovered, setIsHovered] = useState(false);
   const [overlayOpacity, setOverlayOpacity] = useState(100);
@@ -68,6 +73,18 @@ function OverlayAppInner() {
     },
     [config]
   );
+
+  // Carrega nome do projeto sempre que a running task muda
+  useEffect(() => {
+    if (!runningTask?.projectId) {
+      setProjectName(null);
+      return;
+    }
+    projectRepo.findAll().then((projects) => {
+      const p = projects.find((x) => x.id === runningTask.projectId);
+      setProjectName(p?.name ?? null);
+    });
+  }, [runningTask?.projectId]);
 
   // Aplica tamanho de fonte e tema ao iniciar
   useEffect(() => {
@@ -164,17 +181,17 @@ function OverlayAppInner() {
       debounceRef.current = setTimeout(async () => {
         const { x: rawX, y: rawY } = lastRawPosRef.current;
 
-        // Clamp: garante que a janela não saia da área do monitor
+        // Clamp: garante que a janela não saia da área do monitor.
+        // Usa outerSize() para obter o tamanho físico real — funciona em
+        // todos os modos, inclusive quando execution-compact está expandido via hover.
         let finalX = rawX;
         let finalY = rawY;
-        const monitor = await currentMonitor();
+        const [monitor, winSize] = await Promise.all([currentMonitor(), appWindow.outerSize()]);
         if (monitor) {
           const { width: mW, height: mH } = monitor.size;
           const { x: mX, y: mY } = monitor.position;
-          const { width: winW, height: winH } = OVERLAY_SIZES[modeRef.current];
-          const scale = monitor.scaleFactor;
-          finalX = Math.max(mX, Math.min(rawX, mX + mW - Math.round(winW * scale)));
-          finalY = Math.max(mY, Math.min(rawY, mY + mH - Math.round(winH * scale)));
+          finalX = Math.max(mX, Math.min(rawX, mX + mW - winSize.width));
+          finalY = Math.max(mY, Math.min(rawY, mY + mH - winSize.height));
         }
 
         // Aplica snap apenas depois de todos os ajustes
@@ -249,6 +266,14 @@ function OverlayAppInner() {
     [switchMode]
   );
 
+  const handleCompactExecution = useCallback(async () => {
+    await switchMode("execution-compact");
+  }, [switchMode]);
+
+  const handleExpandExecution = useCallback(async () => {
+    await switchMode("execution");
+  }, [switchMode]);
+
   const handleNavigatePlanning = useCallback(async () => {
     await emit(OVERLAY_EVENTS.OVERLAY_NAVIGATE_PLANNING, {});
     await appWindow.hide();
@@ -269,6 +294,17 @@ function OverlayAppInner() {
           onPause={handlePause}
           onResume={handleResume}
           onStop={handleStop}
+          onCompact={handleCompactExecution}
+        />
+      )}
+      {mode === "execution-compact" && runningTask && (
+        <CompactExecutionOverlayContent
+          task={runningTask}
+          projectName={projectName}
+          onPause={handlePause}
+          onResume={handleResume}
+          onStop={handleStop}
+          onExpand={handleExpandExecution}
         />
       )}
       {mode === "planning" && (
