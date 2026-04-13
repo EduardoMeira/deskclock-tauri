@@ -16,6 +16,9 @@ dist-ssr
 src-tauri/target/
 src-tauri/WixTools/
 
+# TypeScript build info
+*.tsbuildinfo
+
 # Coverage
 coverage/
 
