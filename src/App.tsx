@@ -97,18 +97,27 @@ function MainContent({
 
   // Live tray timer — atualiza tooltip do ícone da bandeja a cada segundo
   useEffect(() => {
-    if (!runningTask || runningTask.status !== "running") {
-      invoke("update_tray_tooltip", { text: null }).catch(() => {});
+    if (!runningTask) {
+      invoke("update_tray_tooltip", { text: "DeskClock (ocioso)" }).catch(() => {});
       return;
     }
+
+    if (runningTask.status === "paused") {
+      const name = runningTask.name || "(sem nome)";
+      invoke("update_tray_tooltip", { text: `DeskClock — ${name} (pausada)` }).catch(() => {});
+      return;
+    }
+
     const interval = setInterval(() => {
+      const name = runningTask.name || "(sem nome)";
       if (!config.get("liveTrayTimer")) {
-        invoke("update_tray_tooltip", { text: null }).catch(() => {});
+        invoke("update_tray_tooltip", { text: `DeskClock — ${name} (executando)` }).catch(() => {});
         return;
       }
       const elapsed = effectiveDuration(runningTask, new Date().toISOString());
-      const name = runningTask.name ?? "(sem nome)";
-      invoke("update_tray_tooltip", { text: `${name} — ${formatHHMMSS(elapsed)}` }).catch(() => {});
+      invoke("update_tray_tooltip", {
+        text: `DeskClock — ${name} (executando) — ${formatHHMMSS(elapsed)}`,
+      }).catch(() => {});
     }, 1000);
     return () => clearInterval(interval);
   }, [runningTask, config]);
