@@ -12,9 +12,16 @@ pub fn setup_tray(app: &tauri::App) -> tauri::Result<()> {
     let quit = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&show, &sep, &toggle_task, &stop_task, &sep, &quit])?;
 
+    // Carrega o ícone inicial "idle" diretamente do recurso
+    let icon_path = app
+        .path()
+        .resolve("icons/tray/idle.png", tauri::path::BaseDirectory::Resource)
+        .unwrap();
+    let initial_icon = tauri::image::Image::from_path(icon_path).unwrap();
+
     TrayIconBuilder::with_id("main")
-        .icon(app.default_window_icon().unwrap().clone())
-        .tooltip("DeskClock")
+        .icon(initial_icon)
+        .tooltip("DeskClock (ocioso)")
         .menu(&menu)
         .on_tray_icon_event(|tray, event| {
             if let TrayIconEvent::Click {
