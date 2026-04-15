@@ -171,20 +171,35 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
     const unlisten = listen<TaskStoppedPayload>(
       OVERLAY_EVENTS.TASK_STOPPED,
       async ({ payload }) => {
-        if (payload.completed) {
-          await autoSyncTask(payload.task);
+        if (!payload.completed) return;
+        const duration = payload.task.durationSeconds ?? 0;
+        if (config.get("discardTasksUnderOneMinute") && duration < 60) {
+          await cancelTaskUC(repo, payload.task.id);
+          triggerReload();
+          await showToast("info", "Tarefa descartada (menos de 1 minuto)");
+          return;
         }
+        await autoSyncTask(payload.task);
       }
     );
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, [autoSyncTask]);
+  }, [autoSyncTask, config, triggerReload]);
 
   const stopTask = useCallback(
     async (completed: boolean) => {
       if (!runningTask) return;
       const stoppedTask = await stopTaskUC(repo, runningTask.id, new Date().toISOString());
+      const duration = stoppedTask.durationSeconds ?? 0;
+      if (config.get("discardTasksUnderOneMinute") && duration < 60) {
+        await cancelTaskUC(repo, stoppedTask.id);
+        setRunningTask(null);
+        triggerReload();
+        await notifyOverlay(null);
+        await showToast("info", "Tarefa descartada (menos de 1 minuto)");
+        return;
+      }
       setRunningTask(null);
       triggerReload();
       await notifyOverlay(null);
@@ -192,7 +207,7 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
         await autoSyncTask(stoppedTask);
       }
     },
-    [runningTask, triggerReload, autoSyncTask]
+    [runningTask, triggerReload, autoSyncTask, config]
   );
 
   const cancelTask = useCallback(async () => {
