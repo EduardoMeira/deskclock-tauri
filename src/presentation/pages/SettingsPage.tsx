@@ -381,6 +381,7 @@ export function SettingsPage() {
   const [startOnBoot, setStartOnBoot] = useState(false);
   const [liveTrayTimer, setLiveTrayTimer] = useState(false);
   const [closeOnFocusLoss, setCloseOnFocusLoss] = useState(false);
+  const [discardTasksUnderOneMinute, setDiscardTasksUnderOneMinute] = useState(false);
   const [overlayOpacity, setOverlayOpacity] = useState(100);
   const [overlaySnapToGrid, setOverlaySnapToGrid] = useState(false);
   const [fontSize, setFontSize] = useState<"P" | "M" | "G" | "GG">("M");
@@ -399,6 +400,7 @@ export function SettingsPage() {
     setOverlaySnapToGrid(config.get("overlaySnapToGrid"));
     setLiveTrayTimer(config.get("liveTrayTimer"));
     setCloseOnFocusLoss(config.get("closeOnFocusLoss"));
+    setDiscardTasksUnderOneMinute(config.get("discardTasksUnderOneMinute"));
     setFontSize(config.get("fontSize"));
     setTheme(config.get("theme") as Theme);
     setShortcutToggleTask(config.get("shortcutToggleTask"));
@@ -460,7 +462,7 @@ export function SettingsPage() {
   }
 
   async function handleToggle(
-    key: "showWelcomeMessage" | "overlaySnapToGrid" | "liveTrayTimer" | "closeOnFocusLoss",
+    key: "showWelcomeMessage" | "overlaySnapToGrid" | "liveTrayTimer" | "closeOnFocusLoss" | "discardTasksUnderOneMinute",
     setter: (v: boolean) => void,
     value: boolean
   ) {
@@ -537,6 +539,12 @@ export function SettingsPage() {
             description="Oculta a janela automaticamente ao clicar fora dela. Use o pin na barra de título para fixá-la temporariamente."
             value={closeOnFocusLoss}
             onChange={(v) => handleToggle("closeOnFocusLoss", setCloseOnFocusLoss, v)}
+          />
+          <ToggleRow
+            label="Descartar tarefas com menos de 1 minuto"
+            description="Ao parar uma tarefa com duração inferior a 1 minuto, ela é descartada automaticamente (como se fosse cancelada)."
+            value={discardTasksUnderOneMinute}
+            onChange={(v) => handleToggle("discardTasksUnderOneMinute", setDiscardTasksUnderOneMinute, v)}
           />
         </Section>
 

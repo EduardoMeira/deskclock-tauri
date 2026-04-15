@@ -14,6 +14,7 @@ export interface AppConfig {
   startOnBoot: boolean;
   liveTrayTimer: boolean;
   closeOnFocusLoss: boolean;
+  discardTasksUnderOneMinute: boolean;
   // Acessibilidade
   fontSize: "P" | "M" | "G" | "GG";
   theme: "azul" | "verde" | "escuro" | "claro";
@@ -50,6 +51,7 @@ const DEFAULTS: AppConfig = {
   startOnBoot: false,
   liveTrayTimer: false,
   closeOnFocusLoss: false,
+  discardTasksUnderOneMinute: false,
   fontSize: "M" as const,
   theme: "azul" as const,
   shortcutToggleTask: "",
