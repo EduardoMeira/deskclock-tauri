@@ -74,11 +74,24 @@
 Branch 1 — fix/window-controls         ✅ mergeado em main
 Branch 2 — fix/form-and-shortcuts      ✅ F1, F2, F3
 Branch 3 — fix/overlay-behavior        ✅ O1, O2, O3, O4, O5, O6
-Branch 4 — fix/overlay-and-window       ⬜ P1, P2
+Branch 4 — fix/overlay-and-window      ⬜ P1 pendente (P2 ✅)
 Branch 5 — fix/sheets-duration         ✅ S1
 Branch 6 — feat/compact-execution-overlay ✅ E1
+Branch 7 — fix/overlay-polish          ✅ Q1, Q2, Q3, Q4, Q5
 ```
 
 ---
 
-*Última atualização: 14/04/2026 — Branches 1, 2, 3, 5 e 6 concluídos; Branch 4 (P1) pendente*
+## Branch 7 — Polimentos de Overlay (15/04/2026) ✅
+
+| # | Item | Status | Notas |
+|---|------|--------|-------|
+| Q1 | Overlays ficam atrás da barra de tarefas do Windows | ✅ | `SetWinEventHook(EVENT_SYSTEM_FOREGROUND)` + `SetWindowPos` direto sem `SWP_ASYNCWINDOWPOS`; zero CPU em idle |
+| Q2 | Botão de planejamento no overlay some o overlay sem abrir janela | ✅ | Listener `OVERLAY_NAVIGATE_PLANNING` agora chama `positionWindowBottomRight` + `show` + `setFocus`; `appWindow.hide()` removido do overlay |
+| Q3 | Lista do overlay idle e badge do compacto não atualizam ao criar/concluir tarefas | ✅ | Evento cross-window `planned-tasks-changed`; `usePlannedTasksForWeek` emite após mutações; `usePlannedTasksForDate` recarrega ao ouvir |
+| Q4 | Confirmar "Concluída? → Sim" não marca a PlannedTask como concluída | ✅ | `plannedTaskId` rastreado no flow start→stop; `completePlannedTask` chamado ao confirmar conclusão tanto no overlay quanto na janela principal |
+| Q5 | Versão do app mostra `v0.1.0` hardcoded na tela de configurações | ✅ | Substituído por `getVersion()` da API do Tauri |
+
+---
+
+*Última atualização: 15/04/2026 — Branch 7 concluído; P1 ainda pendente*

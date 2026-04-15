@@ -83,7 +83,7 @@ Aplicativo desktop de registro de horas trabalhadas, construído com Tauri + Rea
 | Camada | Tecnologia |
 |---|---|
 | Framework desktop | Tauri v2 |
-| Frontend | React 18 + TypeScript |
+| Frontend | React 19 + TypeScript |
 | Estilização | Tailwind CSS v4 |
 | Ícones | Lucide React |
 | Banco de dados | SQLite (`tauri-plugin-sql`) |
@@ -201,16 +201,13 @@ pnpm format:check
 
 ## Build local
 
-Use o script `release` para validar e gerar o instalador em uma única etapa:
+Para gerar o instalador nativo para o SO atual:
 
 ```bash
-pnpm release
+pnpm tsc --noEmit   # verifica tipos
+pnpm test           # roda os testes unitários
+pnpm tauri build    # gera o instalador
 ```
-
-Ele executa em sequência:
-1. `tsc --noEmit` — verifica tipos TypeScript
-2. `pnpm test` — roda os testes unitários
-3. `pnpm tauri build` — gera o instalador nativo para o SO atual
 
 > **Importante:** `pnpm tauri build` gera instaladores **apenas para a plataforma onde está rodando**. Para gerar o instalador Windows, execute no Windows (não no WSL2) ou use o CI (ver seção abaixo).
 
@@ -387,33 +384,26 @@ O projeto segue [Semantic Versioning](https://semver.org/lang/pt-BR/):
 
 ### Como gerar uma nova versão
 
-A versão precisa estar atualizada em **dois arquivos** antes de criar a tag:
+O projeto usa [`standard-version`](https://github.com/conventional-changelog/standard-version) para automatizar o bump de versão. Ele atualiza `package.json` e `src-tauri/tauri.conf.json` atomicamente, gera o CHANGELOG e cria a tag Git.
 
-**1. Atualize a versão nos dois arquivos de configuração:**
+**1. Execute o script de release:**
 
 ```bash
-# src-tauri/tauri.conf.json  →  campo "version"
-# src-tauri/Cargo.toml       →  campo version (linha 3)
+pnpm release:patch   # v0.1.0 → v0.1.1
+pnpm release:minor   # v0.1.0 → v0.2.0
+pnpm release:major   # v0.1.0 → v1.0.0
 ```
 
-Ambos devem ter o mesmo número de versão (ex: `0.2.0`).
+Isso cria um commit `chore(release): x.y.z` com todos os arquivos de versão atualizados e a tag `vx.y.z` localmente.
 
-**2. Faça o commit da versão:**
-
-```bash
-git add src-tauri/tauri.conf.json src-tauri/Cargo.toml
-git commit -m "chore: bump version to 0.2.0"
-```
-
-**3. Crie a tag e faça push:**
+**2. Faça push do commit e da tag:**
 
 ```bash
-git tag v0.2.0
-git push origin main --tags
+git push origin main --follow-tags
 ```
 
 O workflow `release.yml` dispara automaticamente, builda para Linux e Windows em paralelo, e cria um **rascunho de release** no GitHub com os instaladores anexados.
 
-**4. Publique o release:**
+**3. Publique o release:**
 
 Acesse **Releases** no repositório, revise o rascunho e clique em **Publish release**.

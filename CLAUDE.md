@@ -298,6 +298,8 @@ src/
 | Timer ao vivo no ícone da bandeja | toggle | Mostra timer no system tray icon |
 | Mostrar mensagem de boas-vindas | toggle | Exibe Welcome Overlay ao abrir |
 | Como quer ser chamado? | text input | Nome exibido na mensagem de boas-vindas |
+| Fechar ao perder foco | toggle | Janela principal fecha ao perder o foco (padrão: desativado); Pin/Unpin na title bar suspende temporariamente |
+| Descartar tarefas com menos de 1 minuto | toggle | Cancela automaticamente tarefas paradas em menos de 60 s (padrão: desativado) |
 
 #### Overlay
 | Configuração | Tipo | Descrição |
@@ -553,7 +555,11 @@ O projeto adota testes **unitários** com Vitest, focados nas camadas testáveis
 | 09/04/2026 | Auto-sync centralizado em `RunningTaskContext` (janela main) | Overlay emite `TASK_STOPPED` com a `Task` completa; main escuta e executa o sync — garante acesso ao config e evita duplicação |
 | 09/04/2026 | `parseRRuleDays` extraído para `infra/integrations/google/rrule.ts` | Testabilidade: função pura isolada do `GoogleCalendarImporter` que depende de `fetch` |
 | 09/04/2026 | Planejamento sem visão "Hoje" — apenas visão Semana | A visão Semana com filtro por dia e botão "Hoje" no campo de data é suficiente; remover "Hoje" simplifica a navegação |
+| 15/04/2026 | `standard-version` com `bumpFiles` para sincronizar `tauri.conf.json` | Substituiu o `postbump` script que não fazia stage do arquivo; `bumpFiles` atualiza e faz stage atomicamente junto com `package.json` |
+| 15/04/2026 | Overlays HWND_TOPMOST via `SetWinEventHook` + `SetWindowPos` direto (Windows) | `set_always_on_top` do Tauri usa `SWP_ASYNCWINDOWPOS` que o OS descarta como no-op; `SetWindowPos` síncrono re-afirma TOPMOST ao `EVENT_SYSTEM_FOREGROUND` — zero CPU em idle, sem polling |
+| 15/04/2026 | `PLANNED_TASKS_CHANGED` como evento Tauri cross-window | Overlay e janela principal vivem em processos JS separados; evento emitido após toda mutação de `usePlannedTasksForWeek` garante que `usePlannedTasksForDate` no overlay recarregue sem polling |
+| 15/04/2026 | `plannedTaskId` propagado no flow start→stop para auto-completar PlannedTask | Ao confirmar "Concluída? → Sim" no execution overlay, a PlannedTask associada recebe a data atual em `completedDates` — sem campo extra na entidade `Task`, rastreado apenas em estado de sessão |
 
 ---
 
-*Última atualização: 09/04/2026*
+*Última atualização: 15/04/2026*
