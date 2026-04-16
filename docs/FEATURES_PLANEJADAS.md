@@ -98,4 +98,44 @@ Atualmente o app suporta apenas sincronização unitária (envia para a planilha
 
 ---
 
-*Última atualização: 14/04/2026*
+---
+
+## S1 — Migrar OAuth para PKCE (Segurança)
+
+**Status:** ⬜
+
+**Descrição:**  
+Atualmente o fluxo OAuth usa **Authorization Code + client_secret**, que fica embutido no bundle compilado do app e pode ser extraído por qualquer pessoa com acesso ao instalador. O fluxo **PKCE (Proof Key for Code Exchange)** elimina a necessidade do `client_secret` em apps desktop — foi criado exatamente para esse cenário.
+
+**Problema atual:**
+```typescript
+// client_secret compilado no bundle — visível após descompactar o instalador
+const CLIENT_SECRET = import.meta.env.GCP_CLIENT_SECRET as string;
+```
+
+**Solução com PKCE:**
+```
+1. App gera code_verifier (aleatório) + code_challenge (SHA-256 do verifier)
+2. Inicia OAuth enviando code_challenge — sem client_secret
+3. Google devolve o code
+4. App troca code por token enviando code_verifier — Google valida o hash
+5. Sem client_secret em nenhuma etapa
+```
+
+**O que muda na implementação:**
+- Remover `GCP_CLIENT_SECRET` do `.env` e do código
+- Adicionar geração de `code_verifier` e `code_challenge` no frontend antes de iniciar o fluxo
+- Atualizar a troca de `code` por token para usar `code_verifier` em vez de `client_secret`
+- Backend Rust (servidor OAuth local) não muda
+- Configurar o app no Google Cloud Console como **Desktop app sem secret**
+
+**Impacto:**
+- `GCP_CLIENT_SECRET` sai completamente do projeto
+- `.env` passa a ter apenas `GCP_CLIENT_ID`
+- Conformidade com as políticas do Google para apps OAuth públicos
+
+**Referência de decisão:** CLAUDE.md — Registro de Decisões 09/04/2026 (OAuth via Authorization Code aceito como trade-off de MVP)
+
+---
+
+*Última atualização: 15/04/2026*
