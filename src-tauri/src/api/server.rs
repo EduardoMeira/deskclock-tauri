@@ -91,14 +91,14 @@ fn resolve_db_path(app: &AppHandle) -> Result<PathBuf, String> {
 }
 
 /// Lê a configuração `localApiEnabled` do SQLite (valor JSON).
-/// Retorna `true` por padrão (ausência do registro = ligado).
+/// Retorna `false` por padrão (API desativada até o usuário habilitar).
 pub fn read_enabled(db_path: &Path) -> bool {
     let Ok(db) = crate::api::db::Db::open(db_path) else {
-        return true;
+        return false;
     };
     match db.get_config_json(CONFIG_KEY_ENABLED) {
-        Ok(Some(v)) => serde_json::from_str::<bool>(&v).unwrap_or(true),
-        _ => true,
+        Ok(Some(v)) => serde_json::from_str::<bool>(&v).unwrap_or(false),
+        _ => false,
     }
 }
 
