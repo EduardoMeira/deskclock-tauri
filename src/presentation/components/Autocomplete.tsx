@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { fuzzyMatch } from "@shared/utils/fuzzySearch";
 
 interface Option {
   id: string;
@@ -32,7 +33,7 @@ export function Autocomplete({
   const listRef = useRef<HTMLUListElement>(null);
 
   const filtered = value
-    ? options.filter((o) => o.name.toLowerCase().includes(value.toLowerCase()))
+    ? options.filter((o) => fuzzyMatch(value, o.name))
     : options;
 
   // Reseta o índice ativo quando a lista muda
