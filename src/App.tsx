@@ -252,6 +252,7 @@ function AppInner() {
       if (e.key !== "Escape") return;
       const tag = (document.activeElement as HTMLElement)?.tagName ?? "";
       if (["INPUT", "TEXTAREA", "SELECT"].includes(tag)) return;
+      if (document.querySelector("[data-modal-open]")) return;
       appWindow.hide();
     }
     document.addEventListener("keydown", onKeyDown);

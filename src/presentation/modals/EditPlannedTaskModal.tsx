@@ -93,6 +93,7 @@ export function EditPlannedTaskModal({
 
   return (
     <div
+      data-modal-open
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
