@@ -102,14 +102,40 @@ export function startOfMonthISO(): string {
 
 export function parseDurationInput(input: string): number | null {
   const trimmed = input.trim();
+  if (!trimmed) return null;
   // HH:MM:SS
   const hms = trimmed.match(/^(\d+):(\d{2}):(\d{2})$/);
   if (hms) return Number(hms[1]) * 3600 + Number(hms[2]) * 60 + Number(hms[3]);
   // HH:MM
   const hm = trimmed.match(/^(\d+):(\d{2})$/);
   if (hm) return Number(hm[1]) * 3600 + Number(hm[2]) * 60;
+  // Linguagem natural: "1h", "1h 2", "1h 2m", "1h 30min", "0h 20m", "2h 30min"
+  const natural = trimmed.match(/^(\d+)\s*h(?:\s*(\d+)\s*(?:m(?:in)?)?)?$/i);
+  if (natural) return Number(natural[1]) * 3600 + Number(natural[2] ?? 0) * 60;
+  // Apenas minutos com sufixo: "20m", "30min"
+  const minsuffix = trimmed.match(/^(\d+)\s*m(?:in)?$/i);
+  if (minsuffix) return Number(minsuffix[1]) * 60;
   // inteiro = minutos
   const mins = trimmed.match(/^\d+$/);
   if (mins) return Number(mins[0]) * 60;
   return null;
+}
+
+/** Calcula duração HH:MM entre dois horários HH:MM; trata overnight automaticamente */
+export function computeDurationHHMM(start: string, end: string): string {
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  if ([sh, sm, eh, em].some((v) => !isFinite(v))) return "00:01";
+  let diff = (eh * 60 + em) - (sh * 60 + sm);
+  if (diff <= 0) diff += 1440;
+  return `${String(Math.floor(diff / 60)).padStart(2, "0")}:${String(diff % 60).padStart(2, "0")}`;
+}
+
+/** Calcula hora fim HH:MM a partir de hora início HH:MM e duração em segundos */
+export function computeEndHHMM(start: string, durationSeconds: number): string {
+  const [sh, sm] = start.split(":").map(Number);
+  if (!isFinite(sh) || !isFinite(sm) || !isFinite(durationSeconds)) return start;
+  const totalMins = sh * 60 + sm + Math.round(durationSeconds / 60);
+  const endMins = ((totalMins % 1440) + 1440) % 1440;
+  return `${String(Math.floor(endMins / 60)).padStart(2, "0")}:${String(endMins % 60).padStart(2, "0")}`;
 }

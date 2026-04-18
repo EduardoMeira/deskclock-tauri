@@ -11,7 +11,15 @@ import { deleteTask } from "@domain/usecases/tasks/DeleteTask";
 import type { Task } from "@domain/entities/Task";
 import type { Project } from "@domain/entities/Project";
 import type { Category } from "@domain/entities/Category";
-import { todayISO, addDaysISO, parseDurationInput, formatHHMMSS } from "@shared/utils/time";
+import {
+  todayISO,
+  addDaysISO,
+  parseDurationInput,
+  formatHHMMSS,
+  formatHHMM,
+  computeDurationHHMM,
+  computeEndHHMM,
+} from "@shared/utils/time";
 
 const repo = new TaskRepository();
 
@@ -53,10 +61,9 @@ function nowHHMM(): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
-/** Constrói ISO UTC a partir de data local (YYYY-MM-DD) e hora local (HH:MM) */
 function buildISO(dateISO: string, hhmm: string): string {
   const [h, m] = hhmm.split(":").map(Number);
-  const d = new Date(dateISO + "T00:00:00"); // local midnight
+  const d = new Date(dateISO + "T00:00:00");
   d.setHours(h, m, 0, 0);
   return d.toISOString();
 }
@@ -69,27 +76,7 @@ function isoToHHMM(iso: string): string {
 function formatTimeRange(startISO: string, endISO: string | null): string {
   const s = isoToHHMM(startISO);
   if (!endISO) return s;
-  const e = isoToHHMM(endISO);
-  return `${s} – ${e}`;
-}
-
-/** Calcula duração em HH:MM entre dois horários; trata overnight automaticamente */
-function computeDurationHHMM(start: string, end: string): string {
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  let diff = (eh * 60 + em) - (sh * 60 + sm);
-  if (diff <= 0) diff += 1440;
-  const h = Math.floor(diff / 60);
-  const m = diff % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
-/** Calcula hora fim HH:MM a partir de hora início e duração em segundos */
-function computeEndHHMM(start: string, durationSeconds: number): string {
-  const [sh, sm] = start.split(":").map(Number);
-  const totalMins = sh * 60 + sm + Math.round(durationSeconds / 60);
-  const endMins = ((totalMins % 1440) + 1440) % 1440;
-  return `${String(Math.floor(endMins / 60)).padStart(2, "0")}:${String(endMins % 60).padStart(2, "0")}`;
+  return `${s} – ${isoToHHMM(endISO)}`;
 }
 
 interface TaskRowProps {
@@ -141,7 +128,7 @@ function TaskRow({ task, projects, categories, onEdit, onDelete }: TaskRowProps)
   );
 }
 
-const DEFAULT_DURATION_SECS = 3600; // 1h para novas tarefas encadeadas
+const DEFAULT_DURATION_SECS = 3600;
 
 export function RetroactivePage() {
   const today = todayISO();
@@ -151,7 +138,6 @@ export function RetroactivePage() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [tasks, setTasks] = useState<Task[]>([]);
 
-  // Form
   const [name, setName] = useState("");
   const [projectName, setProjectName] = useState("");
   const [categoryName, setCategoryName] = useState("");
@@ -166,6 +152,9 @@ export function RetroactivePage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const nameRef = useRef<HTMLInputElement>(null);
+  // Guarda últimos valores válidos para reset-on-empty
+  const prevStart = useRef(startTime);
+  const prevEnd = useRef(endTime);
 
   const loadTasks = useCallback(async () => {
     const startBound = new Date(selectedDate + "T00:00:00").toISOString();
@@ -181,42 +170,62 @@ export function RetroactivePage() {
 
   function handleStartChange(val: string) {
     setStartTime(val);
-    setDurationInput(computeDurationHHMM(val, endTime));
+    if (val) {
+      prevStart.current = val;
+      setDurationInput(computeDurationHHMM(val, prevEnd.current));
+    }
     setError("");
+  }
+
+  function handleStartCommit(val: string) {
+    if (!val) setStartTime(prevStart.current);
   }
 
   function handleEndChange(val: string) {
     setEndTime(val);
-    setDurationInput(computeDurationHHMM(startTime, val));
+    if (val) {
+      prevEnd.current = val;
+      setDurationInput(computeDurationHHMM(prevStart.current, val));
+    }
     setError("");
   }
 
-  function handleDurationBlur() {
-    const parsed = parseDurationInput(durationInput);
-    if (parsed && parsed > 0) {
-      const newEnd = computeEndHHMM(startTime, parsed);
-      setEndTime(newEnd);
-      // Normaliza o campo para HH:MM
-      const h = Math.floor(parsed / 3600);
-      const m = Math.floor((parsed % 3600) / 60);
-      setDurationInput(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+  function handleEndCommit(val: string) {
+    if (!val) setEndTime(prevEnd.current);
+  }
+
+  function commitDuration(): boolean {
+    const raw = durationInput.trim();
+    if (!raw) {
+      setDurationInput(computeDurationHHMM(prevStart.current, prevEnd.current));
+      return false;
     }
+    const parsed = parseDurationInput(raw);
+    if (!parsed || parsed < 60) {
+      setDurationInput(computeDurationHHMM(prevStart.current, prevEnd.current));
+      return false;
+    }
+    const newEnd = computeEndHHMM(prevStart.current, parsed);
+    setEndTime(newEnd);
+    prevEnd.current = newEnd;
+    setDurationInput(formatHHMM(parsed));
+    return true;
   }
 
   async function handleAdd() {
     setError("");
-    const startISO = buildISO(selectedDate, startTime);
-    let endISO = buildISO(selectedDate, endTime);
-    // Overnight: hora fim anterior à hora início
+    const st = startTime || prevStart.current;
+    const et = endTime || prevEnd.current;
+    const startISO = buildISO(selectedDate, st);
+    let endISO = buildISO(selectedDate, et);
     if (new Date(endISO) <= new Date(startISO)) {
-      endISO = buildISO(addDaysISO(selectedDate, 1), endTime);
+      endISO = buildISO(addDaysISO(selectedDate, 1), et);
     }
     const durationSeconds = Math.round(
       (new Date(endISO).getTime() - new Date(startISO).getTime()) / 1000
     );
-
-    if (durationSeconds <= 0) {
-      setError("A duração deve ser maior que zero.");
+    if (durationSeconds < 60) {
+      setError("A duração mínima é 1 minuto.");
       return;
     }
 
@@ -226,20 +235,12 @@ export function RetroactivePage() {
     setSaving(true);
     await createRetroactiveTask(
       repo,
-      {
-        name: name.trim() || null,
-        projectId: pId,
-        categoryId: cId,
-        billable,
-        startTime: startISO,
-        endTime: endISO,
-        durationSeconds,
-      },
+      { name: name.trim() || null, projectId: pId, categoryId: cId, billable, startTime: startISO, endTime: endISO, durationSeconds },
       new Date().toISOString()
     );
     setSaving(false);
 
-    // Encadeia: próximo início = fim anterior, mantém duração anterior
+    // Encadeia: próximo início = fim anterior, mantém mesma duração
     const nextStart = isoToHHMM(endISO);
     const nextEnd = computeEndHHMM(nextStart, durationSeconds);
     const h = Math.floor(durationSeconds / 3600);
@@ -247,6 +248,8 @@ export function RetroactivePage() {
     setName("");
     setStartTime(nextStart);
     setEndTime(nextEnd);
+    prevStart.current = nextStart;
+    prevEnd.current = nextEnd;
     setDurationInput(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
     nameRef.current?.focus();
     await loadTasks();
@@ -261,7 +264,7 @@ export function RetroactivePage() {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header com navegação de data */}
+      {/* Header */}
       <div className="px-5 py-3 border-b border-gray-800 flex items-center gap-3">
         <button
           onClick={() => setSelectedDate(addDaysISO(selectedDate, -1))}
@@ -283,28 +286,22 @@ export function RetroactivePage() {
         </button>
         <span className="flex-1 text-sm text-gray-400">{formatDateHeader(selectedDate)}</span>
         {totalSeconds > 0 && (
-          <span className="text-xs text-gray-500 font-mono">
-            {formatHHMMSS(totalSeconds)} total
-          </span>
+          <span className="text-xs text-gray-500 font-mono">{formatHHMMSS(totalSeconds)} total</span>
         )}
       </div>
 
       {/* Formulário inline */}
       <div className="px-5 py-4 border-b border-gray-800 space-y-3">
-        {/* Nome */}
         <input
           ref={nameRef}
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.nativeEvent.isComposing) void handleAdd();
-          }}
+          onKeyDown={(e) => { if (e.key === "Enter" && !e.nativeEvent.isComposing) void handleAdd(); }}
           placeholder="Nome da tarefa (opcional)"
           className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
         />
 
-        {/* Projeto, Categoria, Billable */}
         <div className="flex gap-2 items-center">
           <Autocomplete
             value={projectName}
@@ -351,7 +348,13 @@ export function RetroactivePage() {
             type="time"
             value={startTime}
             onChange={(e) => handleStartChange(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") void handleAdd(); }}
+            onBlur={(e) => handleStartCommit(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (!startTime) { handleStartCommit(""); return; }
+                void handleAdd();
+              }
+            }}
             className="w-28 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
           />
           <span className="text-xs text-gray-600 shrink-0">→</span>
@@ -360,19 +363,28 @@ export function RetroactivePage() {
             type="time"
             value={endTime}
             onChange={(e) => handleEndChange(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") void handleAdd(); }}
+            onBlur={(e) => handleEndCommit(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (!endTime) { handleEndCommit(""); return; }
+                void handleAdd();
+              }
+            }}
             className="w-28 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
           />
           <input
             type="text"
             value={durationInput}
             onChange={(e) => setDurationInput(e.target.value)}
-            onBlur={handleDurationBlur}
+            onBlur={commitDuration}
             onKeyDown={(e) => {
-              if (e.key === "Enter") { handleDurationBlur(); void handleAdd(); }
+              if (e.key === "Enter") {
+                const valid = commitDuration();
+                if (valid) void handleAdd();
+              }
             }}
             placeholder="HH:MM"
-            title="Duração — edite para ajustar hora fim"
+            title="Duração — editar atualiza hora fim"
             className="w-20 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-400 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:text-gray-100"
           />
           <button
@@ -383,6 +395,10 @@ export function RetroactivePage() {
             Adicionar
           </button>
         </div>
+
+        <p className="text-xs text-gray-600">
+          Duração aceita: <span className="text-gray-500">1:30, 90, 1h, 1h 30m, 1h 30min</span>
+        </p>
 
         {error && <p className="text-xs text-red-400">{error}</p>}
       </div>
