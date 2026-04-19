@@ -47,6 +47,9 @@ export interface AppConfig {
   googleRefreshToken: string;
   googleTokenExpiry: number;
   googleUserEmail: string;
+  // API REST local
+  localApiEnabled: boolean;
+  localApiPort: number;
 }
 
 const DEFAULTS: AppConfig = {
@@ -82,6 +85,8 @@ const DEFAULTS: AppConfig = {
   googleRefreshToken: "",
   googleTokenExpiry: 0,
   googleUserEmail: "",
+  localApiEnabled: false,
+  localApiPort: 27420,
 };
 
 type ConfigKey = keyof AppConfig;

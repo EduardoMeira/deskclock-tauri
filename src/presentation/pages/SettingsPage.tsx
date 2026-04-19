@@ -9,32 +9,41 @@ import { applyTheme, THEMES } from "@shared/utils/theme";
 import type { Theme } from "@shared/utils/theme";
 import { OVERLAY_EVENTS, type OverlayConfigChangedPayload } from "@shared/types/overlayEvents";
 import { useUpdater } from "@presentation/hooks/useUpdater";
-import { RefreshCw, Download, RotateCcw, AlertCircle, CheckCircle2, AlertTriangle } from "lucide-react";
+import { RefreshCw, Download, RotateCcw, AlertCircle, CheckCircle2, AlertTriangle, ExternalLink } from "lucide-react";
+
+interface ApiStatus {
+  running: boolean;
+  port: number | null;
+  error: string | null;
+}
 
 function ToggleRow({
   label,
   description,
   value,
   onChange,
+  disabled,
 }: {
   label: string;
   description?: string;
   value: boolean;
   onChange: (v: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-200">{label}</p>
+        <p className={`text-sm ${disabled ? "text-gray-500" : "text-gray-200"}`}>{label}</p>
         {description && <p className="text-xs text-gray-500 mt-0.5">{description}</p>}
       </div>
       <button
         role="switch"
         aria-checked={value}
-        onClick={() => onChange(!value)}
+        disabled={disabled}
+        onClick={() => !disabled && onChange(!value)}
         className={`relative shrink-0 w-10 h-5 rounded-full transition-colors ${
-          value ? "bg-blue-600" : "bg-gray-700"
-        }`}
+          disabled ? "opacity-40 cursor-not-allowed" : "cursor-pointer"
+        } ${value ? "bg-blue-600" : "bg-gray-700"}`}
       >
         <span
           className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${
@@ -338,13 +347,14 @@ function UpdaterSection() {
   );
 }
 
-type SettingsTab = "geral" | "atalhos" | "aparencia" | "overlay" | "atualizacoes";
+type SettingsTab = "geral" | "atalhos" | "aparencia" | "overlay" | "api" | "atualizacoes";
 
 const SETTINGS_TABS: { id: SettingsTab; label: string }[] = [
   { id: "geral", label: "Geral" },
   { id: "atalhos", label: "Atalhos" },
   { id: "aparencia", label: "Aparência" },
   { id: "overlay", label: "Overlay" },
+  { id: "api", label: "API Local" },
   { id: "atualizacoes", label: "Atualizações" },
 ];
 
@@ -382,6 +392,11 @@ export function SettingsPage() {
   const [shortcutCommandPalette, setShortcutCommandPalette] = useState("CmdOrCtrl+K");
   const [displayServer, setDisplayServer] = useState("");
   const [failedShortcuts, setFailedShortcuts] = useState<string[]>([]);
+  const [localApiEnabled, setLocalApiEnabled] = useState(false);
+  const [localApiPort, setLocalApiPort] = useState(27420);
+  const [localApiPortInput, setLocalApiPortInput] = useState("27420");
+  const [localApiStatus, setLocalApiStatus] = useState<ApiStatus | null>(null);
+  const [localApiLoading, setLocalApiLoading] = useState<"starting" | "stopping" | null>(null);
 
   // Carrega valores do config quando pronto
   useEffect(() => {
@@ -400,9 +415,17 @@ export function SettingsPage() {
     setShortcutToggleOverlay(config.get("shortcutToggleOverlay"));
     setShortcutToggleWindow(config.get("shortcutToggleWindow"));
     setShortcutCommandPalette(config.get("shortcutCommandPalette"));
+    setLocalApiEnabled(config.get("localApiEnabled"));
+    const port = config.get("localApiPort");
+    setLocalApiPort(port);
+    setLocalApiPortInput(String(port));
     // Lê estado real do autostart do SO
     isEnabled()
       .then(setStartOnBoot)
+      .catch(() => {});
+    // Lê estado real do servidor da API
+    invoke<ApiStatus>("get_local_api_status")
+      .then(setLocalApiStatus)
       .catch(() => {});
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -463,6 +486,54 @@ export function SettingsPage() {
       ],
     });
     setFailedShortcuts(failed);
+  }
+
+  async function handleLocalApiToggle(enabled: boolean) {
+    setLocalApiEnabled(enabled);
+    await config.set("localApiEnabled", enabled);
+    if (enabled) {
+      setLocalApiLoading("starting");
+      try {
+        const activePort = localApiPort;
+        await invoke("start_local_api", { port: activePort });
+        setLocalApiStatus({ running: true, port: activePort, error: null });
+      } catch (e) {
+        setLocalApiEnabled(false);
+        await config.set("localApiEnabled", false);
+        setLocalApiStatus({ running: false, port: null, error: String(e) });
+      } finally {
+        setLocalApiLoading(null);
+      }
+    } else {
+      setLocalApiLoading("stopping");
+      try {
+        await invoke("stop_local_api");
+        setLocalApiStatus({ running: false, port: null, error: null });
+      } finally {
+        setLocalApiLoading(null);
+      }
+    }
+  }
+
+  async function handleLocalApiPortBlur() {
+    const parsed = parseInt(localApiPortInput, 10);
+    if (isNaN(parsed) || parsed < 1024 || parsed > 65535) {
+      setLocalApiPortInput(String(localApiPort));
+      return;
+    }
+    setLocalApiPort(parsed);
+    await config.set("localApiPort", parsed);
+    if (localApiEnabled) {
+      setLocalApiLoading("starting");
+      try {
+        await invoke("start_local_api", { port: parsed });
+        setLocalApiStatus({ running: true, port: parsed, error: null });
+      } catch (e) {
+        setLocalApiStatus({ running: false, port: null, error: String(e) });
+      } finally {
+        setLocalApiLoading(null);
+      }
+    }
   }
 
   async function handleToggle(
@@ -727,6 +798,88 @@ export function SettingsPage() {
               />
             </CardRow>
           </SettingsCard>
+        )}
+
+        {/* API Local */}
+        {activeTab === "api" && (
+          <div className="space-y-4">
+            <SettingsCard>
+              <CardRow>
+                <ToggleRow
+                  label="Ativar API REST local"
+                  description="Permite controlar o DeskClock via requisições HTTP de ferramentas externas (scripts, Alfred, Raycast, n8n…)"
+                  value={localApiEnabled}
+                  onChange={handleLocalApiToggle}
+                  disabled={localApiLoading !== null}
+                />
+              </CardRow>
+
+              {localApiEnabled && !localApiLoading && (
+                <CardRow>
+                  <div className="space-y-1.5">
+                    <div>
+                      <p className="text-sm text-gray-200">Porta</p>
+                      <p className="text-xs text-gray-500 mt-0.5">Entre 1024 e 65535. Alterações reiniciam o servidor.</p>
+                    </div>
+                    <input
+                      type="number"
+                      min={1024}
+                      max={65535}
+                      value={localApiPortInput}
+                      onChange={(e) => setLocalApiPortInput(e.target.value)}
+                      onBlur={handleLocalApiPortBlur}
+                      className="w-32 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 tabular-nums"
+                    />
+                  </div>
+                </CardRow>
+              )}
+
+              <CardRow>
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`w-2 h-2 rounded-full shrink-0 ${
+                      localApiLoading
+                        ? "bg-yellow-400 animate-pulse"
+                        : localApiStatus?.running
+                        ? "bg-green-400"
+                        : localApiStatus?.error
+                        ? "bg-red-500"
+                        : "bg-gray-600"
+                    }`}
+                  />
+                  <span className="text-xs text-gray-400">
+                    {localApiLoading === "starting"
+                      ? "Iniciando…"
+                      : localApiLoading === "stopping"
+                      ? "Parando…"
+                      : localApiStatus?.running
+                      ? `Ativo na porta ${localApiStatus.port}`
+                      : localApiStatus?.error
+                      ? "Erro ao iniciar"
+                      : "Desativado"}
+                  </span>
+                  {localApiStatus?.running && !localApiLoading && (
+                    <a
+                      href={`http://localhost:${localApiStatus.port}/docs`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors ml-auto"
+                    >
+                      <ExternalLink size={11} />
+                      Swagger
+                    </a>
+                  )}
+                </div>
+              </CardRow>
+            </SettingsCard>
+
+            {localApiStatus?.error && !localApiLoading && (
+              <div className="flex items-start gap-2 rounded-lg bg-red-950/40 border border-red-800/50 px-3 py-2.5">
+                <AlertCircle size={14} className="text-red-400 mt-0.5 shrink-0" />
+                <p className="text-xs text-red-300">{localApiStatus.error}</p>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Atualizações */}
