@@ -373,13 +373,19 @@ function AppInner() {
       setTimeout(() => { ignoreBlurRef.current = false; }, 600);
       setPage("tasks");
       setFocusTaskEdit(true);
+      const saved = config.get("mainWindowPosition");
+      const positionPromise =
+        saved.x >= 0 && saved.y >= 0
+          ? appWindow.setPosition(new PhysicalPosition(saved.x, saved.y))
+          : positionNearTaskbar(appWindow);
+      await positionPromise;
       await appWindow.show();
       await appWindow.setFocus();
     });
     return () => {
       unlisten.then((fn) => fn());
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Exibe a janela no canto inferior direito quando o tray solicita (evento emitido pelo Rust)
   useEffect(() => {

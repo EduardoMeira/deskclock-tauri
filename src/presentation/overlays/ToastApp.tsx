@@ -60,14 +60,10 @@ export function ToastApp() {
   const [animating, setAnimating] = useState(false);
   const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Posiciona no canto inferior direito da área útil ao montar
-  useEffect(() => {
-    positionNearTaskbar(appWindow, { width: TOAST_WIDTH, height: TOAST_HEIGHT }).catch(() => {});
-  }, []);
-
   // Escuta eventos de toast
   useEffect(() => {
     const unlisten = listen<ToastMessagePayload>(OVERLAY_EVENTS.TOAST_MESSAGE, ({ payload }) => {
+      positionNearTaskbar(appWindow, { width: TOAST_WIDTH, height: TOAST_HEIGHT }).catch(() => {});
       if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
 
       setToast({
