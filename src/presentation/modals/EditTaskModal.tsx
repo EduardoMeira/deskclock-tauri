@@ -110,8 +110,8 @@ export function EditTaskModal({ task, projects, categories, onSave, onClose }: E
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-md p-5 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/80">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-md p-5 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-gray-100">Editar tarefa</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-300">
@@ -128,7 +128,7 @@ export function EditTaskModal({ task, projects, categories, onSave, onClose }: E
             onKeyDown={enterSave}
             placeholder="Nome (opcional)"
             autoFocus
-            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
           />
 
           {/* Projeto e categoria */}
@@ -185,7 +185,7 @@ export function EditTaskModal({ task, projects, categories, onSave, onClose }: E
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               onKeyDown={enterSave}
-              className="w-24 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+              className="w-24 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
             />
             <span className="text-xs text-gray-500 shrink-0">Fim</span>
             <input
@@ -193,7 +193,7 @@ export function EditTaskModal({ task, projects, categories, onSave, onClose }: E
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               onKeyDown={enterSave}
-              className="w-24 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+              className="w-24 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
             />
           </div>
         </div>
@@ -208,7 +208,7 @@ export function EditTaskModal({ task, projects, categories, onSave, onClose }: E
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded disabled:opacity-50"
+            className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg disabled:opacity-50"
           >
             Salvar
           </button>

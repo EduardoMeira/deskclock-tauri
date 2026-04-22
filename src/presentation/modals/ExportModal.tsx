@@ -71,7 +71,7 @@ function SortableColumn({ col, idx, onToggle, onRename }: SortableColumnProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 px-2 py-1.5 bg-gray-800 rounded"
+      className="flex items-center gap-2 px-2 py-1.5 bg-gray-800 rounded-lg"
     >
       <button
         {...attributes}
@@ -141,7 +141,7 @@ function ProfileForm({ initial, onSave, onCancel }: ProfileFormProps) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
           />
         </div>
 
@@ -150,7 +150,7 @@ function ProfileForm({ initial, onSave, onCancel }: ProfileFormProps) {
           <select
             value={format}
             onChange={(e) => setFormat(e.target.value as ExportFormat)}
-            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
           >
             <option value="csv">CSV</option>
             <option value="xlsx">XLSX</option>
@@ -164,7 +164,7 @@ function ProfileForm({ initial, onSave, onCancel }: ProfileFormProps) {
             <select
               value={separator}
               onChange={(e) => setSeparator(e.target.value as CsvSeparator)}
-              className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
             >
               <option value="comma">Vírgula</option>
               <option value="semicolon">Ponto-e-vírgula</option>
@@ -177,7 +177,7 @@ function ProfileForm({ initial, onSave, onCancel }: ProfileFormProps) {
           <select
             value={durationFormat}
             onChange={(e) => setDurationFormat(e.target.value as DurationFormat)}
-            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
           >
             <option value="hh:mm:ss">HH:MM:SS</option>
             <option value="decimal">Decimal (horas)</option>
@@ -190,7 +190,7 @@ function ProfileForm({ initial, onSave, onCancel }: ProfileFormProps) {
           <select
             value={dateFormat}
             onChange={(e) => setDateFormat(e.target.value as DateFormat)}
-            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
           >
             <option value="iso">ISO (AAAA-MM-DD)</option>
             <option value="dd/mm/yyyy">DD/MM/AAAA</option>
@@ -247,7 +247,7 @@ function ProfileForm({ initial, onSave, onCancel }: ProfileFormProps) {
             onSave({ name, isDefault, format, separator, durationFormat, dateFormat, columns })
           }
           disabled={!name.trim()}
-          className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded"
+          className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white rounded-lg"
         >
           Salvar perfil
         </button>
@@ -372,9 +372,9 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/80">
       <div
-        className="bg-gray-900 border border-gray-700 rounded-xl w-full max-w-lg shadow-2xl flex flex-col"
+        className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-lg shadow-2xl flex flex-col"
         style={{ maxHeight: "90vh" }}
       >
         {/* Header */}
@@ -389,7 +389,7 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
               <button
                 key={t}
                 onClick={() => setTab(t)}
-                className={`px-3 py-1.5 text-sm rounded transition-colors ${tab === t ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-200"}`}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${tab === t ? "bg-blue-600 text-white" : "text-gray-400 hover:text-gray-200"}`}
               >
                 {label}
               </button>
@@ -410,7 +410,7 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                 <select
                   value={selectedProfileId}
                   onChange={(e) => setSelectedProfileId(e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+                  className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
                 >
                   {profiles.map((p) => (
                     <option key={p.id} value={p.id}>
@@ -429,7 +429,7 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                     <button
                       key={m}
                       onClick={() => setPeriodMode(m)}
-                      className={`px-3 py-1.5 text-xs rounded border transition-colors ${periodMode === m ? "bg-blue-900/40 border-blue-600 text-blue-300" : "bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200"}`}
+                      className={`px-3 py-1.5 text-xs rounded-lg border transition-colors ${periodMode === m ? "bg-blue-900/40 border-blue-600 text-blue-300" : "bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200"}`}
                     >
                       {m === "today" ? "Hoje" : "Personalizado"}
                     </button>
@@ -446,7 +446,7 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
 
               <button
                 onClick={loadTasks}
-                className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors"
+                className="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
               >
                 Carregar tarefas
               </button>
@@ -473,7 +473,7 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                       </button>
                     </div>
                   </div>
-                  <div className="flex flex-col gap-1 max-h-40 overflow-y-auto border border-gray-700 rounded p-2">
+                  <div className="flex flex-col gap-1 max-h-40 overflow-y-auto border border-gray-700 rounded-lg p-2">
                     {tasks.length === 0 && (
                       <p className="text-xs text-gray-500 text-center py-2">
                         Nenhuma tarefa no período
@@ -484,7 +484,7 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                       return (
                         <label
                           key={t.id}
-                          className="flex items-center gap-2 cursor-pointer hover:bg-gray-800 px-1 py-0.5 rounded"
+                          className="flex items-center gap-2 cursor-pointer hover:bg-gray-800 px-1 py-0.5 rounded-lg"
                         >
                           <input
                             type="checkbox"
@@ -518,14 +518,14 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                   <button
                     onClick={() => void handleExport("file")}
                     disabled={exporting}
-                    className="flex-1 flex items-center justify-center gap-2 py-2 text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 py-2 text-sm bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg transition-colors"
                   >
                     <Download size={14} /> Salvar arquivo
                   </button>
                   <button
                     onClick={() => void handleExport("clipboard")}
                     disabled={exporting || activeProfile?.format === "xlsx"}
-                    className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm rounded transition-colors disabled:opacity-50 ${copied ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-200"}`}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm rounded-lg transition-colors disabled:opacity-50 ${copied ? "bg-green-700 text-green-200" : "bg-gray-700 hover:bg-gray-600 text-gray-200"}`}
                   >
                     {copied ? (
                       <>
@@ -550,14 +550,14 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                   setEditingProfile(null);
                   setTab("edit-profile");
                 }}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 rounded border border-gray-700 transition-colors w-full justify-center"
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg border border-gray-700 transition-colors w-full justify-center"
               >
                 <Plus size={14} /> Novo perfil
               </button>
               {profiles.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-2 px-3 py-2 bg-gray-800 rounded border border-gray-700"
+                  className="flex items-center gap-2 px-3 py-2 bg-gray-800 rounded-lg border border-gray-700"
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-200 truncate">{p.name}</p>
@@ -567,7 +567,7 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                     <button
                       onClick={() => void setDefault(p.id)}
                       title="Definir padrão"
-                      className={`p-1.5 rounded transition-colors ${p.isDefault ? "text-yellow-400" : "text-gray-500 hover:text-yellow-400"}`}
+                      className={`p-1.5 rounded-lg transition-colors ${p.isDefault ? "text-yellow-400" : "text-gray-500 hover:text-yellow-400"}`}
                     >
                       <Star size={13} fill={p.isDefault ? "currentColor" : "none"} />
                     </button>
@@ -576,14 +576,14 @@ export function ExportModal({ projects, categories, onClose }: ExportModalProps)
                         setEditingProfile(p);
                         setTab("edit-profile");
                       }}
-                      className="p-1.5 text-gray-500 hover:text-blue-400 rounded transition-colors"
+                      className="p-1.5 text-gray-500 hover:text-blue-400 rounded-lg transition-colors"
                     >
                       <Pencil size={13} />
                     </button>
                     <button
                       onClick={() => void remove(p.id)}
                       disabled={profiles.length <= 1}
-                      className="p-1.5 text-gray-500 hover:text-red-400 disabled:opacity-30 rounded transition-colors"
+                      className="p-1.5 text-gray-500 hover:text-red-400 disabled:opacity-30 rounded-lg transition-colors"
                     >
                       <Trash2 size={13} />
                     </button>

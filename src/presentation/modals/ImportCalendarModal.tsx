@@ -96,10 +96,10 @@ function EventEditor({ event, state, projects, categories, onChange }: EventEdit
       {/* Tipo de agendamento */}
       <div className="flex items-center gap-2">
         <span className="text-xs text-gray-500 shrink-0">Agendamento:</span>
-        <div className="flex items-center gap-1 bg-gray-800 rounded p-0.5">
+        <div className="flex items-center gap-1 bg-gray-800 rounded-lg p-0.5">
           <button
             onClick={() => onChange({ ...state, scheduleType: "specific_date" })}
-            className={`px-2 py-0.5 text-xs rounded transition-colors ${
+            className={`px-2 py-0.5 text-xs rounded-lg transition-colors ${
               state.scheduleType === "specific_date"
                 ? "bg-blue-600 text-white"
                 : "text-gray-400 hover:text-gray-200"
@@ -114,7 +114,7 @@ function EventEditor({ event, state, projects, categories, onChange }: EventEdit
                 : (event.suggestedRecurringDays ?? []);
               onChange({ ...state, scheduleType: "recurring", recurringDays: days });
             }}
-            className={`px-2 py-0.5 text-xs rounded transition-colors ${
+            className={`px-2 py-0.5 text-xs rounded-lg transition-colors ${
               state.scheduleType === "recurring"
                 ? "bg-blue-600 text-white"
                 : "text-gray-400 hover:text-gray-200"
@@ -133,7 +133,7 @@ function EventEditor({ event, state, projects, categories, onChange }: EventEdit
             <button
               key={idx}
               onClick={() => toggleDay(idx)}
-              className={`w-7 h-7 text-xs rounded transition-colors ${
+              className={`w-7 h-7 text-xs rounded-lg transition-colors ${
                 state.recurringDays.includes(idx)
                   ? "bg-blue-600 text-white"
                   : "bg-gray-800 text-gray-500 hover:text-gray-200"
@@ -350,7 +350,7 @@ export function ImportCalendarModal({
   const allSelected = events.length > 0 && selected.size === events.length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/80">
       <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl w-full max-w-lg mx-4 flex flex-col max-h-[85vh]">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-800 shrink-0">
@@ -359,7 +359,7 @@ export function ImportCalendarModal({
             <h2 className="text-sm font-semibold text-gray-100">Importar do Google Calendar</h2>
             <p className="text-xs text-gray-500">{weekLabel}</p>
           </div>
-          <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-300 rounded">
+          <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-300 rounded-lg">
             <X size={16} />
           </button>
         </div>
@@ -485,7 +485,7 @@ export function ImportCalendarModal({
             <button
               onClick={handleImport}
               disabled={importing || selected.size === 0}
-              className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded transition-colors"
+              className="flex items-center gap-1.5 text-xs bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-3 py-1.5 rounded-lg transition-colors"
             >
               {importing ? (
                 <>

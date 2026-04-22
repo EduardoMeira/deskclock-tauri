@@ -60,7 +60,7 @@ export function RunningTaskEditForm({
         onKeyDown={(e) => { if (e.key === "Enter") handleSave(); }}
         placeholder="Nome (opcional)"
         autoFocus={focusField === "name" || !focusField}
-        className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+        className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
       />
       <div className="flex gap-2">
         <Autocomplete
@@ -108,7 +108,7 @@ export function RunningTaskEditForm({
       <div className="flex gap-2 pt-1">
         <button
           onClick={handleSave}
-          className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded"
+          className="px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg"
         >
           Salvar
         </button>

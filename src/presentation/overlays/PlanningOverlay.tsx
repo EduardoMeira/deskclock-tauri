@@ -49,21 +49,21 @@ export function PlanningOverlay({ onMinimize, onClose, onNavigatePlanning }: Pla
           <button
             onClick={onNavigatePlanning}
             title="Ir para planejamento"
-            className="p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
+            className="p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-lg transition-colors"
           >
             <LayoutList size={13} />
           </button>
           <button
             onClick={onMinimize}
             title="Minimizar"
-            className="p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
+            className="p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-lg transition-colors"
           >
             <Minimize2 size={13} />
           </button>
           <button
             onClick={onClose}
             title="Fechar"
-            className="p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded transition-colors"
+            className="p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-lg transition-colors"
           >
             <X size={13} />
           </button>
@@ -88,7 +88,7 @@ export function PlanningOverlay({ onMinimize, onClose, onNavigatePlanning }: Pla
                 </div>
                 <button
                   onClick={() => handlePlay(task)}
-                  className="p-1 text-gray-400 hover:text-green-400 hover:bg-green-900/20 rounded transition-colors shrink-0"
+                  className="p-1 text-gray-400 hover:text-green-400 hover:bg-green-900/20 rounded-lg transition-colors shrink-0"
                 >
                   <Play size={12} />
                 </button>
@@ -102,7 +102,7 @@ export function PlanningOverlay({ onMinimize, onClose, onNavigatePlanning }: Pla
       <div className="p-2 border-t border-gray-700">
         <button
           onClick={handleNewTask}
-          className="w-full py-1.5 text-xs text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded transition-colors"
+          className="w-full py-1.5 text-xs text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
         >
           + Nova tarefa
         </button>
