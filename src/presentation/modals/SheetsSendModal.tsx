@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   X,
   Send,
@@ -172,6 +172,8 @@ export function SheetsSendModal({ projects, categories, onClose }: SheetsSendMod
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
+  // Incrementado após envio para forçar reload da lista
+  const [reloadKey, setReloadKey] = useState(0);
 
   const sender = useMemo(() => {
     if (!config.isLoaded) return null;
@@ -182,49 +184,55 @@ export function SheetsSendModal({ projects, categories, onClose }: SheetsSendMod
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.isLoaded, projects, categories]);
 
-  const loadTasks = useCallback(async () => {
+  // customStart/customEnd via ref para o effect acessar o valor atual sem precisar
+  // de deps que causariam reloads a cada keystroke.
+  const customStartRef = useRef(customStart);
+  const customEndRef = useRef(customEnd);
+  useEffect(() => { customStartRef.current = customStart; }, [customStart]);
+  useEffect(() => { customEndRef.current = customEnd; }, [customEnd]);
+
+  // Carrega tarefas sempre que o período ou reloadKey mudam.
+  // Lógica inline no effect garante que `quick` nunca fica stale — sem useCallback.
+  useEffect(() => {
+    let cancelled = false;
     setLoading(true);
     setMessage(null);
-    try {
-      const { start, end } = quickToRange(quick, customStart, customEnd);
-      const [tasks, sentIdsArr] = await Promise.all([
-        taskRepo.findByDateRange(startOfDayISO(start), endOfDayISO(end)),
-        logRepo.findSentIds(INTEGRATION, startOfDayISO(start), endOfDayISO(end)),
-      ]);
 
-      // Apenas tarefas concluídas
-      const completed = tasks.filter((t) => t.status === "completed");
-      const newSentIds = new Set(sentIdsArr);
-      const grps = groupTasks(completed);
+    async function run() {
+      try {
+        const { start, end } = quickToRange(quick, customStartRef.current, customEndRef.current);
+        const [tasks, sentIdsArr] = await Promise.all([
+          taskRepo.findByDateRange(startOfDayISO(start), endOfDayISO(end)),
+          logRepo.findSentIds(INTEGRATION, startOfDayISO(start), endOfDayISO(end)),
+        ]);
 
-      // Ordena: não enviados primeiro, enviados (todos) por último
-      const sorted = [...grps].sort((a, b) => {
-        const aSent = a.tasks.every((t) => newSentIds.has(t.id)) ? 1 : 0;
-        const bSent = b.tasks.every((t) => newSentIds.has(t.id)) ? 1 : 0;
-        return aSent - bSent;
-      });
+        if (cancelled) return;
 
-      setGroups(sorted);
-      setSentIds(newSentIds);
-      // Pré-seleciona apenas os não enviados
-      setSelectedKeys(new Set(sorted.filter((g) => !g.tasks.every((t) => newSentIds.has(t.id))).map((g) => g.key)));
-      setLoaded(true);
-    } finally {
-      setLoading(false);
+        const completed = tasks.filter((t) => t.status === "completed");
+        const newSentIds = new Set(sentIdsArr);
+        const grps = groupTasks(completed);
+        const sorted = [...grps].sort((a, b) => {
+          const aSent = a.tasks.every((t) => newSentIds.has(t.id)) ? 1 : 0;
+          const bSent = b.tasks.every((t) => newSentIds.has(t.id)) ? 1 : 0;
+          return aSent - bSent;
+        });
+
+        setGroups(sorted);
+        setSentIds(newSentIds);
+        setSelectedKeys(new Set(sorted.filter((g) => !g.tasks.every((t) => newSentIds.has(t.id))).map((g) => g.key)));
+        setLoaded(true);
+      } catch (err) {
+        if (!cancelled) {
+          setMessage({ text: err instanceof Error ? err.message : "Erro ao carregar tarefas.", error: true });
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
-  }, [quick, customStart, customEnd]);
 
-  // Carrega automaticamente ao mudar período (exceto custom)
-  useEffect(() => {
-    if (quick !== "custom") {
-      void loadTasks();
-    }
-  }, [quick]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Carrega inicial
-  useEffect(() => {
-    void loadTasks();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    void run();
+    return () => { cancelled = true; };
+  }, [quick, reloadKey]);
 
   function toggleGroup(key: string) {
     setSelectedKeys((prev) => {
@@ -276,7 +284,7 @@ export function SheetsSendModal({ projects, categories, onClose }: SheetsSendMod
       setMessage({ text: `${selectedGroups.length} grupo(s) enviado(s) com sucesso.`, error: false });
       setSelectedKeys(new Set());
       // Reload para atualizar badges de "enviado"
-      void loadTasks();
+      setReloadKey((k) => k + 1);
     } catch (err) {
       if (err instanceof NoIntegrationError) {
         setMessage({ text: "Integração com Google Sheets não configurada.", error: true });
@@ -349,7 +357,7 @@ export function SheetsSendModal({ projects, categories, onClose }: SheetsSendMod
                 className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-blue-500"
               />
               <button
-                onClick={loadTasks}
+                onClick={() => setReloadKey((k) => k + 1)}
                 disabled={loading}
                 className="flex items-center gap-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2.5 py-1 rounded transition-colors"
               >
