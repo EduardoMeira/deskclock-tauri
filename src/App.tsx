@@ -9,7 +9,13 @@ import { positionNearTaskbar, centerOnWorkArea, type WindowPositionOverride } fr
 import { ConfigProvider, useAppConfig } from "@presentation/contexts/ConfigContext";
 import { RunningTaskProvider, useRunningTask } from "@presentation/contexts/RunningTaskContext";
 import { effectiveDuration } from "@domain/usecases/tasks/_helpers";
-import { formatHHMMSS } from "@shared/utils/time";
+import { formatHHMMSS, todayISO, addDaysISO, startOfDayISO, endOfDayISO } from "@shared/utils/time";
+import { TaskRepository as AppTaskRepository } from "@infra/database/TaskRepository";
+import { TaskIntegrationLogRepository } from "@infra/database/TaskIntegrationLogRepository";
+import { ProjectRepository } from "@infra/database/ProjectRepository";
+import { CategoryRepository } from "@infra/database/CategoryRepository";
+import { GoogleSheetsTaskSender } from "@infra/integrations/GoogleSheetsTaskSender";
+import { groupTasks } from "@shared/utils/groupTasks";
 import { applyFontSize } from "@shared/utils/fontSize";
 import { applyTheme } from "@shared/utils/theme";
 import type { Theme } from "@shared/utils/theme";
@@ -347,6 +353,97 @@ function AppInner() {
         await showMainWindow();
       }
     })();
+  }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // F4: sincronização diária com Google Sheets
+  useEffect(() => {
+    if (!config.isLoaded) return;
+    if (!config.get("integrationGoogleSheetsAutoSync")) return;
+    if (config.get("sheetsAutoSyncMode") !== "daily") return;
+
+    const spreadsheetId = config.get("integrationGoogleSheetsSpreadsheetId");
+    const refreshToken = config.get("googleRefreshToken");
+    if (!spreadsheetId || !refreshToken) return;
+
+    const taskRepo = new AppTaskRepository();
+    const logRepo = new TaskIntegrationLogRepository();
+
+    // Envia todas as tarefas concluídas não sincronizadas no range [startISO, endISO].
+    // Agrupa por nome+projeto+categoria; ignora grupos já totalmente enviados.
+    async function runDailySync(rangeStartISO: string, rangeEndISO: string): Promise<number> {
+      const [tasks, projects, categories] = await Promise.all([
+        taskRepo.findByDateRange(rangeStartISO, rangeEndISO),
+        new ProjectRepository().findAll(),
+        new CategoryRepository().findAll(),
+      ]);
+      const completed = tasks.filter((t) => t.status === "completed");
+      if (completed.length === 0) return 0;
+
+      const sentIds = new Set(await logRepo.findSentIds("google_sheets", rangeStartISO, rangeEndISO));
+      const groups = groupTasks(completed).filter((g) => !g.tasks.every((t) => sentIds.has(t.id)));
+      if (groups.length === 0) return 0;
+
+      const tasksToSend = groups.map((g) => ({ ...g.tasks[0], durationSeconds: g.totalSeconds }));
+      const allIds = groups.flatMap((g) => g.tasks.map((t) => t.id));
+
+      const sender = new GoogleSheetsTaskSender(config, spreadsheetId, projects, categories);
+      await sender.send(tasksToSend);
+      await logRepo.markSent(allIds, "google_sheets");
+      return groups.length;
+    }
+
+    // Calcula o range "desde o último envio" até a data alvo (exclusive hoje para on-open).
+    // Garante que fins de semana e dias perdidos são sempre cobertos.
+    function calcRange(endDateISO: string): { start: string; end: string } | null {
+      const lastTs = config.get("sheetsDailySyncLastTimestamp");
+      // Extrai a data local do último timestamp (ou usa 7 dias atrás como fallback)
+      const lastDateISO = lastTs
+        ? new Date(lastTs).toLocaleDateString("sv-SE") // "YYYY-MM-DD" no locale sueco = ISO date
+        : addDaysISO(todayISO(), -7);
+      const startDateISO = addDaysISO(lastDateISO, 1);
+      if (startDateISO > endDateISO) return null; // já sincronizado
+      return { start: startOfDayISO(startDateISO), end: endOfDayISO(endDateISO) };
+    }
+
+    async function triggerSync(endDateISO: string) {
+      const range = calcRange(endDateISO);
+      if (!range) return; // nada a enviar
+      try {
+        const count = await runDailySync(range.start, range.end);
+        await config.set("sheetsDailySyncLastTimestamp", new Date().toISOString());
+        if (count > 0) {
+          await showToast("success", `${count} grupo(s) enviado(s) automaticamente para o Sheets`);
+        }
+      } catch (err) {
+        const msg = typeof err === "string" ? err : err instanceof Error ? err.message : "Erro no envio diário ao Sheets.";
+        await showToast("error", msg);
+      }
+    }
+
+    const trigger = config.get("sheetsAutoSyncTrigger");
+
+    if (trigger === "on-open") {
+      // Ao abrir: envia até ontem (não inclui o dia de hoje, ainda em andamento)
+      void triggerSync(addDaysISO(todayISO(), -1));
+      return;
+    }
+
+    if (trigger === "fixed-time") {
+      const [hh, mm] = config.get("sheetsAutoSyncTime").split(":").map(Number);
+      let fired = false;
+
+      const interval = setInterval(() => {
+        if (fired) return;
+        const now = new Date();
+        if (now.getHours() === hh && now.getMinutes() === mm) {
+          fired = true;
+          // No horário fixo: envia até hoje (dia corrente já concluído no fim do expediente)
+          void triggerSync(todayISO());
+        }
+      }, 30_000);
+
+      return () => clearInterval(interval);
+    }
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Atalho de teclado: mostra command palette com posicionamento correto.

@@ -42,6 +42,10 @@ export interface AppConfig {
   integrationGoogleSheetsColumnMapping: SheetColumnMapping;
   integrationGoogleSheetsAutoSync: boolean;
   integrationGoogleSheetsDurationFormat: "HH:MM" | "HH:MM:SS";
+  sheetsAutoSyncMode: "per-task" | "daily";
+  sheetsAutoSyncTrigger: "fixed-time" | "on-open";
+  sheetsAutoSyncTime: string;
+  sheetsDailySyncLastTimestamp: string;
   // Tokens Google OAuth (armazenados localmente no SQLite)
   googleAccessToken: string;
   googleRefreshToken: string;
@@ -91,6 +95,10 @@ const DEFAULTS: AppConfig = {
   integrationGoogleSheetsColumnMapping: DEFAULT_COLUMN_MAPPING,
   integrationGoogleSheetsAutoSync: false,
   integrationGoogleSheetsDurationFormat: "HH:MM",
+  sheetsAutoSyncMode: "per-task" as const,
+  sheetsAutoSyncTrigger: "on-open" as const,
+  sheetsAutoSyncTime: "18:00",
+  sheetsDailySyncLastTimestamp: "",
   googleAccessToken: "",
   googleRefreshToken: "",
   googleTokenExpiry: 0,
