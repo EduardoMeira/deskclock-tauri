@@ -166,6 +166,7 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
     async (stoppedTask: Task) => {
       if (!config.isLoaded) return;
       if (!config.get("integrationGoogleSheetsAutoSync")) return;
+      if (config.get("sheetsAutoSyncMode") !== "per-task") return;
       const spreadsheetId = config.get("integrationGoogleSheetsSpreadsheetId");
       const refreshToken = config.get("googleRefreshToken");
       if (!spreadsheetId || !refreshToken) return;
