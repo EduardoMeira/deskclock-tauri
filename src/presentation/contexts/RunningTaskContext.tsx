@@ -23,7 +23,6 @@ import { todayISO } from "@shared/utils/time";
 import { showToast } from "@shared/utils/toast";
 import { invoke } from "@tauri-apps/api/core";
 import { emit, listen } from "@tauri-apps/api/event";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 interface StartInput {
@@ -59,11 +58,6 @@ const RunningTaskContext = createContext<RunningTaskContextValue | null>(null);
 const repo = new TaskRepository();
 const plannedRepo = new PlannedTaskRepository();
 const logRepo = new TaskIntegrationLogRepository();
-
-async function showExecutionOverlay() {
-  const w = await WebviewWindow.getByLabel("overlay-execution");
-  await w?.show();
-}
 
 async function notifyOverlay(task: Task | null) {
   await emit(OVERLAY_EVENTS.RUNNING_TASK_CHANGED, {
@@ -136,7 +130,6 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
         setActivePlannedTaskId(input.plannedTaskId ?? null);
         triggerReload();
         await notifyOverlay(task);
-        await showExecutionOverlay();
       } finally {
         isStartingTaskRef.current = false;
       }

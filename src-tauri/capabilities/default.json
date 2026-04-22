@@ -5,8 +5,7 @@
   "windows": [
     "main",
     "overlay-compact",
-    "overlay-execution",
-    "overlay-planning",
+    "overlay-popup",
     "toast",
     "command-palette"
   ],

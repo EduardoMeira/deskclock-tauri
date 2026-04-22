@@ -30,6 +30,7 @@ export function useOverlayDrag(
   configKey: PositionKey,
   snapToGrid: boolean,
   config: ConfigContextValue,
+  onPositionChange?: () => void,
 ) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRawPosRef = useRef({ x: 0, y: 0 });
@@ -49,11 +50,12 @@ export function useOverlayDrag(
           setTimeout(() => { isProgrammaticMoveRef.current = false; }, 100);
         }
         await config.set(configKey, snapped as never);
+        onPositionChange?.();
       }, 200);
     });
     return () => {
       unlisten.then((fn) => fn());
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [config, configKey, snapToGrid]);
+  }, [config, configKey, snapToGrid, onPositionChange]);
 }

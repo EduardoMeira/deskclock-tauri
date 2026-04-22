@@ -1,18 +1,21 @@
-import { useEffect } from "react";
-import { Play, Minimize2, X, LayoutList, ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Play, Pause, Square, CheckCircle2, Clock, X, LayoutList, ArrowRight } from "lucide-react";
 import { emit } from "@tauri-apps/api/event";
 import type { Task } from "@domain/entities/Task";
 import type { PlannedTask } from "@domain/entities/PlannedTask";
 import { usePlannedTasksForDate } from "@presentation/hooks/usePlannedTasks";
 import { useProjects } from "@presentation/hooks/useProjects";
 import { useCategories } from "@presentation/hooks/useCategories";
+import { useTaskTimer } from "@presentation/hooks/useTaskTimer";
 import { todayISO } from "@shared/utils/time";
+import { formatHHMMSS } from "@shared/utils/time";
 import { getProjectColor } from "@shared/utils/projectColor";
 import { OVERLAY_EVENTS } from "@shared/types/overlayEvents";
 import type { CommandPaletteNavigatePayload } from "@shared/types/overlayEvents";
 
-const OVERLAY_WIDTH = 288;
+const POPUP_W = 288;
 const HEADER_H = 37;
+const EXECUTION_H = 86;
 const NEW_TASK_H = 45;
 const SECTION_H = 28;
 const ROW_H = 44;
@@ -20,8 +23,8 @@ const FOOTER_H = 34;
 const EMPTY_H = 52;
 const MAX_VISIBLE_ROWS = 4;
 
-interface PlanningOverlayContentProps {
-  onMinimize: () => void;
+interface PopupOverlayContentProps {
+  runningTask: Task | null;
   onClose: () => void;
   onNavigatePlanning: () => void;
   onResize: (width: number, height: number) => void;
@@ -33,18 +36,117 @@ interface PlanningOverlayContentProps {
     plannedTaskId?: string | null;
   }) => Promise<void>;
   onPlay: (task: PlannedTask) => Promise<void>;
-  runningTask: Task | null;
+  onPause: () => Promise<void>;
+  onResume: () => Promise<void>;
+  onStop: (completed: boolean) => Promise<void>;
+  onCancel: () => Promise<void>;
 }
 
-export function PlanningOverlayContent({
-  onMinimize,
+function ExecutionSection({
+  task,
+  onPause,
+  onResume,
+  onStop,
+  onCancel,
+}: {
+  task: Task;
+  onPause: () => Promise<void>;
+  onResume: () => Promise<void>;
+  onStop: (completed: boolean) => Promise<void>;
+  onCancel: () => Promise<void>;
+}) {
+  const seconds = useTaskTimer(task);
+  const isRunning = task.status === "running";
+  const [confirmingStop, setConfirmingStop] = useState(false);
+
+  return (
+    <div
+      className="flex flex-col px-3 py-2 border-b border-gray-700/60 shrink-0"
+      style={{ height: EXECUTION_H }}
+    >
+      {/* Task name */}
+      <div className="flex items-center gap-2 min-w-0">
+        <span
+          className={`w-2 h-2 rounded-full shrink-0 ${isRunning ? "animate-pulse" : ""}`}
+          style={{ backgroundColor: task.billable ? "#3b82f6" : "#64748b" }}
+        />
+        <p className="text-[12px] font-medium text-gray-200 truncate">
+          {task.name ?? "(sem nome)"}
+        </p>
+      </div>
+
+      {/* Timer */}
+      <p className="font-mono text-lg font-semibold text-blue-400 tabular-nums leading-tight mt-0.5">
+        {formatHHMMSS(seconds)}
+      </p>
+
+      {/* Controls */}
+      <div className="flex items-center gap-1 mt-1">
+        <button
+          onClick={isRunning ? onPause : onResume}
+          title={isRunning ? "Pausar" : "Retomar"}
+          className="p-1 text-gray-400 hover:text-gray-100 hover:bg-gray-800 rounded-lg transition-colors"
+        >
+          {isRunning ? <Pause size={13} /> : <Play size={13} />}
+        </button>
+
+        {confirmingStop ? (
+          <>
+            <span className="text-[11px] text-gray-400 ml-1">Concluída?</span>
+            <button
+              onClick={() => { setConfirmingStop(false); void onStop(true); }}
+              className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] bg-green-700 hover:bg-green-600 text-white rounded-lg transition-colors"
+            >
+              <CheckCircle2 size={10} /> Sim
+            </button>
+            <button
+              onClick={() => { setConfirmingStop(false); void onStop(false); }}
+              className="flex items-center gap-1 px-1.5 py-0.5 text-[11px] bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
+            >
+              <Clock size={10} /> Não
+            </button>
+            <button
+              onClick={() => setConfirmingStop(false)}
+              className="ml-auto p-1 text-gray-500 hover:text-green-400 rounded-lg transition-colors"
+            >
+              <Play size={11} />
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => setConfirmingStop(true)}
+              title="Parar tarefa"
+              className="p-1 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
+            >
+              <Square size={13} />
+            </button>
+            <button
+              onClick={onCancel}
+              title="Cancelar tarefa"
+              className="p-1 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
+            >
+              <X size={13} />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function PopupOverlayContent({
+  runningTask,
   onClose,
   onNavigatePlanning,
   onResize,
   onStartTask,
   onPlay,
-  runningTask,
-}: PlanningOverlayContentProps) {
+  onPause,
+  onResume,
+  onStop,
+  onCancel,
+}: PopupOverlayContentProps) {
   const today = todayISO();
   const { tasks, reload } = usePlannedTasksForDate(today);
   const { projects } = useProjects();
@@ -56,8 +158,9 @@ export function PlanningOverlayContent({
   useEffect(() => {
     const taskAreaH =
       pending.length === 0 ? EMPTY_H : Math.min(pending.length, MAX_VISIBLE_ROWS) * ROW_H;
-    onResize(OVERLAY_WIDTH, HEADER_H + NEW_TASK_H + SECTION_H + taskAreaH + FOOTER_H);
-  }, [pending.length, onResize]);
+    const topH = runningTask ? EXECUTION_H : NEW_TASK_H;
+    onResize(POPUP_W, HEADER_H + topH + SECTION_H + taskAreaH + FOOTER_H);
+  }, [pending.length, !!runningTask, onResize]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handlePlay(task: PlannedTask) {
     await onPlay(task);
@@ -73,29 +176,21 @@ export function PlanningOverlayContent({
   return (
     <div className="w-full h-full flex flex-col bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
 
-      {/* Title bar — drag handle */}
+      {/* Header — no drag region; popup is not draggable */}
       <div
-        data-tauri-drag-region
-        className="flex items-center justify-between px-3 bg-gray-800 border-b border-gray-700 cursor-move select-none shrink-0"
+        className="flex items-center justify-between px-3 bg-gray-800 border-b border-gray-700 shrink-0"
         style={{ height: HEADER_H }}
       >
-        <span className="text-xs font-medium text-gray-300 pointer-events-none">
-          Tarefas de Hoje
+        <span className="text-xs font-medium text-gray-300 pointer-events-none select-none">
+          {runningTask ? "Em execução" : "Tarefas de Hoje"}
         </span>
-        <div className="flex gap-1 pointer-events-auto">
+        <div className="flex gap-1">
           <button
             onClick={onNavigatePlanning}
             title="Ir para planejamento"
             className="p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-lg transition-colors"
           >
             <LayoutList size={13} />
-          </button>
-          <button
-            onClick={onMinimize}
-            title="Minimizar"
-            className="p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            <Minimize2 size={13} />
           </button>
           <button
             onClick={onClose}
@@ -107,16 +202,29 @@ export function PlanningOverlayContent({
         </div>
       </div>
 
-      {/* Nova tarefa */}
-      <div className="p-2 border-b border-gray-700/60 shrink-0" style={{ height: NEW_TASK_H }}>
-        <button
-          onClick={() => onStartTask({ billable: true })}
-          className="w-full h-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700/80 rounded-lg transition-colors"
-        >
-          <Play size={11} fill="currentColor" />
-          Nova tarefa
-        </button>
-      </div>
+      {/* Execution section — only when task running */}
+      {runningTask && (
+        <ExecutionSection
+          task={runningTask}
+          onPause={onPause}
+          onResume={onResume}
+          onStop={onStop}
+          onCancel={onCancel}
+        />
+      )}
+
+      {/* New task button — only when idle */}
+      {!runningTask && (
+        <div className="p-2 border-b border-gray-700/60 shrink-0" style={{ height: NEW_TASK_H }}>
+          <button
+            onClick={() => onStartTask({ billable: true })}
+            className="w-full h-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700/80 rounded-lg transition-colors"
+          >
+            <Play size={11} fill="currentColor" />
+            Nova tarefa
+          </button>
+        </div>
+      )}
 
       {/* Section header */}
       <div
