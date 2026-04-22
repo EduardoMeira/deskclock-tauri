@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { LogicalSize } from "@tauri-apps/api/dpi";
 import { emit, listen } from "@tauri-apps/api/event";
 import { TaskRepository } from "@infra/database/TaskRepository";
 import { startTask as startTaskUC } from "@domain/usecases/tasks/StartTask";
@@ -33,6 +34,10 @@ function CompactOverlayAppInner() {
     applyTheme(config.get("theme") as Theme);
     setOverlayOpacity(config.get("overlayOpacity") as number);
     setSnapToGrid(!!config.get("overlaySnapToGrid"));
+    // Trava tamanho via min/max: resizable:true é obrigatório no GTK,
+    // mas min=max=alvo impede redimensionamento manual.
+    void appWindow.setMinSize(new LogicalSize(52, 52));
+    void appWindow.setMaxSize(new LogicalSize(52, 52));
     void restoreOverlayPosition("overlayPosition_compact", config, { width: 52, height: 52 });
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
