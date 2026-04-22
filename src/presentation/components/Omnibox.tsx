@@ -487,13 +487,13 @@ export function Omnibox({
                     if (e.key === "Escape") { e.stopPropagation(); setEditingStartTime(false); }
                   }}
                   autoFocus
-                  className="w-24 bg-gray-800 border border-blue-500 rounded px-2 py-0.5 text-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-24 bg-gray-800 border border-blue-500 rounded-lg px-2 py-0.5 text-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
               ) : (
                 <button
                   onClick={handleStartTimeClick}
                   title="Editar hora de início"
-                  className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 text-gray-500 text-xs transition-colors group"
+                  className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border border-transparent hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 text-gray-500 text-xs transition-colors group"
                 >
                   início {formatTimeOfDay(runningTask.startTime)}
                   <Pen size={9} className="opacity-0 group-hover:opacity-60 transition-opacity" />
@@ -504,7 +504,7 @@ export function Omnibox({
 
           {/* Timer + controls stacked on the right */}
           <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-            <span className="font-mono text-2xl text-emerald-400 tracking-tight leading-none">
+            <span className="font-mono tabular-nums text-2xl text-emerald-400 tracking-tight leading-none">
               {formatHHMMSS(seconds)}
             </span>
             {confirmingStop ? (
@@ -512,21 +512,21 @@ export function Omnibox({
                 <span className="text-xs text-gray-500">Concluída?</span>
                 <button
                   onClick={() => handleStopConfirm(true)}
-                  className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded-lg transition-colors"
                 >
                   <CheckCircle2 size={12} />
                   Sim
                 </button>
                 <button
                   onClick={() => handleStopConfirm(false)}
-                  className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors"
+                  className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
                 >
                   <Clock size={12} />
                   Não
                 </button>
                 <button
                   onClick={() => setConfirmingStop(false)}
-                  className="p-1 text-gray-600 hover:text-gray-400 rounded"
+                  className="p-1 text-gray-600 hover:text-gray-400 rounded-lg"
                 >
                   <X size={12} />
                 </button>
@@ -543,7 +543,7 @@ export function Omnibox({
                 <button
                   onClick={() => cancelTask()}
                   title="Cancelar tarefa"
-                  className="p-1.5 text-gray-600 hover:text-red-400 rounded hover:bg-gray-800 transition-colors"
+                  className="p-1.5 text-gray-600 hover:text-red-400 rounded-lg hover:bg-gray-800 transition-colors"
                 >
                   <X size={13} />
                 </button>
@@ -562,7 +562,7 @@ export function Omnibox({
               onChange={(e) => setFillName(e.target.value)}
               placeholder="Nome da tarefa"
               autoFocus
-              className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
             />
             <Autocomplete
               value={fillProjectName}
@@ -592,7 +592,7 @@ export function Omnibox({
               </button>
               <button
                 onClick={handleFillSubmit}
-                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
               >
                 <ArrowRight size={12} />
                 Continuar

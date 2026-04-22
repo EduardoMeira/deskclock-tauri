@@ -97,7 +97,7 @@ function TaskRow({ task, projects, categories, onEdit, onDelete }: TaskRowProps)
         size={13}
         className={`shrink-0 ${task.billable ? "text-green-400" : "text-gray-500"}`}
       />
-      <span className="text-xs text-gray-500 shrink-0 font-mono w-28">
+      <span className="text-xs text-gray-500 shrink-0 font-mono tabular-nums w-28">
         {formatTimeRange(task.startTime, task.endTime)}
       </span>
       <span className="flex-1 text-sm text-gray-200 truncate">
@@ -109,7 +109,7 @@ function TaskRow({ task, projects, categories, onEdit, onDelete }: TaskRowProps)
       {categoryName && (
         <span className="text-xs text-gray-500 truncate max-w-24">{categoryName}</span>
       )}
-      <span className="text-xs text-gray-500 font-mono shrink-0">
+      <span className="text-xs text-gray-500 font-mono tabular-nums shrink-0">
         {formatHHMMSS(task.durationSeconds ?? 0)}
       </span>
       <button
@@ -276,7 +276,7 @@ export function RetroactivePage() {
       <div className="px-5 py-3 border-b border-gray-800 flex items-center gap-3">
         <button
           onClick={() => setSelectedDate(addDaysISO(selectedDate, -1))}
-          className="text-gray-500 hover:text-gray-200 p-1 rounded hover:bg-gray-800 transition-colors"
+          className="text-gray-500 hover:text-gray-200 p-1 rounded-lg hover:bg-gray-800 transition-colors"
         >
           <ChevronLeft size={16} />
         </button>
@@ -288,13 +288,13 @@ export function RetroactivePage() {
         <button
           onClick={() => setSelectedDate(addDaysISO(selectedDate, 1))}
           disabled={selectedDate >= today}
-          className="text-gray-500 hover:text-gray-200 p-1 rounded hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          className="text-gray-500 hover:text-gray-200 p-1 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
         >
           <ChevronRight size={16} />
         </button>
         <span className="flex-1 text-sm text-gray-400">{formatDateHeader(selectedDate)}</span>
         {totalSeconds > 0 && (
-          <span className="text-xs text-gray-500 font-mono">
+          <span className="text-xs text-gray-500 font-mono tabular-nums">
             {formatHHMMSS(totalSeconds)} total
           </span>
         )}
@@ -311,7 +311,7 @@ export function RetroactivePage() {
             if (e.key === "Enter" && !e.nativeEvent.isComposing) void handleAdd();
           }}
           placeholder="Nome da tarefa (opcional)"
-          className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+          className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
         />
 
         <div className="flex gap-2 items-center">
@@ -380,7 +380,7 @@ export function RetroactivePage() {
             }}
             placeholder="HH:MM"
             title="Duração — editar atualiza hora fim"
-            className="w-20 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-400 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:text-gray-100"
+            className="w-20 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-400 placeholder-gray-600 focus:outline-none focus:border-blue-500 focus:text-gray-100"
           />
           <span className="text-xs text-gray-500 shrink-0 ml-auto">Início</span>
           <input
@@ -397,7 +397,7 @@ export function RetroactivePage() {
                 void handleAdd();
               }
             }}
-            className="w-28 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+            className="w-28 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
           />
           <span className="text-xs text-gray-500 shrink-0">Fim</span>
           <input
@@ -415,13 +415,13 @@ export function RetroactivePage() {
                 void handleAdd();
               }
             }}
-            className="w-28 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+            className="w-28 px-2 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
           />
 
           <button
             onClick={() => void handleAdd()}
             disabled={saving}
-            className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors disabled:opacity-50"
+            className="px-4 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors disabled:opacity-50"
           >
             Adicionar
           </button>

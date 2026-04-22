@@ -125,7 +125,7 @@ export function RunningTaskSection({ projects, categories, focusTaskEdit, onFocu
   }
 
   return (
-    <section className="bg-gray-900 border border-gray-700 rounded-lg p-4">
+    <section className="bg-gray-900 border border-gray-800 rounded-xl p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -149,13 +149,13 @@ export function RunningTaskSection({ projects, categories, focusTaskEdit, onFocu
                   if (e.key === "Escape") { e.stopPropagation(); setEditingStartTime(false); }
                 }}
                 autoFocus
-                className="w-24 bg-gray-800 border border-blue-500 rounded px-2 py-0.5 text-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-24 bg-gray-800 border border-blue-500 rounded-lg px-2 py-0.5 text-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             ) : (
               <button
                 onClick={handleStartTimeClick}
                 title="Editar hora de início"
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-transparent hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 transition-colors group"
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg border border-transparent hover:border-gray-600 hover:bg-gray-800 hover:text-gray-200 transition-colors group"
               >
                 início {formatTimeOfDay(runningTask.startTime)}
                 <Pen size={9} className="opacity-0 group-hover:opacity-60 transition-opacity" />
@@ -165,14 +165,14 @@ export function RunningTaskSection({ projects, categories, focusTaskEdit, onFocu
         </div>
 
         <div className="flex items-center gap-1 flex-shrink-0">
-          <span className="text-lg font-mono text-gray-100 mr-2">{formatHHMMSS(seconds)}</span>
+          <span className="text-lg font-mono tabular-nums text-gray-100 mr-2">{formatHHMMSS(seconds)}</span>
           {confirmingStop ? (
             <div className="flex items-center gap-1">
               <span className="text-xs text-gray-500 mr-1">Concluída?</span>
               <button
                 onClick={() => handleStopConfirm(true)}
                 title="Concluída"
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded transition-colors"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded-lg transition-colors"
               >
                 <CheckCircle2 size={12} />
                 Sim
@@ -180,14 +180,14 @@ export function RunningTaskSection({ projects, categories, focusTaskEdit, onFocu
               <button
                 onClick={() => handleStopConfirm(false)}
                 title="Pendente"
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors"
               >
                 <Clock size={12} />
                 Não
               </button>
               <button
                 onClick={() => setConfirmingStop(false)}
-                className="p-1 text-gray-600 hover:text-gray-400 rounded"
+                className="p-1 text-gray-600 hover:text-gray-400 rounded-lg"
               >
                 <X size={13} />
               </button>
@@ -197,28 +197,28 @@ export function RunningTaskSection({ projects, categories, focusTaskEdit, onFocu
               <button
                 onClick={handlePlayPause}
                 title={isRunning ? "Pausar" : "Retomar"}
-                className="p-1.5 text-gray-400 hover:text-gray-100 rounded hover:bg-gray-800"
+                className="p-1.5 text-gray-400 hover:text-gray-100 rounded-lg hover:bg-gray-800"
               >
                 {isRunning ? <Pause size={16} /> : <Play size={16} />}
               </button>
               <button
                 onClick={handleStopClick}
                 title="Parar"
-                className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800"
+                className="p-1.5 text-gray-400 hover:text-red-400 rounded-lg hover:bg-gray-800"
               >
                 <Square size={16} />
               </button>
               <button
                 onClick={() => setEditing((v) => !v)}
                 title="Editar"
-                className={`p-1.5 rounded hover:bg-gray-800 ${editing ? "text-blue-400" : "text-gray-400 hover:text-gray-100"}`}
+                className={`p-1.5 rounded-lg hover:bg-gray-800 ${editing ? "text-blue-400" : "text-gray-400 hover:text-gray-100"}`}
               >
                 <Pencil size={16} />
               </button>
               <button
                 onClick={() => cancelTask()}
                 title="Cancelar tarefa"
-                className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800"
+                className="p-1.5 text-gray-400 hover:text-red-400 rounded-lg hover:bg-gray-800"
               >
                 <X size={16} />
               </button>
@@ -228,7 +228,7 @@ export function RunningTaskSection({ projects, categories, focusTaskEdit, onFocu
       </div>
 
       {fillingRequired && (
-        <div className="mt-3 pt-3 border-t border-gray-700 space-y-2">
+        <div className="mt-3 pt-3 border-t border-gray-800 space-y-2">
           <p className="text-xs text-yellow-400">Preencha antes de concluir:</p>
           <input
             type="text"
@@ -236,7 +236,7 @@ export function RunningTaskSection({ projects, categories, focusTaskEdit, onFocu
             onChange={(e) => setFillName(e.target.value)}
             placeholder="Nome da tarefa"
             autoFocus
-            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
           />
           <Autocomplete
             value={fillProjectName}
@@ -266,7 +266,7 @@ export function RunningTaskSection({ projects, categories, focusTaskEdit, onFocu
             </button>
             <button
               onClick={handleFillSubmit}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
             >
               <ArrowRight size={12} />
               Continuar

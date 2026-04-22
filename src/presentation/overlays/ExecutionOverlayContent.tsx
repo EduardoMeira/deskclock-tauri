@@ -77,14 +77,14 @@ export function ExecutionOverlayContent({
           <span className="text-xs text-gray-400 shrink-0">Concluída?</span>
           <button
             onClick={() => { setConfirmingStop(false); onStop(true); }}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded transition-colors shrink-0"
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-green-700 hover:bg-green-600 text-white rounded-lg transition-colors shrink-0"
           >
             <CheckCircle2 size={11} />
             Sim
           </button>
           <button
             onClick={() => { setConfirmingStop(false); onStop(false); }}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors shrink-0"
+            className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 rounded-lg transition-colors shrink-0"
           >
             <Clock size={11} />
             Não
@@ -92,7 +92,7 @@ export function ExecutionOverlayContent({
           <button
             onClick={() => setConfirmingStop(false)}
             title="Retomar tarefa"
-            className="ml-auto p-1 text-gray-500 hover:text-green-400 rounded shrink-0 transition-colors"
+            className="ml-auto p-1 text-gray-500 hover:text-green-400 rounded-lg shrink-0 transition-colors"
           >
             <Play size={11} />
           </button>
@@ -102,7 +102,7 @@ export function ExecutionOverlayContent({
           {/* Nome + Timer */}
           <div
             onClick={handleAreaClick}
-            className="flex-1 min-w-0 flex flex-col justify-center cursor-pointer group select-none pr-1.5 rounded px-1.5 hover:bg-gray-800 transition-colors"
+            className="flex-1 min-w-0 flex flex-col justify-center cursor-pointer group select-none pr-1.5 rounded-lg px-1.5 hover:bg-gray-800 transition-colors"
             title="Abrir janela principal"
           >
             <p className="text-[10px] text-gray-400 truncate leading-none group-hover:text-gray-200 transition-colors pointer-events-none">
@@ -123,20 +123,20 @@ export function ExecutionOverlayContent({
           >
             <button
               onClick={isRunning ? onPause : onResume}
-              className="p-1.5 text-gray-400 hover:text-gray-100 rounded hover:bg-gray-800 transition-colors"
+              className="p-1.5 text-gray-400 hover:text-gray-100 rounded-lg hover:bg-gray-800 transition-colors"
             >
               {isRunning ? <Pause size={13} /> : <Play size={13} />}
             </button>
             <button
               onClick={() => setConfirmingStop(true)}
-              className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800 transition-colors"
+              className="p-1.5 text-gray-400 hover:text-red-400 rounded-lg hover:bg-gray-800 transition-colors"
               title="Parar tarefa"
             >
               <Square size={13} />
             </button>
             <button
               onClick={onCancel}
-              className="p-1.5 text-gray-400 hover:text-red-400 rounded hover:bg-gray-800 transition-colors"
+              className="p-1.5 text-gray-400 hover:text-red-400 rounded-lg hover:bg-gray-800 transition-colors"
               title="Cancelar tarefa"
             >
               <X size={13} />

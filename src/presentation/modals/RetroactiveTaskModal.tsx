@@ -105,8 +105,8 @@ export function RetroactiveTaskModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="bg-gray-900 border border-gray-700 rounded-lg w-full max-w-md p-5 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/80">
+      <div className="bg-gray-900 border border-gray-800 rounded-xl w-full max-w-md p-5 shadow-xl">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-gray-100">Lançamento manual</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-300">
@@ -121,7 +121,7 @@ export function RetroactiveTaskModal({
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nome (opcional)"
-            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
           />
 
           {/* Projeto e Categoria */}
@@ -174,7 +174,7 @@ export function RetroactiveTaskModal({
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="w-24 px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+                className="w-24 px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -184,7 +184,7 @@ export function RetroactiveTaskModal({
             <div className="flex gap-1 mb-2">
               <button
                 onClick={() => setMode("endtime")}
-                className={`px-3 py-1 text-xs rounded transition-colors ${
+                className={`px-3 py-1 text-xs rounded-lg transition-colors ${
                   mode === "endtime"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-800 text-gray-400 hover:text-gray-200"
@@ -194,7 +194,7 @@ export function RetroactiveTaskModal({
               </button>
               <button
                 onClick={() => setMode("duration")}
-                className={`px-3 py-1 text-xs rounded transition-colors ${
+                className={`px-3 py-1 text-xs rounded-lg transition-colors ${
                   mode === "duration"
                     ? "bg-blue-600 text-white"
                     : "bg-gray-800 text-gray-400 hover:text-gray-200"
@@ -212,7 +212,7 @@ export function RetroactiveTaskModal({
                   setEndTime(e.target.value);
                   setError("");
                 }}
-                className="w-24 px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 focus:outline-none focus:border-blue-500"
+                className="w-24 px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 focus:outline-none focus:border-blue-500"
               />
             ) : (
               <input
@@ -223,7 +223,7 @@ export function RetroactiveTaskModal({
                   setError("");
                 }}
                 placeholder="HH:MM:SS, MM:SS ou minutos"
-                className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
               />
             )}
           </div>
@@ -241,7 +241,7 @@ export function RetroactiveTaskModal({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded disabled:opacity-50"
+            className="px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg disabled:opacity-50"
           >
             Salvar
           </button>

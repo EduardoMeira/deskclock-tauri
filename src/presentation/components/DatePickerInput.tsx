@@ -104,7 +104,7 @@ export function DatePickerInput({
         value={formatDisplay(value)}
         placeholder={placeholder}
         onClick={handleOpen}
-        className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 cursor-pointer"
+        className="w-full px-2.5 py-1.5 text-sm bg-gray-800 border border-gray-700 rounded-lg text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 cursor-pointer"
       />
       {open &&
         createPortal(
@@ -124,8 +124,8 @@ export function DatePickerInput({
                 root: "text-sm",
                 month_caption: "text-gray-200 font-medium text-sm mb-1",
                 nav: "flex items-center gap-1",
-                button_previous: "p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded",
-                button_next: "p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded",
+                button_previous: "p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg",
+                button_next: "p-1 text-gray-400 hover:text-gray-200 hover:bg-gray-800 rounded-lg",
                 weeks: "mt-1",
                 weekdays: "flex",
                 weekday:
@@ -133,8 +133,8 @@ export function DatePickerInput({
                 week: "flex",
                 day: "w-8 h-8 flex items-center justify-center",
                 day_button:
-                  "w-8 h-8 flex items-center justify-center text-xs text-gray-300 hover:bg-gray-700 rounded transition-colors",
-                selected: "bg-blue-600 rounded text-white",
+                  "w-8 h-8 flex items-center justify-center text-xs text-gray-300 hover:bg-gray-700 rounded-lg transition-colors",
+                selected: "bg-blue-600 rounded-lg text-white",
                 today: "text-blue-400 font-semibold",
                 outside: "opacity-30",
                 disabled: "opacity-20 cursor-not-allowed",
