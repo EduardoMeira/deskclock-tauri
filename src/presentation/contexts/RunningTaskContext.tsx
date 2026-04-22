@@ -60,13 +60,9 @@ const repo = new TaskRepository();
 const plannedRepo = new PlannedTaskRepository();
 const logRepo = new TaskIntegrationLogRepository();
 
-async function getOverlayWindow() {
-  return WebviewWindow.getByLabel("overlay");
-}
-
-async function showOverlay() {
-  const overlay = await getOverlayWindow();
-  await overlay?.show();
+async function showExecutionOverlay() {
+  const w = await WebviewWindow.getByLabel("overlay-execution");
+  await w?.show();
 }
 
 async function notifyOverlay(task: Task | null) {
@@ -140,7 +136,7 @@ export function RunningTaskProvider({ children, config }: RunningTaskProviderPro
         setActivePlannedTaskId(input.plannedTaskId ?? null);
         triggerReload();
         await notifyOverlay(task);
-        await showOverlay();
+        await showExecutionOverlay();
       } finally {
         isStartingTaskRef.current = false;
       }

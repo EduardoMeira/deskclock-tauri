@@ -7,8 +7,6 @@ import { usePlannedTasksForDate } from "@presentation/hooks/usePlannedTasks";
 import { useProjects } from "@presentation/hooks/useProjects";
 import { useCategories } from "@presentation/hooks/useCategories";
 import { todayISO } from "@shared/utils/time";
-import { executeActions } from "@shared/utils/actions";
-import { openInBrowser, openInFileManager } from "@shared/utils/shell";
 import { getProjectColor } from "@shared/utils/projectColor";
 import { OVERLAY_EVENTS } from "@shared/types/overlayEvents";
 import type { CommandPaletteNavigatePayload } from "@shared/types/overlayEvents";
@@ -34,7 +32,7 @@ interface PlanningOverlayContentProps {
     billable: boolean;
     plannedTaskId?: string | null;
   }) => Promise<void>;
-  onTaskStarted: (task: Task) => void;
+  onPlay: (task: PlannedTask) => Promise<void>;
   runningTask: Task | null;
 }
 
@@ -44,6 +42,7 @@ export function PlanningOverlayContent({
   onNavigatePlanning,
   onResize,
   onStartTask,
+  onPlay,
   runningTask,
 }: PlanningOverlayContentProps) {
   const today = todayISO();
@@ -61,15 +60,7 @@ export function PlanningOverlayContent({
   }, [pending.length, onResize]);
 
   async function handlePlay(task: PlannedTask) {
-    if (runningTask) return;
-    await executeActions(task.actions, { openUrl: openInBrowser, openPath: openInFileManager });
-    await onStartTask({
-      name: task.name,
-      projectId: task.projectId,
-      categoryId: task.categoryId,
-      billable: task.billable,
-      plannedTaskId: task.id,
-    });
+    await onPlay(task);
     await reload();
   }
 

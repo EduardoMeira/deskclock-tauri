@@ -11,6 +11,7 @@ import { RunningTaskProvider, useRunningTask } from "@presentation/contexts/Runn
 import { effectiveDuration } from "@domain/usecases/tasks/_helpers";
 import { formatHHMMSS, todayISO, addDaysISO, startOfDayISO, endOfDayISO } from "@shared/utils/time";
 import { TaskRepository as AppTaskRepository } from "@infra/database/TaskRepository";
+import { getActiveTasks } from "@domain/usecases/tasks/GetActiveTasks";
 import { TaskIntegrationLogRepository } from "@infra/database/TaskIntegrationLogRepository";
 import { ProjectRepository } from "@infra/database/ProjectRepository";
 import { CategoryRepository } from "@infra/database/CategoryRepository";
@@ -69,9 +70,8 @@ function PageContent({
   }
 }
 
-async function getOverlay() {
-  return WebviewWindow.getByLabel("overlay");
-}
+async function getOverlayCompact() { return WebviewWindow.getByLabel("overlay-compact"); }
+async function getOverlayExecution() { return WebviewWindow.getByLabel("overlay-execution"); }
 
 async function getCommandPalette() {
   return WebviewWindow.getByLabel("command-palette");
@@ -325,9 +325,18 @@ function AppInner() {
     }
 
     void (async () => {
-      // Overlay sempre sobe no startup (compact por padrão)
-      const overlay = await getOverlay();
-      await overlay?.show();
+      // Determina qual overlay mostrar: execution se há tarefa em execução, compact caso contrário
+      const startupRepo = new AppTaskRepository();
+      const activeTasks = await getActiveTasks(startupRepo);
+      const runningOnStartup = activeTasks.find((t) => t.status === "running") ?? activeTasks[0] ?? null;
+
+      if (runningOnStartup && config.get("overlayShowOnStart")) {
+        const execution = await getOverlayExecution();
+        await execution?.show();
+      } else {
+        const compact = await getOverlayCompact();
+        await compact?.show();
+      }
 
       if (config.get("showWelcomeMessage")) {
         const cp = await getCommandPalette();
