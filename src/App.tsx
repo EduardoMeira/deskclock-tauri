@@ -9,7 +9,13 @@ import { positionNearTaskbar, centerOnWorkArea, type WindowPositionOverride } fr
 import { ConfigProvider, useAppConfig } from "@presentation/contexts/ConfigContext";
 import { RunningTaskProvider, useRunningTask } from "@presentation/contexts/RunningTaskContext";
 import { effectiveDuration } from "@domain/usecases/tasks/_helpers";
-import { formatHHMMSS } from "@shared/utils/time";
+import { formatHHMMSS, todayISO, addDaysISO, startOfDayISO, endOfDayISO } from "@shared/utils/time";
+import { TaskRepository as AppTaskRepository } from "@infra/database/TaskRepository";
+import { TaskIntegrationLogRepository } from "@infra/database/TaskIntegrationLogRepository";
+import { ProjectRepository } from "@infra/database/ProjectRepository";
+import { CategoryRepository } from "@infra/database/CategoryRepository";
+import { GoogleSheetsTaskSender } from "@infra/integrations/GoogleSheetsTaskSender";
+import { groupTasks } from "@shared/utils/groupTasks";
 import { applyFontSize } from "@shared/utils/fontSize";
 import { applyTheme } from "@shared/utils/theme";
 import type { Theme } from "@shared/utils/theme";
@@ -347,6 +353,80 @@ function AppInner() {
         await showMainWindow();
       }
     })();
+  }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // F4: sincronização diária com Google Sheets
+  useEffect(() => {
+    if (!config.isLoaded) return;
+    if (!config.get("integrationGoogleSheetsAutoSync")) return;
+    if (config.get("sheetsAutoSyncMode") !== "daily") return;
+
+    const spreadsheetId = config.get("integrationGoogleSheetsSpreadsheetId");
+    const refreshToken = config.get("googleRefreshToken");
+    if (!spreadsheetId || !refreshToken) return;
+
+    const taskRepo = new AppTaskRepository();
+    const logRepo = new TaskIntegrationLogRepository();
+
+    async function runDailySync(dateISO: string) {
+      try {
+        const [tasks, projects, categories] = await Promise.all([
+          taskRepo.findByDateRange(startOfDayISO(dateISO), endOfDayISO(dateISO)),
+          new ProjectRepository().findAll(),
+          new CategoryRepository().findAll(),
+        ]);
+        const completed = tasks.filter((t) => t.status === "completed");
+        if (completed.length === 0) return;
+
+        const sentIds = new Set(
+          await logRepo.findSentIds("google_sheets", startOfDayISO(dateISO), endOfDayISO(dateISO))
+        );
+        const groups = groupTasks(completed).filter((g) => !g.tasks.every((t) => sentIds.has(t.id)));
+        if (groups.length === 0) return;
+
+        const tasksToSend = groups.map((g) => ({ ...g.tasks[0], durationSeconds: g.totalSeconds }));
+        const allIds = groups.flatMap((g) => g.tasks.map((t) => t.id));
+
+        const sender = new GoogleSheetsTaskSender(config, spreadsheetId, projects, categories);
+        await sender.send(tasksToSend);
+        await logRepo.markSent(allIds, "google_sheets");
+        await config.set("sheetsDailySyncLastDate", todayISO());
+        await showToast("success", `${groups.length} grupo(s) enviado(s) automaticamente para o Sheets`);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Erro no envio diário ao Sheets.";
+        await showToast("error", msg);
+      }
+    }
+
+    const trigger = config.get("sheetsAutoSyncTrigger");
+
+    if (trigger === "on-open") {
+      // Envia tarefas do dia anterior se ainda não sincronizou hoje
+      const lastDate = config.get("sheetsDailySyncLastDate");
+      if (lastDate !== todayISO()) {
+        void runDailySync(addDaysISO(todayISO(), -1));
+      }
+      return;
+    }
+
+    if (trigger === "fixed-time") {
+      const [hh, mm] = config.get("sheetsAutoSyncTime").split(":").map(Number);
+      let fired = false;
+
+      const interval = setInterval(() => {
+        if (fired) return;
+        const now = new Date();
+        if (now.getHours() === hh && now.getMinutes() === mm) {
+          const lastDate = config.get("sheetsDailySyncLastDate");
+          if (lastDate !== todayISO()) {
+            fired = true;
+            void runDailySync(todayISO());
+          }
+        }
+      }, 30_000);
+
+      return () => clearInterval(interval);
+    }
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Atalho de teclado: mostra command palette com posicionamento correto.
