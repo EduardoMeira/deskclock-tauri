@@ -222,8 +222,10 @@ export function SheetsSendModal({ projects, categories, onClose }: SheetsSendMod
         setSelectedKeys(new Set(sorted.filter((g) => !g.tasks.every((t) => newSentIds.has(t.id))).map((g) => g.key)));
         setLoaded(true);
       } catch (err) {
+        console.error("[SheetsSendModal] loadTasks error:", err);
         if (!cancelled) {
-          setMessage({ text: err instanceof Error ? err.message : "Erro ao carregar tarefas.", error: true });
+          const msg = err instanceof Error ? err.message : typeof err === "string" ? err : JSON.stringify(err);
+          setMessage({ text: msg || "Erro ao carregar tarefas.", error: true });
         }
       } finally {
         if (!cancelled) setLoading(false);
