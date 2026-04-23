@@ -1,9 +1,9 @@
-import { useEffect, useRef } from "react";
-import { currentMonitor, monitorFromPoint, primaryMonitor, getCurrentWindow } from "@tauri-apps/api/window";
-import { PhysicalPosition } from "@tauri-apps/api/dpi";
+import type { ConfigContextValue } from "@presentation/contexts/ConfigContext";
 import { snapPositionToGrid } from "@shared/utils/snapToGrid";
 import { positionNearTaskbar } from "@shared/utils/windowPosition";
-import type { ConfigContextValue } from "@presentation/contexts/ConfigContext";
+import { PhysicalPosition } from "@tauri-apps/api/dpi";
+import { currentMonitor, getCurrentWindow, monitorFromPoint, primaryMonitor } from "@tauri-apps/api/window";
+import { useEffect, useRef } from "react";
 
 type PositionKey = "overlayPosition_compact" | "overlayPosition_execution" | "overlayPosition_planning";
 
@@ -16,7 +16,9 @@ export async function restoreOverlayPosition(
   fallbackSize: { width: number; height: number },
 ) {
   const saved = config.get(configKey) as { x: number; y: number };
-  if (saved?.x >= 0 && saved?.y >= 0) {
+  // Check for explicit save (default sentinel is {x:-1, y:-1}); allow negative coords for
+  // multi-monitor setups or DPI-offset windows positioned near the left/top edge.
+  if (saved && !(saved.x === -1 && saved.y === -1)) {
     const pos = new PhysicalPosition(saved.x, saved.y);
     await appWindow.setPosition(pos).catch(() => {});
     setTimeout(() => appWindow.setPosition(pos).catch(() => {}), 150);
@@ -31,6 +33,7 @@ export function useOverlayDrag(
   snapToGrid: boolean,
   config: ConfigContextValue,
   onPositionChange?: () => void,
+  overlaySize?: { width: number; height: number },
 ) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastRawPosRef = useRef({ x: 0, y: 0 });
@@ -47,6 +50,11 @@ export function useOverlayDrag(
 
         // Clamp to monitor bounds — snap can push window past screen edge
         const winSize = await appWindow.outerSize();
+        const contentSize = overlaySize ?? winSize;
+        // When content is smaller than the window (e.g. 78×52 inside a 200×200 GTK window),
+        // compute the centering offset so clamping anchors on the visible area, not the window frame.
+        const offsetX = Math.round((winSize.width  - contentSize.width)  / 2);
+        const offsetY = Math.round((winSize.height - contentSize.height) / 2);
         const hw = Math.round(winSize.width / 2);
         const hh = Math.round(winSize.height / 2);
         const monitor =
@@ -56,8 +64,8 @@ export function useOverlayDrag(
         if (monitor) {
           const { position: ori, size: scr } = monitor;
           snapped = {
-            x: Math.max(ori.x, Math.min(snapped.x, ori.x + scr.width  - winSize.width)),
-            y: Math.max(ori.y, Math.min(snapped.y, ori.y + scr.height - winSize.height)),
+            x: Math.max(ori.x - offsetX, Math.min(snapped.x, ori.x + scr.width  - offsetX - contentSize.width)),
+            y: Math.max(ori.y - offsetY, Math.min(snapped.y, ori.y + scr.height - offsetY - contentSize.height)),
           };
         }
 
@@ -74,5 +82,5 @@ export function useOverlayDrag(
       unlisten.then((fn) => fn());
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [config, configKey, snapToGrid, onPositionChange]);
+  }, [config, configKey, snapToGrid, onPositionChange, overlaySize]);
 }
