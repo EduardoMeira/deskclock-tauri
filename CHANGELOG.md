@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/EduardoMeira/deskclock-tauri/compare/v1.1.0...v1.2.0) (2026-04-23)
+
+
+### Features
+
+* edição inline por campo no popup overlay da tarefa em execução ([420de40](https://github.com/EduardoMeira/deskclock-tauri/commit/420de4080315c517579fc35d4a6abd46fed36f1b))
+* overlay split-windows — compact + popup flyout com edição inline ([8da9a3c](https://github.com/EduardoMeira/deskclock-tauri/commit/8da9a3c03802d99914532157e35785d9d3fe0136))
+* redesenho do compact overlay com estado pausado e grip bar ([b7c5831](https://github.com/EduardoMeira/deskclock-tauri/commit/b7c583105e8f6ab2760a457b615c6f0d25b8c92f))
+* redesign compact overlay com timer MM:SS pulsante + popup focado em execução + fix snap off-screen ([9a000ee](https://github.com/EduardoMeira/deskclock-tauri/commit/9a000ee754d74f0171be421c8ba0eeea19947836))
+* separar overlay em 3 janelas independentes (compact, execution, planning) ([8c5815b](https://github.com/EduardoMeira/deskclock-tauri/commit/8c5815b03bd0be71a7e2be2f5a26481984f45825))
+
+
+### Bug Fixes
+
+* corrigir capabilities e tamanho dos overlays no GTK ([01a6399](https://github.com/EduardoMeira/deskclock-tauri/commit/01a639978e98a92471293e53af938b4fbcb85af1))
+* corrigir restore de posição do compact overlay e clamping de snap ([fb33507](https://github.com/EduardoMeira/deskclock-tauri/commit/fb335079297c72f0209a08e9b32f442218d0aa09))
+* emitir PLANNED_TASKS_CHANGED após importação do Google Calendar ([51bc387](https://github.com/EduardoMeira/deskclock-tauri/commit/51bc387cac6d40e75e8252762b06ad3ac2c08f9d))
+* múltiplos polimentos de UI e infraestrutura ([68944f3](https://github.com/EduardoMeira/deskclock-tauri/commit/68944f34463c3fcdc46ed5bbd57c75bbcb6b9c81))
+* pulso do anel do compact overlay usa inset box-shadow (glow interno) ([6d1a00c](https://github.com/EduardoMeira/deskclock-tauri/commit/6d1a00cfd3c7bf3a8e72197a689d778d917c7164))
+
 ## [1.1.0](https://github.com/EduardoMeira/deskclock-tauri/compare/v1.0.0...v1.1.0) (2026-04-22)
 
 ### [1.0.1](https://github.com/EduardoMeira/deskclock-tauri/compare/v1.0.0...v1.0.1) (2026-04-20)
