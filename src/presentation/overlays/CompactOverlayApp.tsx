@@ -1,23 +1,27 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { LogicalSize } from "@tauri-apps/api/dpi";
-import { listen } from "@tauri-apps/api/event";
 import type { Task } from "@domain/entities/Task";
+import { getActiveTasks } from "@domain/usecases/tasks/GetActiveTasks";
+import { TaskRepository } from "@infra/database/TaskRepository";
 import { ConfigProvider, useAppConfig } from "@presentation/contexts/ConfigContext";
 import {
   OVERLAY_EVENTS,
-  type RunningTaskChangedPayload,
   type OverlayConfigChangedPayload,
+  type RunningTaskChangedPayload,
 } from "@shared/types/overlayEvents";
 import { applyFontSize } from "@shared/utils/fontSize";
+import type { Theme } from "@shared/utils/theme";
 import { applyTheme } from "@shared/utils/theme";
 import { positionPopupNearCompact } from "@shared/utils/windowPosition";
-import { restoreOverlayPosition, useOverlayDrag } from "./useOverlayDrag";
-import type { Theme } from "@shared/utils/theme";
+import { LogicalSize } from "@tauri-apps/api/dpi";
+import { listen } from "@tauri-apps/api/event";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CompactOverlayContent } from "./CompactOverlayContent";
+import { restoreOverlayPosition, useOverlayDrag } from "./useOverlayDrag";
 
 const appWindow = getCurrentWindow();
+
+const taskRepo = new TaskRepository();
 
 async function getPopup() {
   return WebviewWindow.getByLabel("overlay-popup");
@@ -38,7 +42,7 @@ function CompactOverlayAppInner() {
   const syncPopupOpen = (value: boolean) => {
     isPopupOpenRef.current = value;
     setIsPopupOpen(value);
-  };
+  };  
 
   // Close popup if compact moves (user dragging)
   const handlePositionChange = useCallback(() => {
@@ -48,7 +52,7 @@ function CompactOverlayAppInner() {
     }
   }, []);
 
-  useOverlayDrag("overlayPosition_compact", snapToGrid, config, handlePositionChange);
+  useOverlayDrag("overlayPosition_compact", snapToGrid, config, handlePositionChange, { width: 78, height: 52 });
 
   useEffect(() => {
     if (!config.isLoaded) return;
@@ -59,6 +63,12 @@ function CompactOverlayAppInner() {
     void appWindow.setMinSize(new LogicalSize(52, 52));
     void appWindow.setMaxSize(new LogicalSize(52, 52));
     void restoreOverlayPosition("overlayPosition_compact", config, { width: 52, height: 52 });
+    // Load initial running task — RUNNING_TASK_CHANGED is only emitted on mutations,
+    // not on startup, so we query the DB directly.
+    void getActiveTasks(taskRepo).then((tasks) => {
+      const running = tasks.find((t) => t.status === "running");
+      setRunningTask(running ?? tasks[0] ?? null);
+    });
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -71,7 +81,9 @@ function CompactOverlayAppInner() {
         else if (payload.key === "theme") applyTheme(payload.value as Theme);
       }
     );
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []);
 
   // Track running task for visual state (timer + ring)
@@ -82,7 +94,9 @@ function CompactOverlayAppInner() {
         setRunningTask(payload.task);
       }
     );
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []);
 
   // Popup tells us it closed itself (blur or ESC)
@@ -90,7 +104,9 @@ function CompactOverlayAppInner() {
     const unlisten = listen(OVERLAY_EVENTS.OVERLAY_POPUP_CLOSED, () => {
       syncPopupOpen(false);
     });
-    return () => { unlisten.then((fn) => fn()); };
+    return () => {
+      unlisten.then((fn) => fn());
+    };
   }, []);
 
   const openPopup = useCallback(async () => {
@@ -131,7 +147,7 @@ function CompactOverlayAppInner() {
 
   return (
     <div
-      className="w-screen h-screen overflow-hidden"
+      className="w-screen h-screen m-auto relative overflow-hidden"
       style={{ opacity, transition: "opacity 0.2s ease" }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

@@ -1,8 +1,8 @@
-import { Clock } from "lucide-react";
 import type { Task } from "@domain/entities/Task";
 import { usePlannedTasksForDate } from "@presentation/hooks/usePlannedTasks";
 import { useTaskTimer } from "@presentation/hooks/useTaskTimer";
-import { todayISO, formatMMSS } from "@shared/utils/time";
+import { formatHHMMSS, todayISO } from "@shared/utils/time";
+import { ListTodo } from "lucide-react";
 
 interface CompactOverlayContentProps {
   runningTask: Task | null;
@@ -22,48 +22,64 @@ export function CompactOverlayContent({
   const pendingCount = tasks.filter((t) => !t.completedDates.includes(today)).length;
   const seconds = useTaskTimer(runningTask);
 
-  const isRunning = !!runningTask;
+  const isRunning = runningTask?.status === "running";
+  const isPaused  = runningTask?.status === "paused";
+  const hasTask   = !!runningTask;
+
   const borderClass = isRunning
     ? "border-blue-500 overlay-ring-pulse"
-    : isPopupOpen
-    ? "border-blue-500"
-    : "border-gray-700";
+    : isPaused
+      ? "border-amber-500"
+      : isPopupOpen
+        ? "border-blue-500"
+        : "border-gray-700";
+
+  const timerColor = isPaused ? "text-amber-400" : "text-blue-400";
 
   return (
     <div
       data-tauri-drag-region
-      className="w-full h-full relative cursor-move select-none"
-      title={isRunning ? "Ver tarefa em execução" : "Ver tarefas planejadas"}
+      className={`flex flex-col w-full h-full max-w-[78px] max-h-[52px] m-auto absolute inset-0 cursor-move bg-gray-900 border rounded-xl shadow-xl transition-colors duration-200 ${borderClass} overflow-hidden`}
+      title={hasTask ? "Ver tarefa em execução" : "Ver tarefas planejadas"}
     >
-      {/* Circular background + ring */}
-      <div
-        className={`absolute inset-0 bg-gray-900 border rounded-full shadow-xl pointer-events-none transition-colors duration-200 ${borderClass}`}
-      />
-
       {/* Central button */}
       <button
         onMouseDown={onMouseDown}
         onClick={onTogglePopup}
-        className="absolute inset-0 flex items-center justify-center rounded-full hover:bg-gray-800/60 transition-colors"
+        className="flex items-center justify-center hover:bg-gray-800/60 transition-colors w-full flex-1 cursor-pointer"
       >
-        {isRunning ? (
-          <span className="font-mono text-[11px] font-semibold tabular-nums text-blue-400 pointer-events-none leading-none">
-            {formatMMSS(seconds)}
+        {hasTask ? (
+          <span className={`font-mono text-[14px] font-semibold tabular-nums pointer-events-none leading-none ${timerColor}`}>
+            {formatHHMMSS(seconds)}
           </span>
         ) : (
-          <Clock size={15} className="text-blue-400 pointer-events-none" />
+          <ListTodo size={18} className="text-blue-400 pointer-events-none" />
         )}
       </button>
 
       {/* Grip dots */}
-      <div className="absolute bottom-[5px] left-1/2 -translate-x-1/2 flex gap-0.5 pointer-events-none">
-        <span className="w-[3px] h-[3px] bg-gray-600 rounded-full" />
-        <span className="w-[3px] h-[3px] bg-gray-600 rounded-full" />
-        <span className="w-[3px] h-[3px] bg-gray-600 rounded-full" />
+      <div
+        data-tauri-drag-region
+        className="p-1 gap-0.5 pointer-events-none flex flex-col items-center justify-center bg-gray-800"
+      >
+        <div className="flex gap-0.5">
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+        </div>
+        <div className="flex gap-0.5">
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+          <span className="w-[3px] h-[3px] bg-gray-200 rounded-full" />
+        </div>
       </div>
 
       {/* Pending badge — idle only */}
-      {!isRunning && pendingCount > 0 && (
+      {!hasTask && pendingCount > 0 && (
         <span className="absolute top-0 right-0 min-w-[16px] h-4 px-[3px] bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center pointer-events-none z-10 leading-none">
           {pendingCount > 9 ? "9+" : pendingCount}
         </span>
