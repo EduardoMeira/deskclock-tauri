@@ -4,11 +4,13 @@ import { LogicalSize, PhysicalPosition } from "@tauri-apps/api/dpi";
 import { emit, listen } from "@tauri-apps/api/event";
 import type { Task } from "@domain/entities/Task";
 import { TaskRepository } from "@infra/database/TaskRepository";
+import { getActiveTasks } from "@domain/usecases/tasks/GetActiveTasks";
 import { startTask as startTaskUC } from "@domain/usecases/tasks/StartTask";
 import { pauseTask as pauseTaskUC } from "@domain/usecases/tasks/PauseTask";
 import { resumeTask as resumeTaskUC } from "@domain/usecases/tasks/ResumeTask";
 import { stopTask as stopTaskUC } from "@domain/usecases/tasks/StopTask";
 import { cancelTask as cancelTaskUC } from "@domain/usecases/tasks/CancelTask";
+import { updateTask as updateTaskUC } from "@domain/usecases/tasks/UpdateTask";
 import { ConfigProvider, useAppConfig } from "@presentation/contexts/ConfigContext";
 import {
   OVERLAY_EVENTS,
@@ -82,6 +84,12 @@ function PopupOverlayAppInner() {
     setOverlayOpacity(config.get("overlayOpacity") as number);
     void appWindow.setMinSize(new LogicalSize(POPUP_W, 100));
     void appWindow.setMaxSize(new LogicalSize(POPUP_W, POPUP_H_ESTIMATE));
+    // Load initial running task — RUNNING_TASK_CHANGED is only emitted on mutations,
+    // not on startup, so we query the DB directly.
+    void getActiveTasks(taskRepo).then((tasks) => {
+      const running = tasks.find((t) => t.status === "running");
+      setRunningTask(running ?? tasks[0] ?? null);
+    });
   }, [config.isLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -127,7 +135,7 @@ function PopupOverlayAppInner() {
       }
     );
     return () => { unlisten.then((fn) => fn()); };
-  }, [config]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [config]);  
 
   // Close on blur (focus moved away from this popup)
   useEffect(() => {
@@ -230,6 +238,22 @@ function PopupOverlayAppInner() {
     } satisfies RunningTaskChangedPayload);
   }, [runningTask]);
 
+  const handleUpdate = useCallback(async (input: {
+    name?: string | null;
+    projectId?: string | null;
+    categoryId?: string | null;
+    billable?: boolean;
+    startTime?: string;
+  }) => {
+    if (!runningTask) return;
+    const updated = await updateTaskUC(taskRepo, runningTask.id, input, new Date().toISOString());
+    setRunningTask(updated);
+    await emit(OVERLAY_EVENTS.RUNNING_TASK_CHANGED, {
+      task: updated,
+      source: "overlay",
+    } satisfies RunningTaskChangedPayload);
+  }, [runningTask]);
+
   const handleClose = useCallback(async () => {
     await emit(OVERLAY_EVENTS.OVERLAY_POPUP_CLOSED, {});
     await appWindow.hide();
@@ -259,6 +283,7 @@ function PopupOverlayAppInner() {
         onResume={handleResume}
         onStop={handleStop}
         onCancel={handleCancel}
+        onUpdateTask={handleUpdate}
       />
     </div>
   );
